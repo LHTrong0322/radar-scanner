@@ -255,6 +255,19 @@ async function main() {
   const state = fs.existsSync(STATE_PATH) ? JSON.parse(fs.readFileSync(STATE_PATH, "utf8")) : {};
   state.journal = state.journal || [];
   const errors = [];
+  // Nhận kèo cũ từ trang web (file import.json người dùng tải lên repo), gộp vào nhật ký rồi xoá file
+  for (const f of [path.join(ROOT, "import.json"), path.join(ROOT, "data", "import.json")]) {
+    if (!fs.existsSync(f)) continue;
+    try {
+      const raw = JSON.parse(fs.readFileSync(f, "utf8")), list = Array.isArray(raw) ? raw : (raw.journal || []);
+      const have = new Set(state.journal.map(j => j.id)); let n = 0;
+      for (const j of list) if (j && j.id && j.sym && j.entry > 0 && !have.has(j.id)) { delete j.local; state.journal.push({ ...j, by: j.by || "web" }); n++; }
+      state.journal.sort((a, b) => a.at - b.at);
+      outbox.push(`📥 Đã nhận ${n} kèo cũ từ trang web, bot sẽ theo dõi tiếp.`);
+      console.log(`Nhận ${n} kèo từ ${path.basename(f)}`);
+    } catch (e) { errors.push(`import.json lỗi: ${e.message}`); }
+    fs.unlinkSync(f);
+  }
 
   // 4.1 danh sách tài sản
   const { src: rankSrc, list } = await topCoins();
