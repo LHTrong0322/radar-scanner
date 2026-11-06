@@ -88,6 +88,26 @@ const CANDLES = [
     if (j.retCode !== 0) throw new Error(j.retMsg);
     return j.result.list.map(a => ({ t: num(a[0]), o: num(a[1]), h: num(a[2]), l: num(a[3]), c: num(a[4]), v: num(a[5]) })).reverse();
   }],
+  ["bitget", async (b, tf, n) => {
+    const g = { "1h": "1h", "4h": "4h", "1d": "1day", "1w": "1week" }[tf];
+    const j = await getJ(`https://api.bitget.com/api/v2/spot/market/candles?symbol=${b}USDT&granularity=${g}&limit=${Math.min(n, 1000)}`);
+    if (j.code !== "00000") throw new Error(j.msg);
+    return j.data.map(a => ({ t: num(a[0]), o: num(a[1]), h: num(a[2]), l: num(a[3]), c: num(a[4]), v: num(a[5]) })).sort((p, q) => p.t - q.t);
+  }],
+  ["kraken", async (b, tf) => {
+    const iv = { "1h": 60, "4h": 240, "1d": 1440, "1w": 10080 }[tf];
+    const names = b === "BTC" ? ["XBT"] : /X$/.test(b) && b.length > 4 ? [b.slice(0, -1) + "x", b] : [b];   // xStocks trên Kraken: COINxUSD
+    let last;
+    for (const nm of names) {
+      try {
+        const j = await getJ(`https://api.kraken.com/0/public/OHLC?pair=${nm}USD&interval=${iv}`);
+        if (j.error && j.error.length) throw new Error(j.error.join(", "));
+        const key = Object.keys(j.result || {}).find(k => k !== "last"); if (!key) throw new Error("không có cặp");
+        return j.result[key].map(a => ({ t: a[0] * 1000, o: num(a[1]), h: num(a[2]), l: num(a[3]), c: num(a[4]), v: num(a[6]) }));
+      } catch (e) { last = e; }
+    }
+    throw last;
+  }],
   ["coinbase", async (b, tf) => {
     const g = { "1h": 3600, "1d": 86400 }[tf]; if (!g) throw new Error("khung không hỗ trợ");
     const j = await getJ(`https://api.exchange.coinbase.com/products/${b}-USD/candles?granularity=${g}`);
@@ -105,9 +125,12 @@ async function cryptoCandles(base, tf, n = 500, startTime) {
   }
   throw new Error(`không sàn nào có nến ${base} ${tf}`);
 }
+let yahooGate = Promise.resolve();
+const yahooSlot = () => { const p = yahooGate.then(() => sleep(900)); yahooGate = p; return p; };   // giãn cách gọi Yahoo
 async function yahoo(sym, interval, range) {
   let last;
-  for (const host of ["query1", "query2"]) {
+  for (const host of ["query1", "query2", "query1"]) {
+    await yahooSlot();
     try {
       const j = await getJ(`https://${host}.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=${interval}&range=${range}&includePrePost=false`);
       const r = j.chart.result[0], q = r.indicators.quote[0], out = [];
@@ -128,28 +151,63 @@ async function stooq(sym, per) {           // dự phòng cổ phiếu: nến ng
     return rows;
   } finally { clearTimeout(t); }
 }
-async function stockCandles(sym, tf) {
-  const [iv, rg] = { "1h": ["60m", "60d"], "4h": ["60m", "730d"], "1d": ["1d", "5y"], "1w": ["1wk", "10y"] }[tf];
-  let c;
-  try { c = (await yahoo(sym, iv, rg)).c; if (c.length < 30) throw new Error("Yahoo thiếu nến"); }
-  catch (e) {
-    if (tf !== "1d" && tf !== "1w") throw new Error(`Yahoo lỗi (${e.message}), Stooq không có khung ${tf}`);
-    c = await stooq(sym, tf === "1d" ? "d" : "w");
+async function nasdaqDaily(sym) {          // dự phòng: nến ngày từ Nasdaq.com
+  const to = new Date(), from = new Date(Date.now() - 6 * 365 * 864e5), d = x => x.toISOString().slice(0, 10);
+  let last;
+  for (const cls of sym === "SPY" ? ["etf", "stocks"] : ["stocks", "etf"]) {
+    try {
+      const j = await getJ(`https://api.nasdaq.com/api/quote/${sym}/historical?assetclass=${cls}&fromdate=${d(from)}&todate=${d(to)}&limit=9999`,
+        { headers: { "Accept": "application/json, text/plain, */*", "Origin": "https://www.nasdaq.com", "Referer": "https://www.nasdaq.com/" } });
+      const rows = (((j || {}).data || {}).tradesTable || {}).rows || [];
+      const n = v => +String(v || "").replace(/[$,]/g, "");
+      const out = rows.map(r => { const [m, dd, y] = String(r.date).split("/"); return { t: Date.parse(`${y}-${m}-${dd}T20:00:00Z`), o: n(r.open), h: n(r.high), l: n(r.low), c: n(r.close), v: n(r.volume) }; })
+        .filter(k => [k.t, k.o, k.h, k.l, k.c].every(Number.isFinite) && k.c > 0).sort((a, b) => a.t - b.t);
+      if (out.length >= 30) return out;
+      last = new Error("Nasdaq thiếu nến");
+    } catch (e) { last = e; }
   }
-  const ms = K.TFMS[tf], out = [];
-  for (const k of c) {
-    const b = K.bucket(k.t, ms), L = out[out.length - 1];
-    if (L && L.t === b) { L.h = Math.max(L.h, k.h); L.l = Math.min(L.l, k.l); L.c = k.c; L.v += k.v; } else out.push({ ...k, t: b });
-  }
-  return out.slice(-500);
+  throw last;
 }
+async function xStock(sym, tf) {            // dự phòng: cổ phiếu token hoá giao dịch 24/7 trên sàn crypto (COINX, HOODX…)
+  let last;
+  // xStocks (Bybit, Gate, MEXC, Kraken, Bitget…) · Ondo Global Markets (…ON) · Bitget/MEXC (…B)
+  for (const suf of ["X", "ON", "B"]) { try { return (await cryptoCandles(sym + suf, tf)).c; } catch (e) { last = e; } }
+  throw new Error(`không sàn crypto nào có token hoá ${sym}X / ${sym}ON / ${sym}B`);
+}
+const dailyMemo = new Map();
+async function stockDaily(sym) {
+  if (dailyMemo.has(sym)) return dailyMemo.get(sym);
+  const p = (async () => {
+    const errs = [];
+    try { const c = (await yahoo(sym, "1d", "5y")).c; if (c.length >= 30) return c; errs.push("Yahoo thiếu nến"); } catch (e) { errs.push("Yahoo " + e.message); }
+    try { return await nasdaqDaily(sym); } catch (e) { errs.push("Nasdaq " + e.message); }
+    try { return await stooq(sym, "d"); } catch (e) { errs.push("Stooq " + e.message); }
+    throw new Error(errs.join("; "));
+  })();
+  dailyMemo.set(sym, p); p.catch(() => {});
+  return p;
+}
+const aggregate = (c, ms) => { const out = []; for (const k of c) { const b = K.bucket(k.t, ms), L = out[out.length - 1]; if (L && L.t === b) { L.h = Math.max(L.h, k.h); L.l = Math.min(L.l, k.l); L.c = k.c; L.v += k.v; } else out.push({ ...k, t: b }); } return out; };
+async function stockCandles(sym, tf) {
+  const errs = [];
+  if (tf === "4h" || tf === "1h") {
+    try { const c = (await yahoo(sym, "60m", tf === "4h" ? "730d" : "60d")).c; if (c.length >= 30) return aggregate(c, K.TFMS[tf]).slice(-500); errs.push("Yahoo thiếu nến"); }
+    catch (e) { errs.push("Yahoo " + e.message); }
+  } else {
+    try { const d = await stockDaily(sym); return (tf === "1w" ? aggregate(d, K.TFMS["1w"]) : aggregate(d, K.TFMS["1d"])).slice(-500); }
+    catch (e) { errs.push(e.message); }
+  }
+  try { return await xStock(sym, tf); } catch (e) { errs.push(e.message); }
+  throw new Error(errs.join("; "));
+}
+
 async function topCoins() {
   try {
     const j = await getJ(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=150&page=1`, CG_KEY ? { headers: { "x-cg-demo-api-key": CG_KEY } } : {});
     return { src: "CoinGecko", list: j };
   } catch (e) {
     const j = await getJ("https://api.coinpaprika.com/v1/tickers?quotes=USD", {}, 30000);
-    return { src: "CoinPaprika", list: j.filter(m => m.rank > 0).sort((a, b) => a.rank - b.rank).slice(0, 150).map(m => ({ symbol: m.symbol, name: m.name, current_price: m.quotes.USD.price })) };
+    return { src: "CoinPaprika", list: j.filter(m => m.rank > 0).sort((a, b) => a.rank - b.rank).slice(0, 150).map(m => ({ symbol: m.symbol, name: m.name, current_price: m.quotes.USD.price, price_change_percentage_24h: m.quotes.USD.percent_change_24h })) };
   }
 }
 
@@ -217,7 +275,7 @@ async function main() {
         if (t.ind) R[tf] = t;
       } catch (e) { why.push(`${tf}: ${e.message}`); }
     }
-    if (!Object.keys(R).length) { errors.push(`${a.base}: không có dữ liệu (${why[0] || "thiếu nến"})`); return; }
+    if (!Object.keys(R).length) { errors.push(`${a.base}: không có dữ liệu (${why.join(" | ") || "thiếu nến"})`); return; }
     a.price = (R["4h"] || R["1d"] || R["1w"]).c.at(-1).c;
     PICK_TFS.forEach((tf, k) => {
       const t = R[tf]; if (!t || !t.buy || !t.buy.plan || t.buy.plan.reject) return;
@@ -254,7 +312,10 @@ async function main() {
   await pool(active, 4, async j => {
     try {
       let c;
-      if (j.src === "st") { try { c = (await yahoo(j.sym, "60m", Date.now() - j.at > 55 * 864e5 ? "730d" : "60d")).c; } catch (e) { c = await stooq(j.sym, "d"); } }
+      if (j.src === "st") {
+        try { c = (await yahoo(j.sym, "60m", Date.now() - j.at > 55 * 864e5 ? "730d" : "60d")).c; }
+        catch (e) { try { c = await xStock(j.sym, "1h"); } catch (e2) { c = await stockDaily(j.sym); } }
+      }
       else c = (await cryptoCandles(j.base, "1h", 1000, j.at - 36e5)).c;
       const cur = c.length ? c.at(-1).c : null, prev = { status: j.status, half: !!j.half };
       Object.assign(j, K.simulate(j, c, cur), { checked: Date.now() });

@@ -423,7 +423,7 @@ const REST=["https://api.binance.com","https://data-api.binance.vision"];
 const WSS=["wss://stream.binance.com:9443","wss://data-stream.binance.vision"];
 const CG="https://api.coingecko.com/api/v3";
 const TOP=100;
-const SKIP=new Set(["eursafo","jaaa","eutbl","ylds","a7a5","reusd","hash","kau","kag","benji","ustbl","jtrsy","usdo","srusd","syrupusdt","susdf","gusd","usdq","eurcv","eure","xsgd","tryb","bidr","pyusd","usd0++","usdy","stusdt","sfrax","sdai","ousg","buidl","trx","wbt","leo","usdy","u","jst","wlfi","htx","figr_heloc","figr","ousg","usdtb","usdt","usdc","usds","susds","usde","susde","dai","fdusd","tusd","usdp","pyusd","rlusd","usd1","usd0","usdtb","usdf","usyc","ustb","buidl","gho","crvusd","frax","lusd","usdd","usdx","eurc","eurs","xaut","paxg","bsc-usd","bfusd","usdg","usdai","syrupusdc","steth","wsteth","weth","weeth","reth","cbbtc","cbeth","wbeth","wbtc","bnsol","jitosol","msol","bbsol","jupsol","lbtc","solvbtc","tbtc","wbnb","meth","ezeth","rseth","sweth","oseth","lseth","ethx","clbtc","btcb","wsol","wavax","wtrx","weeths","rsweth","pufeth","sfrxeth","stkaave"]);
+const SKIP=new Set(["brz","gyen","jpyc","zchf","xchf","vchf","veur","vgbp","eurr","eurt","eurs","ageur","eura","euroe","eurq","eurau","gbpt","tgbp","audd","audf","cadc","nzds","bidr","idrt","cnht","mxnt","usdt0","eursafo","jaaa","eutbl","ylds","a7a5","reusd","hash","kau","kag","benji","ustbl","jtrsy","usdo","srusd","syrupusdt","susdf","gusd","usdq","eurcv","eure","xsgd","tryb","bidr","pyusd","usd0++","usdy","stusdt","sfrax","sdai","ousg","buidl","trx","wbt","leo","usdy","u","jst","wlfi","htx","figr_heloc","figr","ousg","usdtb","usdt","usdc","usds","susds","usde","susde","dai","fdusd","tusd","usdp","pyusd","rlusd","usd1","usd0","usdtb","usdf","usyc","ustb","buidl","gho","crvusd","frax","lusd","usdd","usdx","eurc","eurs","xaut","paxg","bsc-usd","bfusd","usdg","usdai","syrupusdc","steth","wsteth","weth","weeth","reth","cbbtc","cbeth","wbeth","wbtc","bnsol","jitosol","msol","bbsol","jupsol","lbtc","solvbtc","tbtc","wbnb","meth","ezeth","rseth","sweth","oseth","lseth","ethx","clbtc","btcb","wsol","wavax","wtrx","weeths","rsweth","pufeth","sfrxeth","stkaave"]);
 const TFMS={"15m":9e5,"1h":36e5,"4h":144e5,"1d":864e5,"1w":6048e5};
 const CGDAYS={"15m":1,"1h":30,"4h":90,"1d":365,"1w":365};
 const STOCKS=[["INTC","INTC","Intel","NASDAQ"],["CRCL","CRCL","Circle","NYSE"],["COIN","COIN","Coinbase","NASDAQ"],["HOOD","HOOD","Robinhood","NASDAQ"],["MSTR","MSTR","Strategy","NASDAQ"],["BMNR","BMNR","BitMine Immersion","AMEX"],["BLSH","BLSH","Bullish","NYSE"],["SPY","SPY500","S&P 500 (quỹ SPY)","AMEX"],["SECZ","SECZ","Securitize","NYSE"]];
@@ -494,12 +494,14 @@ async function cg(path,tries=3){
 }
 async function pool(items,limit,fn){let i=0;const run=async()=>{while(i<items.length){await fn(items[i++])}};await Promise.all(Array.from({length:limit},run))}
 function skipCoin(m){
-  const s=(m.symbol||"").toLowerCase(), n=(m.name||"").toLowerCase();
+  const s=(m.symbol||"").toLowerCase(), n=(m.name||"").toLowerCase(), p=+m.current_price||0, ch=Math.abs(+(m.price_change_percentage_24h??0)||0);
   if(SKIP.has(s)) return true;
-  if(/heloc|figure|treasury|t-?bill|money market|\bclo\b|ruble|tokenized gold|kinesis|bond fund/.test(n)) return true;
-  if(/wrapped|staked|bridged|restaked|liquid staking|tokenized|stablecoin/.test(n)) return true;
-  if(/usd|eur|gbp/.test(s)&&Math.abs((m.current_price||0)-1)<0.06) return true;
-  if(Math.abs((m.current_price||0)-1)<0.01&&/usd|dollar/.test(n)) return true;
+  if(/wrapped|staked|bridged|restaked|liquid staking|tokenized|stablecoin|heloc|figure|treasury|t-?bill|money market|\bclo\b|bond fund|tokenized gold|kinesis/.test(n)) return true;
+  // Mã tiền tệ: token neo theo tiền pháp định (USD, EUR, RUB, JPY, SGD…) hoặc kim loại quý — không quét
+  const FIAT=/\b(usd|eur|euro|dollar|brazilian|japanese|swiss|singapore|ruble|rouble|yen|jpy|gbp|pound sterling|sterling|franc|chf|sgd|cny|yuan|brl|lira|idr|rupiah|aud|cad|krw|mxn|peso|inr|rupee|zar|php|hkd|twd|thb|vnd)\b/;
+  if((FIAT.test(n)||/^(usd|eur|gbp|jpy|chf|sgd|cny|brl|idr|aud|cad|krw|mxn|hkd|xsgd|xidr|xaut|xau|paxg|cnh)/.test(s)||/(usd|eur|gbp|jpy|yen|sgd|brl|idr|chf|aud|cad)$/.test(s))&&ch<1.5) return true;
+  if(/(usd|eur)/.test(s)&&Math.abs(p-1)<0.06) return true;
+  if(/\b(gold|silver|platinum)\b/.test(n)) return true;
   return false;
 }
 const bucket=(t,ms)=>ms===TFMS["1w"]?Math.floor((t-4*864e5)/ms)*ms+4*864e5:Math.floor(t/ms)*ms;
