@@ -358,7 +358,13 @@ async function main() {
         try { c = (await yahoo(j.sym, "60m", Date.now() - j.at > 55 * 864e5 ? "730d" : "60d")).c; }
         catch (e) { try { c = await xStock(j.sym, "1h"); } catch (e2) { c = await stockDaily(j.sym); } }
       }
-      else c = (await cryptoCandles(j.base, "1h", 1000, j.at - 36e5)).c;
+      else {                                                             // lấy đủ nến 1H từ lúc ghi kèo tới hiện tại (kèo khung D/W có thể kéo dài nhiều tháng)
+        c = (await cryptoCandles(j.base, "1h", 1000, j.at - 36e5)).c;
+        for (let pg = 0; pg < 8 && c.length && c.at(-1).t < Date.now() - 2 * 36e5; pg++) {
+          const more = (await cryptoCandles(j.base, "1h", 1000, c.at(-1).t + 36e5).catch(() => ({ c: [] }))).c.filter(k => k.t > c.at(-1).t);
+          if (!more.length) break; c = c.concat(more);
+        }
+      }
       const cur = c.length ? c.at(-1).c : null, prev = { status: j.status, half: !!j.half, hit: j.hit || (j.half ? 1 : 0) };
       Object.assign(j, K.simulate(j, c, cur), { checked: Date.now() });
       const m = msgUpdate(j, prev); if (m && (j.status !== prev.status || j.half !== prev.half || (j.hit || 0) !== prev.hit)) outbox.push(m);
