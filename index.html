@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Crypto RSI Radar</title>
+<link rel="icon" href="data:image/webp;base64,UklGRpAEAABXRUJQVlA4IIQEAABwFgCdASpAAEAAPm0qj0WkIqEYDAZ8QAbEtQBkDsb/gOnQyJ2Djiel4sDzO2T8wH61+kz+kGsc+gB0nX7g+lfd6n4Doo/VkiQiz/XcIMpixt3l2oEqCTIP7d/qvUAzpPTvsFfzL+u/8/sN/tj7Kv63K4Ll9GtGImH0SgTXKnTrDgfUvyHoaYo/1mWlGavoS5GAjeEnNDeK5toHEfvn1dokQmMLD+67qylRTeWquYVXmNNDsQUwmXqsMv+EgAD++G4ziHJLm7PezHc0dsiPpURtxOl0i1Vuy77y4D2goJowtxVkEb5VB4S88Aj8SnmvB44Vol3i0WYq20zL29YA7R2Wvu+bTehfqx94A3khjNlHAISDXplLIQtXc6XzkxceShCM+YA8CEa/chibh6vtKWWRhj79drfzXCzoGpO/bXKtyM5rqF8CBLdg4zi1wxfnneF+qCj5VaEjqGohndN5Q8paxuJzEqqF+Ol/jusAaoosYncGM0Oi66tuj2f2prnjLWFtE0JwvlAalq+mwrg5mlqkQwDUC5LqJjBhCsXyOHq1aC5/zBIdzo2ynLN756l1veznkGCUtRqfYIIYLFWqOwbls1LJIeOZQWb5ewTSj1gJDeFiazPufw3sMi0YlnBgsTItsW/amleEdYTVj+Aq7DyUOl0KsF1tZQHi1OO93JEX9F85k/kd5jN+oiiJ0rpQGL58kRe4jmIjS87/cRcUOkHoUDlKos3usWWrTL7RiGS480s7eKea5Vlqmkmaa1dGESP0ijqQ+4OGOF0j5mN+bdR/pn/Jvcaor0pVQPZ8ZQVlepn42Vrn3bHC51oM3xclk0yf7O4ZWCa1atg7Kp8Wbx9GveYDzWJdYZgPH6WIv/KCg/L/42kvYgPl0WXOAuOqtv01TFk4Tw1J6v3JT88VVGcjjAbNmyt+VvHFVFhJ/qE3YgZ/2Oa6b+fo/J0GOMRJV1shbcb1Lf8cubHF+pWEozYoZAPrd+F+f8iT7PuI7KB3MYyAaTqyK59HoFCRcVY94EY/o/bkRb36NriUpf5ym4qZl8OkUaz+b0CFB/4SO6/84H/GvaiTgLsUaGEmctpf/v5o/SszI/WiT25yzjWf14oagbOtuHx0Voe1tGg76nHyQuyUs1HNdmwcxvI/gHuv8uED5XxlJRQ4MfzrwvmuHVCuSzdEeO2nCyuh6teK83q7UD37rRqDpqVTNzt/7zPRuHl8hcB74P6dBe+M0rbsoJQ/edwoc//qNzqx9sRuUr7k92NZSVyUEMQYc2lAXksyFfh/hDi+3PGl0Cdf3ddWUkbatBl2tByEN8k7d+rQ6rFzBvgeDudtUd00M9g2SshJls5RGAW0OTz/10W5ZNkJ99a/t5pDIuTWClFLo8WTSlXGL7Wzv7tLm8SdID62qurXYxVedz8WdlqYZ2p+fESvDhUhmeuqfYPTGrxO4DLBJnqI+4BUFJJ1gHY4nSrVNClfYXm+mGdu9Yo+wX/4J4aicnb4f/B/IDVwyLmTTXfGCbsB3E6aHyXtt9Mv18qFDzfpqfRN0AAA">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Be+Vietnam+Pro:wght@400;500;600;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
@@ -57,12 +58,18 @@ main.wrap{padding-block:20px 56px}
 .topbar .in{max-width:1320px;margin:0 auto;display:flex;align-items:center;gap:14px 20px;flex-wrap:wrap;padding-block:12px}
 .brand{display:flex;align-items:center;gap:12px;margin-right:auto;min-width:0}
 .mark{width:34px;height:34px;flex:none}
+.mark.logo{width:44px;height:44px;border-radius:12px;border:1px solid var(--line-2);object-fit:cover}
+.brand p.by{font:600 11.5px var(--body);color:var(--faint);margin-top:3px}
+.brand p.by a{color:var(--accent);text-decoration:none} .brand p.by a:hover{text-decoration:underline}
+.site-by{text-align:center;color:var(--faint);font-size:12px;padding:18px 0 28px}
+.site-by a{color:var(--accent);text-decoration:none}
 .brand h1{font:700 21px/1.05 var(--display);letter-spacing:-.02em;margin:0}
 .brand p{margin:2px 0 0;font-size:12px;color:var(--muted)}
 .live{display:inline-flex;align-items:center;gap:8px;font:500 12px var(--mono);color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:6px 12px;background:var(--panel-2)}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--neutral)}
 .live.on .dot{background:var(--up);animation:pulse 1.8s infinite}
 .live.err .dot{background:var(--dn)}
+.live.warn .dot{background:var(--warn)} .live.warn{color:var(--warn)} .live.err{color:var(--dn)}
 @keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--up) 55%,transparent)}100%{box-shadow:0 0 0 8px transparent}}
 @media (prefers-reduced-motion:reduce){.live.on .dot{animation:none}}
 
@@ -122,6 +129,16 @@ input[type=number],input[type=password],input.txt,select{font:500 12.5px var(--m
 .infl .ds{font-size:11.5px;color:var(--muted);line-height:1.45}
 .infl .bar{height:4px;border-radius:2px;background:var(--line);overflow:hidden;margin-top:4px}
 .infl .bar i{display:block;height:100%}
+.nr-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:900px){.nr-grid{grid-template-columns:1fr}}
+.nr-col{min-width:0;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel-2)}
+.nr-h{padding:10px 14px;border-bottom:1px solid var(--line)} .nr-h b{font:700 16px var(--display)}
+.nr-list{list-style:none;margin:0;padding:4px 14px 8px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));column-gap:18px;max-height:300px;overflow:auto}
+.nr-list li{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--line)}
+.nr-list li.empty{color:var(--muted);font-size:13px;border-top:0}
+.nr-list b{font:600 13.5px var(--mono);font-variant-numeric:tabular-nums}
+.nr-tf{display:inline-block;min-width:34px;text-align:center;font:700 11.5px var(--mono);padding:2px 6px;border-radius:6px;background:var(--line);color:var(--fg)}
+.nr-s{font-weight:600} .nr-s.up{color:var(--up)} .nr-s.dn{color:var(--dn)}
 
 /* panels */
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px 18px 16px;min-width:0}
@@ -226,17 +243,11 @@ details.how p{color:var(--muted);font-size:12.5px;line-height:1.6;max-width:90ch
 <header class="topbar gut">
   <div class="in">
     <div class="brand">
-      <svg class="mark" viewBox="0 0 34 34" aria-hidden="true">
-        <circle cx="17" cy="17" r="15.5" fill="none" stroke="var(--line-2)" stroke-width="1.2"/>
-        <circle cx="17" cy="17" r="10" fill="none" stroke="var(--line-2)" stroke-width="1.2"/>
-        <circle cx="17" cy="17" r="4.5" fill="none" stroke="var(--line-2)" stroke-width="1.2"/>
-        <path d="M17 17 L17 1.5 A15.5 15.5 0 0 1 31.2 10.8 Z" fill="var(--accent)" opacity=".35"/>
-        <line x1="17" y1="17" x2="31.2" y2="10.8" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round"/>
-        <circle cx="24.5" cy="9" r="2" fill="var(--up)"/><circle cx="9" cy="22.5" r="1.6" fill="var(--dn)"/>
-      </svg>
-      <div><h1>Crypto RSI Radar</h1><p>Top 100 crypto + cổ phiếu crypto · tín hiệu kỹ thuật realtime</p></div>
+      <img class="mark logo" src="data:image/webp;base64,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" alt="Logo Trong0322" width="44" height="44">
+      <div><h1>Crypto RSI Radar</h1><p>Top 100 crypto + crypto stocks · technical signals realtime</p><p class="by">Agent build by <a href="https://x.com/Trong0322" target="_blank" rel="noopener">@Trong0322</a></p></div>
     </div>
     <span class="live" id="live"><span class="dot"></span><span id="liveTxt">Đang kết nối…</span></span>
+    <span class="live" id="bot" title="Bot trên GitHub quét mỗi 15 phút, kể cả khi bạn tắt máy"><span class="dot"></span><span id="botTxt">Bot 24/7: đang kiểm tra…</span></span>
   </div>
 </header>
 
@@ -245,14 +256,14 @@ details.how p{color:var(--muted);font-size:12.5px;line-height:1.6;max-width:90ch
   <div id="radarView" class="wrap" style="width:100%">
     <div class="toolbar">
       <div class="row">
-        <span class="lab">Khung</span>
+        <span class="lab">Timeframe</span>
         <div class="seg" id="tf" role="group" aria-label="Khung thời gian">
           <button data-v="15m">15m</button><button data-v="1h">1H</button><button data-v="4h" aria-pressed="true">4H</button><button data-v="1d">1D</button><button data-v="1w">1W</button>
         </div>
         <span class="spacer"></span>
-        <label class="f" for="win">Tín hiệu trong <select id="win"><option value="1">1</option><option value="3" selected>3</option><option value="5">5</option><option value="10">10</option></select> nến</label>
-        <label class="f" for="ob">RSI quá mua ≥ <input id="ob" type="number" value="70" min="50" max="95"></label>
-        <label class="f" for="os">quá bán ≤ <input id="os" type="number" value="30" min="5" max="50"></label>
+        <label class="f" for="win">Signal lookback <select id="win"><option value="1">1</option><option value="3" selected>3</option><option value="5">5</option><option value="10">10</option></select> candles</label>
+        <label class="f" for="ob">RSI overbought ≥ <input id="ob" type="number" value="70" min="50" max="95"></label>
+        <label class="f" for="os">oversold ≤ <input id="os" type="number" value="30" min="5" max="50"></label>
         <label class="f" for="cgkey">CoinGecko key <input id="cgkey" type="password" placeholder="tuỳ chọn" autocomplete="off" style="width:120px"></label>
         <button class="btn" id="reload">Tải lại</button>
       </div>
@@ -268,7 +279,7 @@ details.how p{color:var(--muted);font-size:12.5px;line-height:1.6;max-width:90ch
 
     <div class="top2">
     <section class="panel fng" id="fngPanel" aria-label="Chỉ số Fear and Greed của Bitcoin">
-      <h2><span><span class="eyebrow">Tâm lý thị trường</span>Bitcoin Fear &amp; Greed</span><small id="fngUpd"></small></h2>
+      <h2><span><span class="eyebrow">Market sentiment</span>Bitcoin Fear &amp; Greed</span><small id="fngUpd"></small></h2>
       <div class="fng-row">
         <svg id="fngGauge" viewBox="0 0 220 128" role="img" aria-label="Đồng hồ chỉ số Fear and Greed"></svg>
         <ul class="fng-hist" id="fngHist"></ul>
@@ -276,107 +287,115 @@ details.how p{color:var(--muted);font-size:12.5px;line-height:1.6;max-width:90ch
       <svg id="fngSpark" viewBox="0 0 320 64" preserveAspectRatio="none" aria-hidden="true"></svg>
       <small class="mut" id="fngNote">Đang tải chỉ số…</small>
       <div class="mine" id="mine">
-        <span class="eyebrow">Chi phí đào 1 BTC (tiền điện)</span>
+        <span class="eyebrow">Mining cost 1 BTC (electricity)</span>
         <div class="mine-main"><b id="mCost">–</b><span id="mRatio" class="mut">đang tải dữ liệu mạng…</span></div>
         <div class="mine-meta mut" id="mMeta"></div>
         <div class="mine-in">
           <label class="f" for="mElec">Giá điện $/kWh <input id="mElec" type="number" step="0.005" min="0.01" max="0.3" value="0.06"></label>
-          <label class="f" for="mEff">Hiệu suất máy J/TH <input id="mEff" type="number" step="1" min="5" max="60" value="22"></label>
+          <label class="f" for="mEff">Efficiency J/TH <input id="mEff" type="number" step="1" min="5" max="60" value="22"></label>
         </div>
       </div>
     </section>
     <div class="rcol">
     <div class="summary" id="kpis">
       <div class="stat acc"><div class="k">Setup đẹp</div><div class="v" id="sBuy">–</div></div>
-      <div class="stat os"><div class="k">Quá bán</div><div class="v" id="sOs">–</div></div>
-      <div class="stat ob"><div class="k">Quá mua</div><div class="v" id="sOb">–</div></div>
-      <div class="stat up"><div class="k">EMA cắt lên</div><div class="v" id="sUp">–</div></div>
-      <div class="stat dn"><div class="k">EMA cắt xuống</div><div class="v" id="sDn">–</div></div>
-      <div class="stat"><div class="k">MACD trên 0</div><div class="v" id="sMacd">–</div></div>
-      <div class="stat"><div class="k">Trên mây Ichimoku</div><div class="v" id="sIchi">–</div></div>
-      <div class="stat"><div class="k">Volume đột biến</div><div class="v" id="sVol">–</div></div>
+      <div class="stat os"><div class="k">Oversold</div><div class="v" id="sOs">–</div></div>
+      <div class="stat ob"><div class="k">Overbought</div><div class="v" id="sOb">–</div></div>
+      <div class="stat up"><div class="k">EMA cross up</div><div class="v" id="sUp">–</div></div>
+      <div class="stat dn"><div class="k">EMA cross down</div><div class="v" id="sDn">–</div></div>
+      <div class="stat"><div class="k">MACD &gt; 0</div><div class="v" id="sMacd">–</div></div>
+      <div class="stat"><div class="k">Above Ichimoku cloud</div><div class="v" id="sIchi">–</div></div>
+      <div class="stat"><div class="k">Volume spike</div><div class="v" id="sVol">–</div></div>
     </div>
     <section class="panel" id="inflPanel">
-      <h2><span><span class="eyebrow">Dữ liệu on-chain</span>Lạm phát token hằng năm</span><small id="inflNote">đang tải…</small></h2>
+      <h2><span><span class="eyebrow">On-chain data</span>Annual token inflation</span><small id="inflNote">đang tải…</small></h2>
       <div class="infl" id="inflGrid"></div>
     </section>
     </div>
     </div>
 
+    <section class="panel" id="nrPanel">
+      <h2><span><span class="eyebrow">BTC · ETH · TF 1H+</span>Wickless candle (nến không râu) chưa fill</span><small id="nrNote">đang tải…</small></h2>
+      <div class="nr-grid" id="nrGrid"></div>
+      <details class="how"><summary>Wickless candle là gì</summary>
+        <p>Nến không râu là nến đã đóng mà giá mở cửa cũng chính là giá thấp nhất (nến tăng, không có râu dưới) hoặc giá cao nhất (nến giảm, không có râu trên). Mức giá mở cửa đó thường được xem là “nam châm”: giá hay quay lại quét qua. Bảng chỉ liệt kê những mức chưa bị fill, tức là từ sau khi nến đóng tới giờ giá chưa chạm lại. Mức gần giá hiện tại nhất xếp trước; màu xanh là nến tăng (không râu dưới), màu đỏ là nến giảm (không râu trên). Các khung quét: 1H, 4H, 1D, 1W, 1M (dữ liệu Binance, tối đa 1000 nến mỗi khung). Đây là thống kê tham khảo, không phải tín hiệu vào lệnh.</p>
+      </details>
+    </section>
+
     <section class="panel feature" id="pickPanel">
-      <h2><span><span class="eyebrow">Khung 4H · 1D · 1W</span>Kèo trade R:R tốt</span><small id="pickNote">đang chờ dữ liệu…</small></h2>
+      <h2><span><span class="eyebrow">Timeframe 4H · 1D · 1W</span>Trade setup R:R tốt</span><small id="pickNote">đang chờ dữ liệu…</small></h2>
       <div class="tablebox">
         <table class="picks">
-          <thead><tr><th>Mã</th><th>Khung</th><th>Điểm</th><th>Entry</th><th>Stop loss</th><th>TP1</th><th>TP2</th><th>R:R</th><th>Khung lớn hơn</th><th>Lý do chọn</th></tr></thead>
+          <thead><tr><th>Ticker</th><th>TF</th><th>Score</th><th>Entry</th><th>Stop loss</th><th>TP1</th><th>TP2</th><th>R:R</th><th>HTF</th><th>Lý do mua</th></tr></thead>
           <tbody id="pickBody"></tbody>
         </table>
       </div>
-      <div class="sub2">Sắp đạt chuẩn, nên theo dõi</div>
+      <div class="sub2">Watchlist · sắp đạt chuẩn</div>
       <ul class="ext" id="nearList"></ul>
-      <details class="how"><summary>Cách chọn kèo</summary>
-        <p>Quét toàn bộ coin có trên Binance và các mã cổ phiếu ở 3 khung 4H, 1D, 1W (không phụ thuộc khung đang chọn ở bảng dưới). Kèo đạt chuẩn khi R:R tới TP1 tối thiểu 1:2, điểm tổng hợp ≥ 65 và stop loss cách Entry không quá 35% (xa hơn thì tự động loại); danh sách xếp ưu tiên theo R:R rồi tới điểm. Khung lớn hơn chỉ ảnh hưởng nhẹ (tăng +3, giảm −5 điểm), không loại kèo. Mỗi mã chỉ giữ khung có kèo tốt nhất. “Chờ hồi” nghĩa là giá đang cách xa hỗ trợ, nên đặt lệnh chờ ở mức Entry thay vì mua đuổi. Bấm một dòng để mở phân tích TradingView.</p>
+      <details class="how"><summary>Cách chọn setup</summary>
+        <p>Quét toàn bộ coin có trên Binance và các mã cổ phiếu ở 3 khung 4H, 1D, 1W (không phụ thuộc khung đang chọn ở bảng dưới). Kèo đạt chuẩn khi R:R tới TP1 tối thiểu 1:2, điểm tổng hợp ≥ 65 và stop loss cách Entry không quá 35% (xa hơn thì tự động loại); danh sách xếp ưu tiên theo R:R rồi tới điểm. HTF (khung lớn hơn) chỉ ảnh hưởng nhẹ (tăng +3, giảm −5 điểm), không loại kèo. Mỗi mã chỉ giữ khung có kèo tốt nhất. “Limit” nghĩa là giá đang cách xa support, nên đặt lệnh chờ ở mức Entry thay vì mua đuổi. Bấm một dòng để mở phân tích TradingView.</p>
       </details>
     </section>
 
     <section class="panel" id="jPanel">
-      <h2><span><span class="eyebrow">Theo dõi hiệu quả</span>Nhật ký kèo &amp; ROI</span><small id="jNote"></small></h2>
+      <h2><span><span class="eyebrow">Performance</span>Trade journal &amp; ROI</span><small id="jNote"></small></h2>
       <div class="summary" style="margin-bottom:14px">
-        <div class="stat"><div class="k">Tổng kèo đã ghi</div><div class="v" id="jTotal">0</div></div>
-        <div class="stat"><div class="k">Tỷ lệ thắng</div><div class="v" id="jWin">–</div></div>
-        <div class="stat"><div class="k">ROI trung bình / kèo</div><div class="v" id="jAvg">–</div></div>
-        <div class="stat"><div class="k">Tổng ROI đã chốt</div><div class="v" id="jSum">–</div></div>
-        <div class="stat"><div class="k">Lãi/lỗ đang mở</div><div class="v" id="jOpen">–</div></div>
+        <div class="stat"><div class="k">Total trades</div><div class="v" id="jTotal">0</div></div>
+        <div class="stat"><div class="k">Win rate</div><div class="v" id="jWin">–</div></div>
+        <div class="stat"><div class="k">Avg ROI / trade</div><div class="v" id="jAvg">–</div></div>
+        <div class="stat"><div class="k">Realized ROI</div><div class="v" id="jSum">–</div></div>
+        <div class="stat"><div class="k">Unrealized PnL</div><div class="v" id="jOpen">–</div></div>
       </div>
       <div class="controls" style="margin-bottom:12px">
         <div class="seg" id="jFlt" role="group" aria-label="Lọc nhật ký">
-          <button data-v="all" aria-pressed="true">Tất cả</button><button data-v="open">Đang mở / chờ khớp</button><button data-v="closed">Đã đóng</button>
+          <button data-v="all" aria-pressed="true">Tất cả</button><button data-v="open">Open / Pending</button><button data-v="closed">Closed</button>
         </div>
         <span class="spacer"></span>
-        <button class="btn" id="jCloseAll">Đóng tất cả lệnh</button>
+        <button class="btn" id="jCloseAll">Close all</button>
         <button class="btn pri" id="jImport" hidden>Chuyển kèo cũ lên GitHub</button>
         <button class="btn" id="jCsv">Xuất CSV</button>
-        <button class="btn" id="jClear">Xoá nhật ký</button>
+        <button class="btn" id="jClear">Xoá journal</button>
       </div>
       <div class="tablebox">
         <table class="picks" id="jTable">
-          <thead><tr><th>Mã</th><th>Ghi lúc</th><th>Khung</th><th>Entry</th><th>SL</th><th>TP1</th><th>TP2</th><th>Trạng thái</th><th>ROI</th><th>R</th><th>Thao tác</th></tr></thead>
+          <thead><tr><th>Ticker</th><th>Logged</th><th>TF</th><th>Entry</th><th>SL</th><th>TP1</th><th>TP2</th><th>Status</th><th>ROI</th><th>R</th><th>Action</th></tr></thead>
           <tbody id="jBody"></tbody>
         </table>
       </div>
       <details class="how"><summary>Cách tính ROI</summary>
-        <p>Mỗi kèo xuất hiện ở bảng trên được tự động ghi lại một lần (mỗi mã chỉ theo dõi một kèo tại một thời điểm), rồi được chấm theo nến 1H thật mở sau lúc ghi. Lệnh “Chờ hồi” chỉ tính khi giá chạm Entry; hủy nếu quá 12 nến của khung mà chưa khớp, hoặc giá chạy tới TP1 trước. Quản lý lệnh: chốt 50% ở TP1 rồi dời SL về Entry, 50% còn lại chốt ở TP2. Nếu SL và TP nằm trong cùng một nến thì tính SL trước (thận trọng). Bạn có thể tự chốt lời/cắt lỗ từng lệnh hoặc đóng tất cả lệnh theo giá hiện tại; lệnh chờ khớp sẽ bị hủy, lệnh đóng tay được tính vào thống kê. ROI là % biến động giá trên vốn của lệnh, chưa trừ phí, không đòn bẩy. Nếu đã cài máy quét GitHub, nhật ký được ghi 24/7 trên đám mây và mọi thiết bị đều thấy giống nhau (khi đó nút đóng lệnh và xoá nhật ký được ẩn). Nếu chưa cài, nhật ký chỉ lưu trong trình duyệt này, nên định kỳ bấm Xuất CSV để sao lưu.</p>
+        <p>Mỗi kèo xuất hiện ở bảng trên được tự động ghi lại một lần (mỗi mã chỉ theo dõi một kèo tại một thời điểm), rồi được chấm theo nến 1H thật mở sau lúc ghi. Lệnh “Limit” chỉ tính khi giá chạm Entry; hủy nếu quá 12 nến của khung mà chưa khớp, hoặc giá chạy tới TP1 trước. Quản lý lệnh: chốt 50% ở TP1 rồi dời SL về Entry, 50% còn lại chốt ở TP2. Nếu SL và TP nằm trong cùng một nến thì tính SL trước (thận trọng). Bạn có thể tự chốt lời/cắt lỗ từng lệnh hoặc đóng tất cả lệnh theo giá hiện tại; lệnh chờ khớp sẽ bị hủy, lệnh đóng tay được tính vào thống kê. ROI là % biến động giá trên vốn của lệnh, chưa trừ phí, không đòn bẩy. Nếu đã cài máy quét GitHub, nhật ký được ghi 24/7 trên đám mây và mọi thiết bị đều thấy giống nhau (khi đó nút đóng lệnh và xoá nhật ký được ẩn). Nếu chưa cài, nhật ký chỉ lưu trong trình duyệt này, nên định kỳ bấm Xuất CSV để sao lưu.</p>
       </details>
     </section>
 
     <div class="three">
-      <section class="panel"><h2>Quá bán <small id="lowCnt"></small></h2><ul class="ext" id="lowList"></ul></section>
-      <section class="panel"><h2>Quá mua <small id="highCnt"></small></h2><ul class="ext" id="highList"></ul></section>
+      <section class="panel"><h2>Oversold <small id="lowCnt"></small></h2><ul class="ext" id="lowList"></ul></section>
+      <section class="panel"><h2>Overbought <small id="highCnt"></small></h2><ul class="ext" id="highList"></ul></section>
       <section class="panel"><h2>Setup đẹp <small id="buyCnt"></small></h2><ul class="ext" id="buyList"></ul></section>
     </div>
 
     <section class="panel">
-      <h2><span><span class="eyebrow">Toàn bộ chỉ báo</span>Bảng chỉ báo</span><small id="boardNote"></small></h2>
+      <h2><span><span class="eyebrow">All indicators</span>Indicator board</span><small id="boardNote"></small></h2>
       <div class="tablebox">
         <table id="board">
           <thead>
-            <tr><th></th><th></th><th colspan="11"></th><th class="grp" colspan="3">Ichimoku · Volume</th><th class="grp" colspan="6">Giá so với EMA</th></tr>
+            <tr><th></th><th></th><th colspan="11"></th><th class="grp" colspan="3">Ichimoku · Volume</th><th class="grp" colspan="6">Price vs EMA</th></tr>
             <tr>
               <th class="th" data-k="rank" tabindex="0" aria-sort="ascending">#</th>
-              <th class="th" data-k="base" tabindex="0">Mã</th>
-              <th class="th" data-k="price" tabindex="0">Giá</th>
+              <th class="th" data-k="base" tabindex="0">Ticker</th>
+              <th class="th" data-k="price" tabindex="0">Price</th>
               <th class="th" data-k="chg" tabindex="0">24h</th>
-              <th class="th" data-k="buy" tabindex="0">Điểm mua</th>
+              <th class="th" data-k="buy" tabindex="0">Buy score</th>
               <th class="th" data-k="rr" tabindex="0">R:R (TP1/TP2)</th>
               <th class="th" data-k="sl" tabindex="0">SL % · TP1 % · TP2 %</th>
-              <th class="th x" data-k="dow" tabindex="0">Cấu trúc Dow</th>
+              <th class="th x" data-k="dow" tabindex="0">Dow structure</th>
               <th class="th x" data-k="ew" tabindex="0">Sóng Elliott</th>
               <th class="th" data-k="rsi" tabindex="0">RSI 14</th>
               <th class="th" data-k="macd" tabindex="0">MACD 12/26</th>
               <th class="th" data-k="adx" tabindex="0">ADX 14</th>
-              <th class="th x" data-k="div" tabindex="0">Phân kỳ</th>
-              <th class="th x" data-k="ichi" tabindex="0">Mây Ichimoku</th>
+              <th class="th x" data-k="div" tabindex="0">Divergence</th>
+              <th class="th x" data-k="ichi" tabindex="0">Ichimoku cloud</th>
               <th class="th" data-k="vol24" tabindex="0">Vol 24h</th>
-              <th class="th" data-k="vchg" tabindex="0">Δ Vol nến</th>
+              <th class="th" data-k="vchg" tabindex="0">Δ Volume</th>
               <th class="th x" data-k="e9" tabindex="0">9</th>
               <th class="th x" data-k="e21" tabindex="0">21</th>
               <th class="th x" data-k="e50" tabindex="0">50</th>
@@ -389,11 +408,11 @@ details.how p{color:var(--muted);font-size:12.5px;line-height:1.6;max-width:90ch
         </table>
       </div>
       <div class="legend">
-        <span class="xd"><i class="up"></i>Giá nằm trên đường EMA</span>
-        <span class="xd"><i class="dn"></i>Giá nằm dưới đường EMA</span>
-        <span><span class="cg">Bybit</span> <span class="cg">OKX</span>… nến lấy từ sàn dự phòng</span>
+        <span class="xd"><i class="up"></i>Price above EMA</span>
+        <span class="xd"><i class="dn"></i>Price below EMA</span>
+        <span><span class="cg">Bybit</span> <span class="cg">OKX</span>… candles từ sàn dự phòng</span>
         <span><span class="cg">CG</span> giá từ CoinGecko</span>
-        <span><span class="cg ck">CP</span> cổ phiếu Mỹ</span>
+        <span><span class="cg ck">CP</span> US stocks</span>
         <span>Rê chuột vào ô bất kỳ để xem chi tiết · bấm một dòng để mở chart TradingView</span>
       </div>
     </section>
@@ -401,22 +420,23 @@ details.how p{color:var(--muted);font-size:12.5px;line-height:1.6;max-width:90ch
     <section class="panel">
       <h2><span><span class="eyebrow">Phương pháp</span>Cách đọc các chỉ báo</span></h2>
       <div class="method">
-        <div><h3>RSI 14</h3><p>Tính theo Wilder. <span class="c-os">Xanh</span> là quá bán, <span class="c-ob">đỏ</span> là quá mua, <span class="c-mid">tím</span> là vùng giằng co 45–55.</p></div>
-        <div><h3>MACD 12/26 và ADX 14</h3><p>MACD hiện giá trị đường MACD, dương màu xanh, âm màu đỏ. ADX <span class="c-adx-hi">xanh</span> khi ≥ 25 (xu hướng mạnh), <span class="c-adx-lo">hồng</span> khi &lt; 10; mũi tên cho biết +DI ▲ hay −DI ▼ đang trội.</p></div>
-        <div><h3>Phân kỳ</h3><p>So 2 đáy (hoặc 2 đỉnh) gần nhất của giá với RSI 14 và MACD histogram; nhãn ghi rõ chỉ báo nào cho tín hiệu. PK dương: giá đáy thấp hơn, chỉ báo đáy cao hơn (gợi ý đảo chiều tăng). PK dương ẩn: giá đáy cao hơn, chỉ báo đáy thấp hơn (tiếp diễn xu hướng tăng). PK âm ngược lại. Chỉ hiện phân kỳ trong 12 nến gần nhất và chưa bị giá phá. Khi chấm điểm: phân kỳ dương ở vùng quá bán (RSI ≤ 30) được cộng mạnh nhất (+5 điểm và tính vào Entry); phân kỳ âm chỉ bị trừ nặng (×0.85) khi RSI ≥ 65, ngoài vùng đó chỉ trừ rất nhẹ.</p></div>
-        <div><h3>Mây Ichimoku và volume</h3><p>Mây 9/26/52, dịch 26. Chấm xanh/đỏ khi giá vừa break lên trên / xuống dưới mây. Δ Vol nến so volume nến vừa đóng với trung bình 20 nến trước: ≥ +100% là đột biến, ≤ −60% là sụt mạnh.</p></div>
-        <div><h3>Cấu trúc Dow</h3><p>Dò đỉnh/đáy swing đã xác nhận. Bullish khi đỉnh và đáy cao dần (HH, HL), Bearish khi thấp dần (LH, LL). Giá đóng cửa phá đáy/đỉnh gần nhất của cấu trúc thì chuyển sang Đi ngang.</p></div>
-        <div><h3>Sóng Elliott</h3><p>Thử song song sóng đẩy, diagonal, zigzag, flat, tam giác ở nhiều cấp sóng; loại cách đếm vi phạm quy tắc cứng, chấm theo Fibonacci, cấu trúc con và xu hướng lớn. “Đẩy” là sóng động lực, “ABC” và “Tam giác” là điều chỉnh.</p></div>
-        <div><h3>Điểm mua</h3><p>Chấm tổng hợp có trọng số: Xu hướng 30 · Entry 20 · R:R 20 · Động lượng 15 · Sóng Elliott 15 · Phân kỳ 10, có cộng hưởng và phạt rủi ro. Rê chuột vào điểm để xem từng nhóm đóng góp.</p></div>
-        <div><h3>Entry, SL, TP</h3><p>Vào ngay khi giá sát hỗ trợ hoặc có tín hiệu mới; nếu giá đã chạy xa thì chờ hồi về hỗ trợ gần nhất. SL dưới đáy swing gần nhất (1–5 ATR); kèo có SL cách Entry quá 35% bị loại. TP đặt ngay dưới các vùng kháng cự phía trên giá, gộp từ: đỉnh swing lớn, đỉnh phản ứng trước đó theo lý thuyết Dow, hỗ trợ cũ đã bị phá, vùng volume lớn (volume profile 250 nến), EMA 200 và mây Ichimoku. Các mức cách nhau dưới 0.4 ATR được gộp thành một vùng, càng nhiều yếu tố trùng nhau vùng càng mạnh. TP1 là vùng gần nhất, TP2 là vùng mạnh kế tiếp; khi giá ở vùng giá mới thì dùng mục tiêu Fibonacci của sóng Elliott hoặc biên độ nhịp gần nhất.</p></div>
-        <div><h3>Lạm phát token</h3><p>Tính từ dữ liệu on-chain, làm mới mỗi 30 phút. BTC: phần thưởng block mới (mempool.space) ÷ nguồn cung. ETH: phát hành staking theo lượng ETH đang stake (beaconcha.in) trừ phí bị đốt EIP-1559 tính từ 1.024 block gần nhất, nên có thể âm (giảm phát). SOL: lịch lạm phát giao thức (RPC Solana). ZEC: lượng phát hành 24h (Blockchair), dự phòng theo phần thưởng block. NEAR: biến động total supply on-chain trong ~24 giờ, đã gồm phần phí bị đốt.</p></div>
-        <div><h3>Chi phí đào Bitcoin</h3><p>Hashrate mạng và phần thưởng 144 block gần nhất (mempool.space) × hiệu suất máy (J/TH) × giá điện, chia cho số BTC đào được mỗi ngày. Chỉ là chi phí tiền điện; bạn tự chỉnh giá điện và hiệu suất máy cho sát thực tế.</p></div>
-        <div><h3>Nguồn dữ liệu và dự phòng</h3><p>Xếp hạng: CoinGecko → CoinMarketCap → CryptoRank → CoinPaprika → volume Binance. Nến crypto: Binance (realtime qua WebSocket) → Bybit → OKX → MEXC → KuCoin → Gate → Coinbase; nhãn cạnh mã cho biết sàn đang dùng, <span class="cg">CG</span> là giá lấy mẫu từ CoinGecko. Cổ phiếu <span class="cg ck">CP</span>: Yahoo Finance → Twelve Data → Stooq. Các nguồn dự phòng chạy qua máy chủ Cloudflare của trang.</p></div>
+        <div><h3>RSI 14</h3><p>Tính theo Wilder. <span class="c-os">Xanh</span> là oversold, <span class="c-ob">đỏ</span> là overbought, <span class="c-mid">tím</span> là vùng sideway 45–55.</p></div>
+        <div><h3>MACD 12/26 và ADX 14</h3><p>MACD hiện giá trị đường MACD, dương màu xanh, âm màu đỏ. ADX <span class="c-adx-hi">xanh</span> khi ≥ 25 (strong trend), <span class="c-adx-lo">hồng</span> khi &lt; 10; mũi tên cho biết +DI ▲ hay −DI ▼ đang trội.</p></div>
+        <div><h3>Divergence</h3><p>So 2 đáy (hoặc 2 đỉnh) gần nhất của giá với RSI 14 và MACD histogram; nhãn ghi rõ chỉ báo nào cho tín hiệu. Bullish div: giá đáy thấp hơn, chỉ báo đáy cao hơn (gợi ý đảo chiều tăng). Hidden bullish div: giá đáy cao hơn, chỉ báo đáy thấp hơn (tiếp diễn xu hướng tăng). Bearish div ngược lại. Chỉ hiện phân kỳ trong 12 nến gần nhất và chưa bị giá phá. Khi chấm điểm: bullish divergence ở vùng oversold (RSI ≤ 30) được cộng mạnh nhất (+5 điểm và tính vào Entry); bearish divergence chỉ bị trừ nặng (×0.85) khi RSI ≥ 65, ngoài vùng đó chỉ trừ rất nhẹ.</p></div>
+        <div><h3>Ichimoku cloud &amp; volume</h3><p>Mây 9/26/52, dịch 26. Chấm xanh/đỏ khi giá vừa break lên trên / xuống dưới mây. Δ Vol nến so volume nến vừa đóng với trung bình 20 nến trước: ≥ +100% là đột biến, ≤ −60% là sụt mạnh.</p></div>
+        <div><h3>Dow structure</h3><p>Dò đỉnh/đáy swing đã xác nhận. Bullish khi đỉnh và đáy cao dần (HH, HL), Bearish khi thấp dần (LH, LL). Giá đóng cửa phá đáy/đỉnh gần nhất của cấu trúc thì chuyển sang Sideway.</p></div>
+        <div><h3>Sóng Elliott</h3><p>Thử song song sóng đẩy, nêm (diagonal), zigzag, phẳng (flat), tam giác ở nhiều cấp sóng; loại cách đếm vi phạm quy tắc cứng, chấm theo Fibonacci, cấu trúc con và xu hướng lớn. “Sóng đẩy” và “Nêm” là sóng động lực, các dạng “Điều chỉnh” và “Tam giác” là sóng điều chỉnh.</p></div>
+        <div><h3>Buy score</h3><p>Chấm tổng hợp có trọng số: Trend 30 · Entry 20 · R:R 20 · Momentum 15 · Elliott 15 · Divergence 10, có cộng hưởng và phạt rủi ro. Rê chuột vào điểm để xem từng nhóm đóng góp.</p></div>
+        <div><h3>Entry, SL, TP</h3><p>Market entry khi giá sát support hoặc có tín hiệu mới; nếu giá đã chạy xa thì đặt limit chờ pullback về support gần nhất. SL dưới đáy swing gần nhất (1–5 ATR); kèo có SL cách Entry quá 35% bị loại. TP đặt ngay dưới các vùng resistance phía trên giá, gộp từ: đỉnh swing lớn, đỉnh phản ứng trước đó theo lý thuyết Dow, support cũ đã bị phá, vùng volume lớn (volume profile 250 nến), EMA 200 và mây Ichimoku. Các mức cách nhau dưới 0.4 ATR được gộp thành một vùng, càng nhiều yếu tố trùng nhau vùng càng mạnh. TP1 là vùng gần nhất, TP2 là vùng mạnh kế tiếp; khi giá ở vùng giá mới thì dùng mục tiêu Fibonacci của sóng Elliott hoặc biên độ nhịp gần nhất.</p></div>
+        <div><h3>Token inflation</h3><p>Tính từ dữ liệu on-chain, làm mới mỗi 30 phút. BTC: phần thưởng block mới (mempool.space) ÷ nguồn cung. ETH: phát hành staking theo lượng ETH đang stake (beaconcha.in) trừ phí bị đốt EIP-1559 tính từ 1.024 block gần nhất, nên có thể âm (giảm phát). SOL: lịch lạm phát giao thức (RPC Solana). ZEC: lượng phát hành 24h (Blockchair), dự phòng theo phần thưởng block. NEAR: biến động total supply on-chain trong ~24 giờ, đã gồm phần phí bị đốt.</p></div>
+        <div><h3>Bitcoin mining cost</h3><p>Hashrate mạng và phần thưởng 144 block gần nhất (mempool.space) × hiệu suất máy (J/TH) × giá điện, chia cho số BTC đào được mỗi ngày. Chỉ là chi phí tiền điện; bạn tự chỉnh giá điện và hiệu suất máy cho sát thực tế.</p></div>
+        <div><h3>Data sources &amp; fallback</h3><p>Xếp hạng: CoinGecko → CoinMarketCap → CryptoRank → CoinPaprika → volume Binance. Nến crypto: Binance (realtime qua WebSocket) → Bybit → OKX → MEXC → KuCoin → Gate → Coinbase; nhãn cạnh mã cho biết sàn đang dùng, <span class="cg">CG</span> là giá lấy mẫu từ CoinGecko. Cổ phiếu <span class="cg ck">CP</span>: Yahoo Finance → Twelve Data → Stooq. Các nguồn dự phòng chạy qua máy chủ Cloudflare của trang.</p></div>
       </div>
     </section>
     <p class="disclaimer">Công cụ sàng lọc kỹ thuật, không phải khuyến nghị đầu tư.</p>
   </div>
 </main>
+<footer class="site-by">Agent build by <a href="https://x.com/Trong0322" target="_blank" rel="noopener">@Trong0322</a></footer>
 
 <script>
 (()=>{
@@ -427,7 +447,7 @@ const TOP=100;
 const SKIP=new Set(["brz","gyen","jpyc","zchf","xchf","vchf","veur","vgbp","eurr","eurt","eurs","ageur","eura","euroe","eurq","eurau","gbpt","tgbp","audd","audf","cadc","nzds","bidr","idrt","cnht","mxnt","usdt0","eursafo","jaaa","eutbl","ylds","a7a5","reusd","hash","kau","kag","benji","ustbl","jtrsy","usdo","srusd","syrupusdt","susdf","gusd","usdq","eurcv","eure","xsgd","tryb","bidr","pyusd","usd0++","usdy","stusdt","sfrax","sdai","ousg","buidl","trx","wbt","leo","usdy","u","jst","wlfi","htx","figr_heloc","figr","ousg","usdtb","usdt","usdc","usds","susds","usde","susde","dai","fdusd","tusd","usdp","pyusd","rlusd","usd1","usd0","usdtb","usdf","usyc","ustb","buidl","gho","crvusd","frax","lusd","usdd","usdx","eurc","eurs","xaut","paxg","bsc-usd","bfusd","usdg","usdai","syrupusdc","steth","wsteth","weth","weeth","reth","cbbtc","cbeth","wbeth","wbtc","bnsol","jitosol","msol","bbsol","jupsol","lbtc","solvbtc","tbtc","wbnb","meth","ezeth","rseth","sweth","oseth","lseth","ethx","clbtc","btcb","wsol","wavax","wtrx","weeths","rsweth","pufeth","sfrxeth","stkaave"]);
 const TFMS={"15m":9e5,"1h":36e5,"4h":144e5,"1d":864e5,"1w":6048e5};
 const CGDAYS={"15m":1,"1h":30,"4h":90,"1d":365,"1w":365};
-const STOCKS=[["INTC","INTC","Intel","NASDAQ"],["CRCL","CRCL","Circle","NYSE"],["COIN","COIN","Coinbase","NASDAQ"],["HOOD","HOOD","Robinhood","NASDAQ"],["MSTR","MSTR","Strategy","NASDAQ"],["BMNR","BMNR","BitMine Immersion","AMEX"],["BLSH","BLSH","Bullish","NYSE"],["SPY","SPY500","S&P 500 (quỹ SPY)","AMEX"],["SECZ","SECZ","Securitize","NYSE"]];
+const STOCKS=[["INTC","INTC","Intel","NASDAQ"],["CRCL","CRCL","Circle","NYSE"],["COIN","COIN","Coinbase","NASDAQ"],["HOOD","HOOD","Robinhood","NASDAQ"],["MSTR","MSTR","Strategy","NASDAQ"],["BMNR","BMNR","BitMine Immersion","AMEX"],["BLSH","BLSH","Bullish","NYSE"],["SPY","SPY500","S&P 500 (quỹ SPY)","AMEX"],["SECZ","SECZ","Securitize","NYSE"],["SPCX","SPCX","SpaceX","NASDAQ"],["NVDA","NVDA","NVIDIA","NASDAQ"],["AAPL","AAPL","Apple","NASDAQ"],["MSFT","MSFT","Microsoft","NASDAQ"],["GOOGL","GOOGL","Alphabet (Google)","NASDAQ"],["AMZN","AMZN","Amazon","NASDAQ"],["META","META","Meta","NASDAQ"],["TSLA","TSLA","Tesla","NASDAQ"],["AVGO","AVGO","Broadcom","NASDAQ"],["AMD","AMD","AMD","NASDAQ"],["NFLX","NFLX","Netflix","NASDAQ"],["PLTR","PLTR","Palantir","NASDAQ"],["ORCL","ORCL","Oracle","NYSE"],["JPM","JPM","JPMorgan Chase","NYSE"],["QQQ","QQQ","Nasdaq 100 (quỹ QQQ)","NASDAQ"]];
 const YI={"15m":["15m","60d"],"1h":["60m","730d"],"4h":["60m","730d"],"1d":["1d","5y"],"1w":["1wk","10y"]};
 async function yahoo(sym,iv,rg){
   const r=await fetch(`/api/stock?s=${encodeURIComponent(sym)}&i=${iv}&r=${rg}`,{cache:"no-store"});
@@ -853,13 +873,16 @@ function evalTri(seq,px,minor){
   return {kind:"tri",dir:Math.sign(seq[1].v-seq[0].v),legs,seq,R:{},score:sc,inv:lim};
 }
 const EWKIND={imp:"Sóng đẩy 5 sóng (impulse)",diag:"Tam giác chéo (diagonal, sóng động lực)",after:"Điều chỉnh A-B-C sau khi hoàn tất 5 sóng",zz:"Điều chỉnh zigzag 5-3-5",flat:"Điều chỉnh flat 3-3-5",tri:"Tam giác hội tụ (điều chỉnh 3-3-3-3-3)"};
+const modeTxt=m=>m==null?"":String(m).replace("Vào ngay · tín hiệu mới","Market · fresh signal").replace("Vào ngay","Market").replace("Chờ hồi","Limit (chờ pullback)");
 const isMotive=e=>e.kind==="imp"||e.kind==="diag";
 function ewName(e){
-  if(e.kind==="imp") return `Sóng ${e.legs} · Đẩy`;
-  if(e.kind==="diag") return `Sóng ${e.legs} · Diagonal`;
-  if(e.kind==="after") return `Sóng ${"ABC"[e.legs-6]} · ABC`;
+  if(e.kind==="imp") return `Sóng ${e.legs} · Sóng đẩy`;
+  if(e.kind==="diag") return `Sóng ${e.legs} · Nêm (sóng đẩy chéo)`;
+  if(e.kind==="after") return `Sóng ${"ABC"[e.legs-6]} · Điều chỉnh sau 5 sóng`;
   if(e.kind==="tri") return `Sóng ${"ABCDE"[e.legs-1]} · Tam giác`;
-  return `Sóng ${"ABC"[e.legs-1]} · ABC`;
+  if(e.kind==="flat") return `Sóng ${"ABC"[e.legs-1]} · Điều chỉnh phẳng`;
+  if(e.kind==="zz") return `Sóng ${"ABC"[e.legs-1]} · Điều chỉnh zigzag`;
+  return `Sóng ${"ABC"[e.legs-1]} · Điều chỉnh ABC`;
 }
 function elliott(c){
   const a=atrLast(c); if(!a) return null;
@@ -919,7 +942,7 @@ function ewCell(e){
 }
 function dowCell(d){
   if(!d) return `<td class="x"><span class="mut">–</span></td>`;
-  return `<td class="x"><span class="pill ${d.state>0?"up":d.state<0?"dn":""}" title="${d.why}">${d.state>0?"Bullish":d.state<0?"Bearish":"Đi ngang"}</span></td>`;
+  return `<td class="x"><span class="pill ${d.state>0?"up":d.state<0?"dn":""}" title="${d.why}">${d.state>0?"Bullish":d.state<0?"Bearish":"Sideway"}</span></td>`;
 }
 /* ---------- Điểm mua tổng hợp: xu hướng · động lượng · sóng · entry · R:R ---------- */
 const clamp=(v,a=-1,b=1)=>Math.max(a,Math.min(b,v));
@@ -1038,7 +1061,7 @@ function buyScore(i){
     if(P&&P.mode==="Chờ hồi"&&T>.3) En=Math.max(En,.5);       // xu hướng khoẻ + lệnh chờ ở hỗ trợ = entry tốt
     En=clamp(En);
   }
-  const parts=[["Xu hướng",T,30],["Động lượng",M,15],["Sóng Elliott",W,15],["Entry",En,20],["R:R",RR,20],["Phân kỳ",D,10]];
+  const parts=[["Trend",T,30],["Momentum",M,15],["Elliott",W,15],["Entry",En,20],["R:R",RR,20],["Divergence",D,10]];
   const S=wavg(parts.map(([_,v,w])=>[v,w])); if(S==null) return null;
   let score=50+50*S; const notes=[];
   if(T>.5&&En>.4&&RR>.4){score+=6;notes.push("+6 cộng hưởng: chart khoẻ, entry đẹp, R:R tốt")}
@@ -1053,13 +1076,13 @@ function buyScore(i){
   if(P&&P.rr1<1){score=Math.min(score,55);notes.push("trần 55: R:R tới kháng cự gần nhất < 1")}
   if(P&&P.reject){score=Math.min(score,40);notes.push(`loại: SL cách Entry ${(P.slPct*100).toFixed(0)}% (> ${MAX_SL*100}%)`)}
   score=clamp(score,0,100);
-  const grade=score>=75&&P&&P.rr1>=2?"Setup đẹp":score>=60?"Theo dõi":"Chưa đẹp";
-  return {score,grade:P&&P.reject?"Loại · SL quá xa":grade,parts,notes,plan:P,setup:score>=70&&P&&!P.reject&&P.rr1>=2};
+  const grade=score>=75&&P&&P.rr1>=2?"Setup đẹp":score>=60?"Watch":"Weak";
+  return {score,grade:P&&P.reject?"Reject · SL quá xa":grade,parts,notes,plan:P,setup:score>=70&&P&&!P.reject&&P.rr1>=2};
 }
 function buyCell(b){
   if(!b) return `<td><span class="mut">–</span></td>`;
   const t=[`${b.grade} · ${Math.round(b.score)}/100`];
-  b.parts.forEach(([n,v,w])=>t.push(`${n} (trọng số ${w}): ${v==null?"không có dữ liệu":(v>=0?"+":"")+v.toFixed(2)}`));
+  b.parts.forEach(([n,v,w])=>t.push(`${n} (weight ${w}): ${v==null?"không có dữ liệu":(v>=0?"+":"")+v.toFixed(2)}`));
   b.notes.forEach(x=>t.push(x));
   const lv=b.score>=75?"hi":b.score>=60?"md":"lo";
   const bar=b.parts.map(([n,v])=>`<i class="${v==null?"na":v>.2?"ok":v<-.2?"no":""}" style="${v!=null&&Math.abs(v)<=.2?"background:var(--neutral)":""}" title="${n}"></i>`).join("");
@@ -1072,8 +1095,8 @@ function slTpCell(b){
 }
 function rrCell(b){
   const P=b&&b.plan; if(!P) return `<td><span class="mut">–</span></td>`;
-  if(P.reject) return `<td><span class="dn" title="SL theo cấu trúc ${fp(P.stop)}, cách Entry ${(P.slPct*100).toFixed(1)}% (tối đa ${MAX_SL*100}%). Kèo bị loại.">SL ${(P.slPct*100).toFixed(0)}% · loại</span></td>`;
-  const t=[`${P.mode}: Entry ${fp(P.entry)} (${P.ref})`,`SL ${fp(P.stop)} (${P.why}, rủi ro ${(P.risk/P.entry*100).toFixed(1)}%)`,
+  if(P.reject) return `<td><span class="dn" title="SL theo cấu trúc ${fp(P.stop)}, cách Entry ${(P.slPct*100).toFixed(1)}% (tối đa ${MAX_SL*100}%). Kèo bị loại.">SL ${(P.slPct*100).toFixed(0)}% · reject</span></td>`;
+  const t=[`${modeTxt(P.mode)}: Entry ${fp(P.entry)} (${P.ref})`,`SL ${fp(P.stop)} (${P.why}, rủi ro ${(P.risk/P.entry*100).toFixed(1)}%)`,
     `TP1 ${fp(P.tp1)} · R:R ${P.rr1.toFixed(2)} · ${P.tp1Why}`,`TP2 ${fp(P.tp2)} · R:R ${P.rr2.toFixed(2)} · ${P.tp2Why}`];
   const c=P.rr1>=2?"c-adx-hi":P.rr1<1?"dn":"";
   return `<td><span class="${c}" title="${t.join("&#10;")}">${P.rr1.toFixed(1)}R</span><small class="mut"> / ${P.rr2.toFixed(1)}R</small></td>`;
@@ -1124,7 +1147,7 @@ const divRank=d=>!d?0:(d.bull?(d.bull.type==="hid"?2:1.6)-d.bull.ago*.04:0)-(d.b
 function divCell(d){
   if(!d) return `<td class="x"><span class="mut" title="Không có phân kỳ RSI/MACD trong khoảng 12 nến gần nhất">–</span></td>`;
   const one=(x,bull)=>{
-    const name=(bull?(x.type==="hid"?"PK dương ẩn":"PK dương"):(x.type==="hid"?"PK âm ẩn":"PK âm"))+" "+x.ind.join("+");
+    const name=(bull?(x.type==="hid"?"Hidden Bull Div":"Bull Div"):(x.type==="hid"?"Hidden Bear Div":"Bear Div"))+" "+x.ind.join("+");
     const pt=bull?"đáy":"đỉnh";
     const desc=x.type==="reg"
       ?`giá ${pt} ${bull?"thấp":"cao"} hơn (${fp(x.pa)} → ${fp(x.pb)}) nhưng RSI ${pt} ${bull?"cao":"thấp"} hơn (${x.ra.toFixed(1)} → ${x.rb.toFixed(1)}). Gợi ý ${bull?"đảo chiều tăng":"đảo chiều giảm"}`
@@ -1169,13 +1192,13 @@ function render(){
   const kUp=rows.filter(r=>r.ind.ichi&&r.ind.ichi.dir>0), kDn=rows.filter(r=>r.ind.ichi&&r.ind.ichi.dir<0), vSp=rows.filter(r=>r.ind.vol&&Math.abs(r.ind.vol.pct)>=100);
   const buy=rows.filter(r=>r.buy&&r.buy.setup).sort((a,b)=>b.buy.score-a.buy.score||a.rank-b.rank);
   $("sBuy").textContent=buy.length;
-  $("buyCnt").textContent=`${buy.length} coin · ≥ 70 điểm và R:R ≥ 2`;
-  $("buyList").innerHTML=buy.map(r=>`<li><span class="sym">${r.base}</span><span class="num"><span class="c-adx-hi">${Math.round(r.buy.score)}</span> <span class="mut">${r.buy.plan.rr1.toFixed(1)}R</span></span></li>`).join("")||`<li class="empty">Chưa có setup đẹp nào ở khung ${S.tf.toUpperCase()}</li>`;
+  $("buyCnt").textContent=`${buy.length} coin · score ≥ 70 và R:R ≥ 2`;
+  $("buyList").innerHTML=buy.map(r=>`<li><span class="sym">${r.base}</span><span class="num"><span class="c-adx-hi">${Math.round(r.buy.score)}</span> <span class="mut">${r.buy.plan.rr1.toFixed(1)}R</span></span></li>`).join("")||`<li class="empty">Chưa có setup đẹp nào ở TF ${S.tf.toUpperCase()}</li>`;
   $("sVol").textContent=vSp.length;
   const li=r=>`<li><span class="sym">${r.base}</span><span class="num ${rsiCls(r.ind.rsi)}">${f1(r.ind.rsi)}</span></li>`;
   $("lowCnt").textContent=`${os.length} coin · RSI ≤ ${S.os}`; $("highCnt").textContent=`${ob.length} coin · RSI ≥ ${S.ob}`;
-  $("lowList").innerHTML=os.map(li).join("")||`<li class="empty">Không có coin nào quá bán ở khung ${S.tf.toUpperCase()}</li>`;
-  $("highList").innerHTML=ob.map(li).join("")||`<li class="empty">Không có coin nào quá mua ở khung ${S.tf.toUpperCase()}</li>`;
+  $("lowList").innerHTML=os.map(li).join("")||`<li class="empty">Không có coin nào oversold ở TF ${S.tf.toUpperCase()}</li>`;
+  $("highList").innerHTML=ob.map(li).join("")||`<li class="empty">Không có coin nào overbought ở TF ${S.tf.toUpperCase()}</li>`;
 
   let rs=rows;
   if(S.filter==="os") rs=os; else if(S.filter==="ob") rs=ob; else if(S.filter==="xup") rs=xUp; else if(S.filter==="xdn") rs=xDn; else if(S.filter==="kup") rs=kUp; else if(S.filter==="kdn") rs=kDn; else if(S.filter==="vsp") rs=vSp; else if(S.filter==="stk") rs=rows.filter(r=>r.src==="st"); else if(S.filter==="buy") rs=buy; else if(S.filter==="pkd") rs=rows.filter(r=>r.ind.div&&r.ind.div.bull); else if(S.filter==="pka") rs=rows.filter(r=>r.ind.div&&r.ind.div.bear);
@@ -1244,22 +1267,22 @@ function evalTF(r,tf){
   if(!c||c.length<60) return null;
   const t={src:r.src,c,tf}; compute(t); return t.ind?t:null;
 }
-const trendOf=t=>{if(!t||!t.buy) return null; const p=t.buy.parts.find(x=>x[0]==="Xu hướng"); return p?p[1]:null};
+const trendOf=t=>{if(!t||!t.buy) return null; const p=t.buy.parts.find(x=>x[0]==="Trend"); return p?p[1]:null};
 function pickReasons(i){
   const g=[],w=[];
   if(i.x[3]&&i.x[3].rel>0) g.push("EMA 34/89/200 xếp tăng"); else if(i.x[1]&&i.x[1].rel>0) g.push("EMA 9/21/50 xếp tăng");
-  if(i.ichi&&i.ichi.state>0) g.push(i.ichi.dir>0?"vừa break mây Ichimoku":"trên mây Ichimoku");
-  if(i.adx&&i.adx.adx>=25&&i.adx.pdi>i.adx.mdi) g.push(`ADX ${i.adx.adx.toFixed(0)}, +DI trội`);
+  if(i.ichi&&i.ichi.state>0) g.push(i.ichi.dir>0?"vừa break lên mây Ichimoku":"giá trên mây Ichimoku");
+  if(i.adx&&i.adx.adx>=25&&i.adx.pdi>i.adx.mdi) g.push(`ADX ${i.adx.adx.toFixed(0)}, lực mua (+DI) trội`);
   if(i.dow&&i.dow.state>0) g.push("Dow: đỉnh đáy cao dần");
   if(i.ew&&isMotive(i.ew)&&i.ew.dir>0&&i.ew.legs>=2&&i.ew.legs<=4) g.push(i.ew.label);
   if(i.ew&&!isMotive(i.ew)&&i.ew.kind!=="tri"&&i.ew.dir<0&&i.ew.legs===3&&i.ew.trend>0) g.push("cuối sóng C điều chỉnh");
   if(i.div&&i.div.bull) g.push((i.div.bull.type==="hid"?"phân kỳ dương ẩn ":"phân kỳ dương ")+i.div.bull.ind.join("+"));
-  if(i.macd&&i.macd.hist>0&&i.macd.prevHist!=null&&i.macd.hist>i.macd.prevHist) g.push("MACD histogram tăng");
+  if(i.macd&&i.macd.hist>0&&i.macd.prevHist!=null&&i.macd.hist>i.macd.prevHist) g.push("MACD histogram tăng dần");
   if(i.rsi>=50&&i.rsi<=68) g.push(`RSI ${i.rsi.toFixed(0)}`);
   if(i.vol&&i.vol.pct>=80&&i.lv.lastUp) g.push(`volume +${i.vol.pct.toFixed(0)}%`);
   if(i.div&&i.div.bear) w.push((i.div.bear.type==="hid"?"phân kỳ âm ẩn ":"phân kỳ âm ")+i.div.bear.ind.join("+"));
   if(i.rsi>72) w.push(`RSI ${i.rsi.toFixed(0)} cao`);
-  if(i.ew&&isMotive(i.ew)&&i.ew.dir>0&&i.ew.legs===5) w.push("đang sóng 5");
+  if(i.ew&&isMotive(i.ew)&&i.ew.dir>0&&i.ew.legs===5) w.push("đang ở sóng 5, dễ đảo chiều");
   return {g,w};
 }
 function computePicks(){
@@ -1286,22 +1309,22 @@ function computePicks(){
 }
 function renderPicks(){
   const body=$("pickBody"); if(!body) return;
-  $("pickNote").textContent=S.pickStatus||(S.picksAt?`${S.picks.length} kèo đạt chuẩn · tính lúc ${new Date(S.picksAt).toLocaleTimeString("vi-VN")}`:"đang chờ dữ liệu…");
+  $("pickNote").textContent=S.pickStatus||(S.picksAt?`${S.picks.length} setup đạt chuẩn · tính lúc ${new Date(S.picksAt).toLocaleTimeString("vi-VN")}`:"đang chờ dữ liệu…");
   const pct=(v,b)=>{const x=(v/b-1)*100;return (x>=0?"+":"")+x.toFixed(1)+"%"};
   body.innerHTML=S.picks.length?S.picks.map(x=>{
     const P=x.P, wait=P.mode==="Chờ hồi";
-    const h=!x.htf?`<span class="mut">–</span>`:x.hT==null?`<span class="mut">${x.htf.toUpperCase()}: chưa đủ dữ liệu</span>`
-      :`<span class="${x.hT>.3?"up":x.hT<-.3?"dn":"mut"}">${x.htf.toUpperCase()} ${x.hT>.3?"tăng":x.hT<-.3?"giảm":"trung tính"}</span>`;
+    const h=!x.htf?`<span class="mut">–</span>`:x.hT==null?`<span class="mut">${x.htf.toUpperCase()}: chưa đủ data</span>`
+      :`<span class="${x.hT>.3?"up":x.hT<-.3?"dn":"mut"}">${x.htf.toUpperCase()} ${x.hT>.3?"bullish":x.hT<-.3?"bearish":"neutral"}</span>`;
     return `<tr data-tv="${tvSym(x.r)}" data-tf="${x.tf}">
       <td class="sym">${x.r.base}${srcBadge(x.r)}</td><td>${x.tf.toUpperCase()}</td><td><b class="c-adx-hi">${Math.round(x.score)}</b></td>
-      <td title="${P.ref}${wait?` · giá hiện tại ${fp(P.px)}, cách ${pct(P.entry,P.px)}`:""}"><span class="pill ${wait?"":"up"}">${P.mode}</span> ${fp(P.entry)}</td>
+      <td title="${P.ref}${wait?` · giá hiện tại ${fp(P.px)}, cách ${pct(P.entry,P.px)}`:""}"><span class="pill ${wait?"":"up"}">${modeTxt(P.mode)}</span> ${fp(P.entry)}</td>
       <td class="dn" title="${P.why}">${fp(P.stop)}<span class="pc dn">${pct(P.stop,P.entry)}</span></td>
       <td class="up" title="${P.tp1Why}">${fp(P.tp1)}<span class="pc up">${pct(P.tp1,P.entry)}</span><br><small class="mut">${P.tp1Why}</small></td>
       <td class="up" title="${P.tp2Why}">${fp(P.tp2)}<span class="pc up">${pct(P.tp2,P.entry)}</span><br><small class="mut">${P.tp2Why}</small></td>
       <td><b>${P.rr1.toFixed(1)}R</b><small class="mut"> / ${P.rr2.toFixed(1)}R</small></td>
       <td>${h}</td>
       <td class="rs">${x.why.g.join(" · ")}${x.why.w.length?` <span class="dn">· lưu ý: ${x.why.w.join(", ")}</span>`:""}</td></tr>`}).join("")
-    :`<tr><td colspan="10" class="mut full">${S.pickStatus?"Đang quét dữ liệu 4H, 1D, 1W…":"Hiện chưa có kèo nào đạt chuẩn (≥ 65 điểm, R:R tối thiểu 1:2, SL không quá 35%). Thị trường chưa có setup đẹp thì đứng ngoài cũng là một quyết định."}</td></tr>`;
+    :`<tr><td colspan="10" class="mut full">${S.pickStatus?"Đang quét dữ liệu 4H, 1D, 1W…":"Hiện chưa có setup nào đạt chuẩn (score ≥ 65, R:R tối thiểu 1:2, SL không quá 35%). Thị trường chưa có setup đẹp thì đứng ngoài cũng là một quyết định."}</td></tr>`;
   $("nearList").innerHTML=S.near.map(x=>`<li title="Entry ${fp(x.P.entry)} · SL ${fp(x.P.stop)} · TP1 ${fp(x.P.tp1)}"><span class="sym">${x.r.base} <small class="mut">${x.tf.toUpperCase()}</small></span><span class="num"><span class="up">${Math.round(x.score)}</span> <span class="mut">${x.P.rr1.toFixed(1)}R</span></span></li>`).join("")
     ||`<li class="empty">${S.pickStatus?"Đang quét…":"Chưa có coin nào gần đạt chuẩn"}</li>`;
 }
@@ -1388,8 +1411,8 @@ async function journalUpdate(){
   });
   S.jBusy=false; jSave(); renderJournal();
 }
-const JST={pending:["Chờ khớp",""],open:["Đang mở","up"],tp1_be:["Chốt TP1 · hoà phần còn lại","up"],tp2:["Chốt TP2","up"],sl:["Dính SL","dn"],expired:["Hủy · không khớp",""],manual:["Đóng tay","up"],cancel:["Hủy tay",""]};
-const jLabel=j=>j.status==="open"&&j.half?["Đã chốt 50% ở TP1 · SL về Entry","up"]:j.status==="manual"?[j.roi>=0?"Chốt lời tay":"Cắt lỗ tay",j.roi>=0?"up":"dn"]:(JST[j.status]||[j.status,""]);
+const JST={pending:["Pending",""],open:["Open","up"],tp1_be:["TP1 hit · BE phần còn lại","up"],tp2:["TP2 hit","up"],sl:["SL hit","dn"],expired:["Cancelled · not filled",""],manual:["Manual close","up"],cancel:["Manual cancel",""]};
+const jLabel=j=>j.status==="open"&&j.half?["Partial 50% ở TP1 · SL → BE","up"]:j.status==="manual"?[j.roi>=0?"Manual take profit":"Manual cut loss",j.roi>=0?"up":"dn"]:(JST[j.status]||[j.status,""]);
 function jPrice(j){const r=rowBySym(j.sym)||S.rows.get("cg:"+j.base); return r&&r.price?r.price:(j.cur||null)}
 function closeTrade(j){
   if(j.status==="pending"){ Object.assign(j,{status:"cancel",exitAt:Date.now(),roi:0,r:0}); return true }
@@ -1408,18 +1431,18 @@ function renderJournal(){
   set("jSum",closed.length?sg(sum):"–",closed.length?(sum>=0?"up":"dn"):"");
   set("jOpen",open.length?sg(osum):"–",open.length?(osum>=0?"up":"dn"):"");
   const avgR=closed.length?closed.reduce((a,j)=>a+j.r,0)/closed.length:null;
-  $("jNote").textContent=(S.cloud?`Đám mây GitHub · quét lúc ${new Date(S.cloud.updatedAt).toLocaleTimeString("vi-VN")} · `:"")+(J.length?`${closed.length} đã đóng · ${open.length} đang mở · ${J.filter(j=>j.status==="pending").length} chờ khớp`+(avgR!=null?` · R trung bình ${avgR>=0?"+":""}${avgR.toFixed(2)}R`:""):"chưa có kèo nào");
+  $("jNote").textContent=(S.cloud?`Đám mây GitHub · quét lúc ${new Date(S.cloud.updatedAt).toLocaleTimeString("vi-VN")} · `:"")+(J.length?`${closed.length} closed · ${open.length} open · ${J.filter(j=>j.status==="pending").length} pending`+(avgR!=null?` · avg R ${avgR>=0?"+":""}${avgR.toFixed(2)}R`:""):"chưa có trade nào");
   let L=[...J].reverse();
   if(S.jFilter==="open") L=L.filter(j=>!jDone(j.status)); else if(S.jFilter==="closed") L=L.filter(j=>jDone(j.status));
   const dt=t=>{const d=new Date(t),z=n=>String(n).padStart(2,"0");return `${z(d.getDate())}/${z(d.getMonth()+1)} ${z(d.getHours())}:${z(d.getMinutes())}`};
   $("jBody").innerHTML=L.length?L.map(j=>{
     const [lab,c]=jLabel(j), showRoi=!["pending","expired","cancel"].includes(j.status);
-    const act=S.cloud&&!j.local?"":j.status==="open"?`<button class="btn sm" data-act="close" data-id="${j.id}">Chốt lệnh</button>`:j.status==="pending"?`<button class="btn sm" data-act="close" data-id="${j.id}">Hủy lệnh</button>`:"";
-    const tip=`${j.mode} · điểm ${j.score} · R:R kế hoạch ${j.rr1.toFixed(1)}`+(j.fillAt?` · khớp ${dt(j.fillAt)}`:"")+(j.exitAt?` · đóng ${dt(j.exitAt)}`:"")+(j.status==="open"&&j.cur?` · giá hiện tại ${fp(j.cur)}`:"")+(j.tp1Why?` · TP1: ${j.tp1Why} · TP2: ${j.tp2Why}`:"")+(j.tp1Old!=null?` · TP cũ ${fp(j.tp1Old)} / ${fp(j.tp2Old)}`:"");
+    const act=S.cloud&&!j.local?"":j.status==="open"?`<button class="btn sm" data-act="close" data-id="${j.id}">Close</button>`:j.status==="pending"?`<button class="btn sm" data-act="close" data-id="${j.id}">Cancel</button>`:"";
+    const tip=`${modeTxt(j.mode)} · score ${j.score} · R:R kế hoạch ${j.rr1.toFixed(1)}`+(j.fillAt?` · khớp ${dt(j.fillAt)}`:"")+(j.exitAt?` · đóng ${dt(j.exitAt)}`:"")+(j.status==="open"&&j.cur?` · giá hiện tại ${fp(j.cur)}`:"")+(j.tp1Why?` · TP1: ${j.tp1Why} · TP2: ${j.tp2Why}`:"")+(j.tp1Old!=null?` · TP cũ ${fp(j.tp1Old)} / ${fp(j.tp2Old)}`:"");
     return `<tr data-tv="${tvSym(j)}" title="${tip}"><td class="sym">${j.base}${srcBadge(j)}${S.cloud&&j.local?'<span class="cg" title="Kèo cũ lưu trên máy này, chưa chuyển lên GitHub">máy này</span>':""}</td><td>${dt(j.at)}</td><td>${j.tf.toUpperCase()}</td>
       <td>${fp(j.entry)}</td><td class="dn">${fp(j.stop)}<span class="pc dn">${pctOf(j.stop,j.entry)}</span></td><td class="up">${fp(j.tp1)}<span class="pc up">${pctOf(j.tp1,j.entry)}</span></td><td class="up">${fp(j.tp2)}<span class="pc up">${pctOf(j.tp2,j.entry)}</span></td>
       <td><span class="pill ${c}">${lab}</span></td>
-      <td>${showRoi?`<b class="${j.roi>=0?"up":"dn"}">${sg(j.roi)}</b>${j.status==="open"?' <small class="mut">tạm tính</small>':""}`:'<span class="mut">–</span>'}</td>
+      <td>${showRoi?`<b class="${j.roi>=0?"up":"dn"}">${sg(j.roi)}</b>${j.status==="open"?' <small class="mut">unrealized</small>':""}`:'<span class="mut">–</span>'}</td>
       <td>${showRoi?`<span class="${j.r>=0?"up":"dn"}">${j.r>=0?"+":""}${j.r.toFixed(2)}R</span>`:'<span class="mut">–</span>'}</td><td>${act}</td></tr>`}).join("")
     :`<tr><td colspan="11" class="mut full">${J.length?"Không có kèo nào trong mục này.":"Nhật ký bắt đầu ghi từ bây giờ: mỗi khi bảng “Kèo trade” có kèo đạt chuẩn, kèo đó sẽ được lưu lại và theo dõi lãi/lỗ tự động. Hãy giữ trang mở hoặc quay lại thường xuyên để ghi được nhiều kèo."}</td></tr>`;
 }
@@ -1432,11 +1455,11 @@ function confirmBtn(b,key,text,run){
 }
 $("jCloseAll").addEventListener("click",e=>{
   const live=S.journal.filter(j=>j.status==="open"||j.status==="pending");
-  if(!live.length){e.currentTarget.textContent="Không có lệnh nào đang mở";setTimeout(()=>$("jCloseAll").textContent="Đóng tất cả lệnh",2000);return}
-  confirmBtn(e.currentTarget,"all",`Bấm lần nữa để đóng ${live.length} lệnh`,()=>{
+  if(!live.length){e.currentTarget.textContent="Không có lệnh nào open";setTimeout(()=>$("jCloseAll").textContent="Close all",2000);return}
+  confirmBtn(e.currentTarget,"all",`Bấm lần nữa để close ${live.length} lệnh`,()=>{
     let n=0,miss=0; live.forEach(j=>closeTrade(j)?n++:miss++); jSave(); renderJournal();
     $("jCloseAll").textContent=miss?`Đã đóng ${n} · ${miss} lệnh chưa có giá`:`Đã đóng ${n} lệnh`; $("jCloseAll").classList.remove("warn");
-    setTimeout(()=>$("jCloseAll").textContent="Đóng tất cả lệnh",2500);
+    setTimeout(()=>$("jCloseAll").textContent="Close all",2500);
   });
 });
 $("jBody").addEventListener("click",e=>{
@@ -1450,8 +1473,8 @@ $("jBody").addEventListener("click",e=>{if(e.target.closest("button"))return;con
 let jClearArm=0;
 $("jClear").addEventListener("click",()=>{
   const b=$("jClear");
-  if(Date.now()-jClearArm<4000){S.journal=[];jSave();renderJournal();b.textContent="Đã xoá";jClearArm=0;setTimeout(()=>b.textContent="Xoá nhật ký",2000);return}
-  jClearArm=Date.now(); b.textContent="Bấm lần nữa để xoá"; setTimeout(()=>{if(Date.now()-jClearArm>=3900) b.textContent="Xoá nhật ký"},4000);
+  if(Date.now()-jClearArm<4000){S.journal=[];jSave();renderJournal();b.textContent="Đã xoá";jClearArm=0;setTimeout(()=>b.textContent="Xoá journal",2000);return}
+  jClearArm=Date.now(); b.textContent="Bấm lần nữa để xoá"; setTimeout(()=>{if(Date.now()-jClearArm>=3900) b.textContent="Xoá journal"},4000);
 });
 $("jCsv").addEventListener("click",()=>{
   const head=["ghi_luc","ma","khung","kieu_entry","diem","entry","sl","tp1","tp2","rr_ke_hoach","trang_thai","gia_dong","roi_pct","r"];
@@ -1462,21 +1485,36 @@ $("jCsv").addEventListener("click",()=>{
 });
 
 /* ---------- Nhật ký đám mây (GitHub Actions quét 24/7) ---------- */
+const STATE_RAW="https://raw.githubusercontent.com/LHTrong0322/radar-scanner/main/state.json";
 S.cloud=null;
 async function loadCloud(){
   try{
-    const r=await fetch("/api/state",{cache:"no-store"}); if(!r.ok) return;
-    const j=await r.json(); if(!j||!Array.isArray(j.journal)) return;
+    let j=null;
+    try{ const r=await fetch("/api/state",{cache:"no-store"}); if(r.ok) j=await r.json() }catch(e){}
+    if(!j||!Array.isArray(j.journal)){              // dự phòng: đọc thẳng file kết quả trên GitHub
+      try{ const r=await fetch(STATE_RAW+"?t="+Math.floor(Date.now()/60000),{cache:"no-store"}); if(r.ok) j=await r.json() }catch(e){}
+    }
+    if(!j||!Array.isArray(j.journal)){ S.cloudErr=true; botStatus(); return }
+    S.cloudErr=false;
     const first=!S.cloud;
     const ids=new Set(j.journal.map(x=>x.id));
     const local=(first?S.journal:S.journal.filter(x=>x.local)).filter(x=>!ids.has(x.id)).map(x=>({...x,local:true}));
     S.cloud=j; S.journal=[...j.journal,...local].sort((a,b)=>a.at-b.at);
     document.body.classList.add("cloud"); jSave();
     $("jImport").hidden=!local.length; $("jImport").textContent=`Chuyển ${local.length} kèo cũ lên GitHub`;
-    renderJournal(); if(first) journalUpdate();
+    renderJournal(); botStatus(); if(first) journalUpdate();
   }catch(e){}
 }
-loadCloud(); setInterval(loadCloud,5*60*1000);
+function botStatus(){
+  const el=$("bot"), tx=$("botTxt");
+  if(!S.cloud){ if(S.cloudErr){ el.className="live err"; tx.textContent="Bot 24/7: không đọc được dữ liệu" } return }
+  const t=S.cloud.updatedAt, m=Math.round((Date.now()-t)/60000);
+  const ago=m<1?"vừa xong":m<60?`${m} phút trước`:`${Math.floor(m/60)} giờ ${m%60} phút trước`;
+  const at=new Date(t).toLocaleTimeString("vi-VN",{hour:"2-digit",minute:"2-digit"});
+  el.className="live "+(m<=35?"on":m<=90?"warn":"err");
+  tx.textContent=m<=35?`Bot 24/7 · quét lúc ${at} (${ago})`:m<=90?`Bot trễ · lần cuối ${at} (${ago})`:`Bot ngừng quét · lần cuối ${at} (${ago})`;
+}
+loadCloud(); setInterval(loadCloud,5*60*1000); setInterval(botStatus,30000);
 
 $("jImport").addEventListener("click",()=>{
   const local=S.journal.filter(j=>j.local).map(({local,...j})=>j);
@@ -1597,6 +1635,52 @@ function renderMining(){
   $("mMeta").textContent=`Hashrate ${(m.hr/1e18).toFixed(0)} EH/s · phần thưởng ${m.reward.toFixed(1)} BTC/ngày${m.estReward?" (ước tính)":""}`+(hp?` · hashprice $${hp.toFixed(1)}/PH/ngày`:"")+` · nguồn ${m.src}. Chỉ tính tiền điện; chi phí toàn phần (khấu hao máy, vận hành) thường cao hơn khoảng 30–50%.`;
 }
 loadMining(); setInterval(loadMining,30*60*1000);
+
+/* ---------- Nến không râu BTC · ETH (khung 1H trở lên) ---------- */
+const NR_TF=[["1h","1H"],["4h","4H"],["1d","1D"],["1w","1W"],["1M","1M"]];
+const NR_COINS=["BTC","ETH"];
+const NR={data:{},px:{},at:0,miss:[]};
+function wickless(c,tf,lab){
+  const out=[], last=c.length-1;               // nến cuối đang chạy: không xét, chỉ dùng để kiểm tra đã lấp chưa
+  for(let i=0;i<last;i++){
+    const k=c[i]; let side=null;
+    if(k.c>k.o&&k.o===k.l) side="up";            // nến tăng, mở cửa = đáy → không râu dưới
+    else if(k.c<k.o&&k.o===k.h) side="dn";       // nến giảm, mở cửa = đỉnh → không râu trên
+    if(!side) continue;
+    let fill=null;
+    for(let j=i+1;j<=last;j++){ if(side==="up"?c[j].l<=k.o:c[j].h>=k.o){fill=c[j].t;break} }
+    out.push({tf,lab,side,lv:k.o,t:k.t,fill});
+  }
+  return out;
+}
+async function nrCandles(base,tf){
+  try{ const k=await getJSON(`/api/v3/klines?symbol=${base}USDT&interval=${tf}&limit=1000`);
+    return k.map(a=>({t:a[0],o:+a[1],h:+a[2],l:+a[3],c:+a[4]})) }
+  catch(e){ return (await exCandles(base,tf,1000)).c }
+}
+async function loadWickless(){
+  const jobs=[]; for(const b of NR_COINS) for(const [tf,lab] of NR_TF) jobs.push({b,tf,lab});
+  const res={}, px={}, miss=[]; NR_COINS.forEach(b=>res[b]=[]);
+  await pool(jobs,4,async j=>{
+    try{ const c=await nrCandles(j.b,j.tf); if(j.tf==="1h"&&c.length) px[j.b]=c[c.length-1].c; res[j.b].push(...wickless(c,j.tf,j.lab)) }
+    catch(e){ miss.push(`${j.b} ${j.lab}`) }
+  });
+  if(miss.length<jobs.length){ NR.data=res; NR.px={...NR.px,...px}; NR.at=Date.now(); NR.miss=miss }
+  renderWickless();
+}
+const nrTime=(t,tf)=>{const d=new Date(t),z=n=>String(n).padStart(2,"0");
+  return /h$/.test(tf)?`${z(d.getDate())}/${z(d.getMonth()+1)} ${z(d.getHours())}:${z(d.getMinutes())}`:`${z(d.getDate())}/${z(d.getMonth()+1)}/${String(d.getFullYear()).slice(2)}`};
+function renderWickless(){
+  if(!NR.at){ $("nrNote").textContent="đang tải dữ liệu nến…"; return }
+  $("nrGrid").innerHTML=NR_COINS.map(b=>{
+    const r=rowBySym(b+"USDT"), px=r&&r.price?r.price:NR.px[b];
+    const open=(NR.data[b]||[]).filter(x=>!x.fill).sort((a,c)=>px?Math.abs(a.lv-px)-Math.abs(c.lv-px):0);
+    const items=open.length?open.map(x=>`<li><span class="nr-tf">${x.lab}</span><b class="nr-s ${x.side}">${fp(x.lv)}</b></li>`).join(""):`<li class="empty">Không có</li>`;
+    return `<div class="nr-col"><div class="nr-h"><b>${b}</b></div><ul class="nr-list">${items}</ul></div>`;
+  }).join("");
+  $("nrNote").textContent=`cập nhật ${new Date(NR.at).toLocaleTimeString("vi-VN")}`+(NR.miss.length?` · chưa lấy được: ${NR.miss.join(", ")}`:"");
+}
+loadWickless(); setInterval(loadWickless,5*60*1000); setInterval(renderWickless,15000);
 
 /* ---------- Lạm phát token hằng năm ---------- */
 const inflCol=r=>r<0?"var(--up)":r<1.5?"var(--accent)":r<4?"var(--warn)":"var(--dn)";
