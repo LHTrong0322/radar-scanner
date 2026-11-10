@@ -356,7 +356,7 @@ details.how p{color:var(--muted);font-size:12.5px;line-height:1.6;max-width:90ch
         <span class="spacer"></span>
         <button class="btn" id="jCloseAll">Close all</button>
         <button class="btn pri" id="jImport" hidden>Chuyển kèo cũ lên GitHub</button>
-        <label class="f" for="jCap" title="Tổng vốn dùng để tính % trên toàn danh mục">Vốn <input id="jCap" type="number" min="1" step="1" value="100" style="width:80px"> USDC</label>
+        <label class="f" for="jCap" title="Tổng vốn dùng để tính % trên toàn portfolio">Vốn <input id="jCap" type="number" min="1" step="1" value="100" style="width:80px"> USDC</label>
         <label class="f" for="jRisk" title="Số tiền rủi ro cho mỗi lệnh (1R)">1R = <input id="jRisk" type="number" min="0.1" step="0.5" value="3" style="width:64px"> USDC</label>
         <button class="btn" id="jCsv">Xuất CSV</button>
         <button class="btn" id="jClear">Xoá journal</button>
@@ -1440,7 +1440,7 @@ function renderJournal(){
   // tính theo R; % là % trên tổng vốn danh mục (mỗi R = rủi ro cố định / vốn)
   const {cap,risk}=pf(), rPct=risk/cap*100, sR=v=>(v>=0?"+":"")+v.toFixed(2)+"R", usd=v=>(v>=0?"+$":"-$")+Math.abs(v).toFixed(2);
   const sumR=closed.reduce((a,j)=>a+(j.r||0),0), openR=open.reduce((a,j)=>a+(j.r||0),0), cls=v=>v>=0?"up":"dn";
-  const sub=(id,r)=>{$(id).innerHTML=r==null?"":`<b class="${cls(r)}">${sg(r*rPct)}</b> danh mục`};
+  const sub=(id,r)=>{$(id).innerHTML=r==null?"":`<b class="${cls(r)}">${sg(r*rPct)}</b> portfolio`};
   set("jTotal",J.length); set("jWin",closed.length?Math.round(wins/closed.length*100)+"%":"–");
   set("jAvg",closed.length?sR(sumR/closed.length):"–",closed.length?cls(sumR):""); sub("jAvgS",closed.length?sumR/closed.length:null);
   set("jSum",closed.length?sR(sumR):"–",closed.length?cls(sumR):""); sub("jSumS",closed.length?sumR:null);
