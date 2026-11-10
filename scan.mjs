@@ -34,7 +34,7 @@ function loadCore() {
     grab(/function simulate\([\s\S]*?\n\}/, "simulate"),
   ].join("\n");
   const S = { tf: "4h", win: 3, os: 30, ob: 70 };
-  return new Function("S", src + "\nreturn {TFMS,SETS,STOCKS,skipCoin,bucket,compute,trendOf,pickReasons,simulate,MAX_SL,clamp,swapTxt};")(S);
+  return new Function("S", src + "\nreturn {TFMS,SETS,STOCKS,skipCoin,bucket,compute,trendOf,pickReasons,simulate,MAX_SL,clamp,swapTxt,PICK_MIN:typeof PICK_MIN!=='undefined'?PICK_MIN:70};")(S);
 }
 const K = loadCore();
 
@@ -332,7 +332,7 @@ async function main() {
       const rs = K.pickReasons(t.ind), why = SIDE === "short" ? { g: rs.g.map(K.swapTxt), w: rs.w.map(K.swapTxt) } : rs;
       const P = t.buy.plan, it = { a, base: a.base, tf, P, score: sc, hT, htf, why, rank: sc + Math.min(P.rr1, 5) * 5 };
       evals.set(a.base + "|" + tf, it);
-      if (sc >= 70 && P.rr1 >= 2) ok.push(it); else if (sc >= 60 && P.rr1 >= 1.5) near.push(it);
+      if (sc >= K.PICK_MIN && P.rr1 >= 2) ok.push(it); else if (sc >= K.PICK_MIN - 10 && P.rr1 >= 1.5) near.push(it);
     });
   });
   const best = arr => { const m = new Map(); for (const x of arr) { const o = m.get(x.base); if (!o || x.rank > o.rank) m.set(x.base, x); } return [...m.values()].sort((p, q) => q.rank - p.rank); };
@@ -349,7 +349,7 @@ async function main() {
     j.recheck = RECHECK;
     const x = evals.get(j.base + "|" + j.tf);
     const why = !x ? "điểm kỹ thuật không còn đủ để vào kèo (hoặc kèo bị loại do SL quá xa)"
-      : x.score < 70 ? `điểm chỉ còn ${x.score.toFixed(1)}/100 (cần ≥ 70)`
+      : x.score < K.PICK_MIN ? `điểm chỉ còn ${x.score.toFixed(1)}/100 (cần ≥ ${K.PICK_MIN})`
       : x.P.rr1 < 2 ? `R:R tới TP1 chỉ còn ${x.P.rr1.toFixed(1)} (cần ≥ 2)` : null;
     if (why) { Object.assign(j, { status: "cancel", exitAt: Date.now(), roi: 0, r: 0, cancelWhy: why }); cancelled.push(`• <b>${esc(j.base)}</b> ${String(j.tf).toUpperCase()} (Entry ${fp(j.entry)}): ${why}`); }
     else if (j.status === "pending") {                                  // còn đạt → dời Entry / SL / TP theo thuật toán mới

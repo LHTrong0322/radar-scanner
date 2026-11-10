@@ -1,0 +1,10 @@
+{
+ "name": "10-3tp",
+ "desc": "3 TP (đối chứng)",
+ "patch": [
+  {
+   "find": "const MAX_TPS=2;",
+   "replace": "const MAX_TPS=3;"
+  }
+ ]
+}

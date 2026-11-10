@@ -1,0 +1,10 @@
+{
+ "name": "01-no-struct-exit",
+ "desc": "Bỏ thoát lệnh khi phá cấu trúc (chỉ thoát bằng SL/TP)",
+ "patch": [
+  {
+   "find": "if(st===\"open\"&&hl!=null&&hl>sl&&last.c<hl&&last.t>=fillAt)",
+   "replace": "if(false&&st===\"open\"&&hl!=null&&hl>sl&&last.c<hl&&last.t>=fillAt)"
+  }
+ ]
+}

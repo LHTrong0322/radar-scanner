@@ -1,0 +1,14 @@
+{
+ "name": "05-sl-0.3atr",
+ "desc": "Đệm SL 0.3 ATR (sát hơn)",
+ "patch": [
+  {
+   "find": "stop=zs.lo-.5*atr;",
+   "replace": "stop=zs.lo-.3*atr;"
+  },
+  {
+   "find": "Math.max(...cands)-.5*atr",
+   "replace": "Math.max(...cands)-.3*atr"
+  }
+ ]
+}

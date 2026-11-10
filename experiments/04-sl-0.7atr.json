@@ -1,0 +1,14 @@
+{
+ "name": "04-sl-0.7atr",
+ "desc": "Đệm SL dưới vùng hỗ trợ 0.7 ATR (thay 0.5)",
+ "patch": [
+  {
+   "find": "stop=zs.lo-.5*atr;",
+   "replace": "stop=zs.lo-.7*atr;"
+  },
+  {
+   "find": "Math.max(...cands)-.5*atr",
+   "replace": "Math.max(...cands)-.7*atr"
+  }
+ ]
+}

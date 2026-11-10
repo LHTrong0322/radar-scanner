@@ -2,6 +2,7 @@ name: Backtest thuật toán
 
 # Chạy lại thuật toán hiện tại (index.html) trên dữ liệu 1–2 năm qua để đo hiệu quả theo R.
 # - Tự chạy mỗi Chủ nhật 17:07 (giờ VN), trước buổi review tuần
+# - Mỗi lần chạy so sánh thêm các thí nghiệm trong thư mục experiments/ (mỗi file là một thay đổi nhỏ áp lên thuật toán hiện tại)
 # - Bấm tay: chọn số ngày, LONG/SHORT; muốn so sánh một ý tưởng thì đẩy thay đổi lên một nhánh khác rồi nhập tên nhánh vào "compare_ref"
 # Không đặt lệnh, không gửi Telegram. Kết quả lưu ở thư mục backtests/.
 on:
@@ -21,6 +22,9 @@ on:
       label:
         description: "(tuỳ chọn) tên ngắn cho lần chạy, ví dụ sl-0.7atr"
         default: ""
+      experiments:
+        description: "Chạy kèm các thí nghiệm trong thư mục experiments/ (all / none)"
+        default: "all"
 
 permissions:
   contents: write
@@ -47,6 +51,7 @@ jobs:
           SIDE: ${{ github.event.inputs.side || 'long' }}
           REF: ${{ github.event.inputs.compare_ref || '' }}
           LABEL: ${{ github.event.inputs.label || '' }}
+          EXPS: ${{ github.event.inputs.experiments || 'all' }}
         run: |
           EXTRA=""
           if [ -n "$REF" ]; then
@@ -55,6 +60,7 @@ jobs:
             EXTRA="--html2 /tmp/variant.html"
             [ -z "$LABEL" ] && LABEL="$REF"
           fi
+          if [ "$EXPS" != "none" ] && [ -d experiments ] && ls experiments/*.json >/dev/null 2>&1; then EXTRA="$EXTRA --exp experiments"; fi
           node bt.mjs --days "$DAYS" --side "$SIDE" --label "$LABEL" $EXTRA
       - name: Lưu kết quả
         run: |

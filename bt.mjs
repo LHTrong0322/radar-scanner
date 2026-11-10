@@ -9,21 +9,21 @@ import path from "node:path";
 
 const arg = (k, d) => { const i = process.argv.indexOf("--" + k); return i > 0 ? process.argv[i + 1] : d; };
 const DAYS = +arg("days", 730), MAX = +arg("max", 200), SIDE = arg("side", "long") === "short" ? "short" : "long";
-const HTML = arg("html", "index.html"), HTML2 = arg("html2", ""), LABEL = arg("label", ""), OUT = arg("out", "backtests");
+const HTML = arg("html", "index.html"), HTML2 = arg("html2", ""), NAMES = arg("names", ""), LABEL = arg("label", ""), OUT = arg("out", "backtests");
 const TFS = ["4h", "1d", "1w"], HTF = { "4h": "1d", "1d": "1w", "1w": null }, EXEC = { "4h": "4h", "1d": "4h", "1w": "1d" };
 const STEP = { "4h": 3, "1d": 1, "1w": 1 };                 // 4H: xét mỗi 12 giờ cho nhẹ; 1D/1W: mọi nến
 const WIN = 400;                                             // số nến đưa vào thuật toán mỗi lần (giống bot)
 const MS = { "4h": 144e5, "1d": 864e5, "1w": 6048e5 };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-function loadCore(file) {
-  const js = fs.readFileSync(file, "utf8").split("<script>")[1].split("</script>")[0];
+function loadCore(file, text) {
+  const js = (text ?? fs.readFileSync(file, "utf8")).split("<script>")[1].split("</script>")[0];
   const grab = re => { const m = js.match(re); if (!m) throw new Error("thiếu " + re); return m[0]; };
   const a = js.indexOf("/* ---------- indicators ---------- */"), b = js.indexOf("/* ---------- render ---------- */");
   const src = [grab(/const TFMS=[^\n]*/), grab(/const SETS=[^\n]*/), grab(/const SKIP=[^\n]*/), grab(/const STOCKS=[^\n]*/), js.slice(a, b),
     grab(/const trendOf=[^\n]*/), grab(/function simulate\([\s\S]*?\n\}/)].join("\n");
   const extra = (js.match(/const EXTRA_CRYPTO=(\[[^\]]*\])/) || [])[1];
-  const K = new Function("S", src + "\nreturn {compute,trendOf,simulate,clamp,TFMS};")({ tf: "4h", win: 3, os: 30, ob: 70 });
+  const K = new Function("S", src + "\nreturn {compute,trendOf,simulate,clamp,TFMS,PICK_MIN:typeof PICK_MIN!=='undefined'?PICK_MIN:70};")({ tf: "4h", win: 3, os: 30, ob: 70 });
   K.extra = extra ? JSON.parse(extra) : [];
   return K;
 }
@@ -76,14 +76,14 @@ function signals(K, D, startT) {
       if (bars[i].t < startT) continue;
       const w = bars.slice(Math.max(0, i - WIN + 1), i + 1), t = { src: "ex", c: w, tf, side: SIDE };
       K.compute(t); const B = t.buy; if (!B || !B.plan || B.plan.reject) continue;
-      let sc = B.score; if (sc < 62) continue;
+      let sc = B.score; if (sc < K.PICK_MIN - 8) continue;
       const htf = HTF[tf];
       if (htf && D[htf]) {
         const hc = partial(D[htf], bars, bars[i].t, htf).slice(-WIN);
         if (hc.length >= 60) { const h = { src: "ex", c: hc, tf: htf, side: SIDE }; K.compute(h); const hT = K.trendOf(h); if (hT != null) { if (hT > .3) sc += 3; else if (hT < -.3) sc -= 5; } }
       }
       sc = K.clamp(sc, 0, 100);
-      if (sc >= 70 && B.plan.rr1 >= 2) out.push({ t: bars[i].t + MS[tf], tf, sc, P: B.plan, rank: sc + Math.min(B.plan.rr1, 5) * 5 });
+      if (sc >= K.PICK_MIN && B.plan.rr1 >= 2) out.push({ t: bars[i].t + MS[tf], tf, sc, P: B.plan, rank: sc + Math.min(B.plan.rr1, 5) * 5 });
     }
   }
   return out.sort((a, b) => a.t - b.t || b.rank - a.rank);
@@ -139,12 +139,27 @@ function md(title, R, R2) {
 }
 
 /* ---------- chạy ---------- */
-const t0 = Date.now(), K1 = loadCore(HTML), K2 = HTML2 ? loadCore(HTML2) : null;
+const t0 = Date.now(), K1 = loadCore(HTML);
+const VFILES = HTML2 ? HTML2.split(",").filter(Boolean) : [], VNAMES = NAMES ? NAMES.split(",") : [];
+const V = VFILES.map((f, i) => ({ name: VNAMES[i] || path.basename(f, ".html"), K: loadCore(f), T: [] }));
+// thí nghiệm dạng "vá" (experiments/*.json: [{find, replace}, ...]) áp lên index.html hiện tại → không cần nhánh riêng
+const EXP = arg("exp", ""), expSkip = [];
+if (EXP) {
+  const base = fs.readFileSync(HTML, "utf8"), files = fs.existsSync(EXP) && fs.statSync(EXP).isDirectory() ? fs.readdirSync(EXP).filter(f => f.endsWith(".json")).sort().map(f => path.join(EXP, f)) : EXP.split(",");
+  for (const f of files) {
+    try {
+      const X = JSON.parse(fs.readFileSync(f, "utf8")); let t = base;
+      for (const p of X.patch || []) { if (!t.includes(p.find)) throw new Error("không tìm thấy đoạn cần vá: " + p.find.slice(0, 60)); t = t.split(p.find).join(p.replace); }
+      V.push({ name: X.name || path.basename(f, ".json"), desc: X.desc || "", K: loadCore(null, t), T: [] });
+    } catch (e) { expSkip.push(`${path.basename(f)}: ${e.message}`); }
+  }
+}
+const K2 = V.length === 1 && !EXP ? V[0].K : null;
 let uni = [];
 try { const st = JSON.parse(fs.readFileSync("state.json", "utf8")); uni = Object.keys(st.universe || {}); if (!uni.length) uni = [...new Set((st.journal || []).filter(j => j.src !== "st").map(j => j.base))]; } catch (e) { }
 uni = [...new Set([...uni, ...K1.extra])].filter(b => /^[A-Z0-9]{2,12}$/.test(b)).slice(0, MAX);
 const startT = Date.now() - DAYS * 864e5, from = { "4h": startT - WIN * MS["4h"], "1d": startT - WIN * MS["1d"], "1w": Date.UTC(2017, 0, 1) };
-console.log(`Backtest ${uni.length} mã · ${DAYS} ngày · ${SIDE}${K2 ? " · so sánh 2 phiên bản" : ""}`);
+console.log(`Backtest ${uni.length} mã · ${DAYS} ngày · ${SIDE}${V.length ? ` · so sánh ${V.length} phiên bản: ${V.map(v => v.name).join(", ")}` : ""}`);
 const A = [], B = [], miss = [];
 let done = 0;
 async function runOne(b) {
@@ -152,15 +167,22 @@ async function runOne(b) {
   for (const tf of TFS) { try { D[tf] = await candles(b, tf, from[tf]); } catch (e) { } }
   if (!D["4h"] || !D["1d"]) { miss.push(b); return; }
   A.push(...trades(K1, D, b, startT));
-  if (K2) B.push(...trades(K2, D, b, startT));
+  for (const v of V) v.T.push(...trades(v.K, D, b, startT));
+  if (K2) B.push(...V[0].T.slice(B.length));
   if (++done % 10 === 0) console.log(`  ${done}/${uni.length} mã · ${((Date.now() - t0) / 1000).toFixed(0)}s`);
 }
 let qi = 0; await Promise.all(Array.from({ length: 4 }, async () => { while (qi < uni.length) await runOne(uni[qi++]); }));
 const RA = report(A), RB = K2 ? report(B) : null;
+// bảng so sánh nhiều phiên bản
+const cmpRow = (name, R) => { const s = R.all, tf = k => R.byTF[k] ? R.byTF[k].totalR : 0;
+  return `| ${name} | ${s.closed} | ${s.winRate ?? "–"}% | ${s.totalR} | ${s.expectancy ?? "–"} | ${s.profitFactor ?? "–"} | ${s.maxDD_R} | ${tf("4h")} | ${tf("1d")} | ${tf("1w")} | ${s.limitFillRate ?? "–"}% |`; };
+const cmp = V.length ? ["\n## So sánh các phiên bản\n", "| Phiên bản | Lệnh đóng | Win rate | Tổng R | R/lệnh | PF | Max DD | R 4H | R 1D | R 1W | Lệnh chờ khớp |", "|---|---|---|---|---|---|---|---|---|---|---|",
+  cmpRow("**main (hiện tại)**", RA), ...V.map(v => cmpRow(v.name, report(v.T)))].join("\n") + "\n" +
+  V.filter(v => v.desc).map(v => `- **${v.name}**: ${v.desc}`).join("\n") + (expSkip.length ? `\n\nThí nghiệm bị bỏ qua: ${expSkip.join("; ")}` : "") + "\n" : "";
 const name = `${new Date().toISOString().slice(0, 10)}-${SIDE}${LABEL ? "-" + LABEL.replace(/[^a-z0-9-]/gi, "") : ""}`;
 fs.mkdirSync(OUT, { recursive: true });
-const text = md(`Backtest ${SIDE.toUpperCase()}${LABEL ? " · " + LABEL : ""}`, RA, RB) + (miss.length ? `\n\nKhông lấy được dữ liệu: ${miss.join(", ")}` : "");
+const text = cmp + md(`Backtest ${SIDE.toUpperCase()}${LABEL ? " · " + LABEL : ""}`, RA, RB) + (miss.length ? `\n\nKhông lấy được dữ liệu: ${miss.join(", ")}` : "");
 fs.writeFileSync(path.join(OUT, name + ".md"), text);
-fs.writeFileSync(path.join(OUT, name + ".json"), JSON.stringify({ at: Date.now(), days: DAYS, side: SIDE, label: LABEL, assets: uni.length, miss, A: RA, B: RB, tradesA: A, tradesB: K2 ? B : undefined }));
+fs.writeFileSync(path.join(OUT, name + ".json"), JSON.stringify({ at: Date.now(), days: DAYS, side: SIDE, label: LABEL, assets: uni.length, miss, A: RA, B: RB, variants: V.map(v => ({ name: v.name, R: report(v.T) })), tradesA: A, tradesB: K2 ? B : undefined }));
 console.log(text);
 console.log(`\nXong sau ${((Date.now() - t0) / 1000).toFixed(0)}s → ${OUT}/${name}.md`);

@@ -1,0 +1,10 @@
+{
+ "name": "09-tp1-close-70",
+ "desc": "TP1 chốt 70%, còn 30% tới TP2",
+ "patch": [
+  {
+   "find": "const tpFrac=n=>n<=1?[1]:[.5,...Array(n-1).fill(.5/(n-1))];",
+   "replace": "const tpFrac=n=>n<=1?[1]:[.7,...Array(n-1).fill(.3/(n-1))];"
+  }
+ ]
+}

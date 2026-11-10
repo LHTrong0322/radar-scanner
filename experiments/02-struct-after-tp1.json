@@ -1,0 +1,10 @@
+{
+ "name": "02-struct-after-tp1",
+ "desc": "Chỉ thoát do phá cấu trúc SAU KHI đã chạm TP1",
+ "patch": [
+  {
+   "find": "if(st===\"open\"&&hl!=null&&hl>sl&&last.c<hl&&last.t>=fillAt)",
+   "replace": "if(st===\"open\"&&hit>=1&&hl!=null&&hl>sl&&last.c<hl&&last.t>=fillAt)"
+  }
+ ]
+}
