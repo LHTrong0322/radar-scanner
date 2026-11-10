@@ -1,0 +1,40 @@
+name: Deploy web lên Cloudflare
+
+on:
+  push:
+    branches: [main]
+    paths: ["index.html", "_worker.js"]   # chỉ deploy khi giao diện/worker đổi, bot lưu state.json thì không deploy
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-web
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Kiểm tra đã cài khoá Cloudflare chưa
+        id: chk
+        env:
+          TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          ACC: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -z "$TOKEN" ] || [ -z "$ACC" ]; then
+            echo "::notice::Chưa có CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID trong Secrets, bỏ qua deploy."
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Gom file web
+        if: steps.chk.outputs.ok == 'true'
+        run: mkdir -p dist && cp index.html _worker.js dist/
+      - name: Deploy lên Cloudflare Pages (project smartpengu)
+        if: steps.chk.outputs.ok == 'true'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=smartpengu --branch=main --commit-dirty=true
