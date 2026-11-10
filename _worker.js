@@ -308,6 +308,13 @@ async function cloudState(env) {
   return new Response(await r.text(), { headers: { ...HDR, "cache-control": "no-store" } });
 }
 
+// trade.xyz (sàn HIP-3 "xyz" trên Hyperliquid): giá perp, giá gốc (oracle), funding · dùng cho bảng delta-neutral
+async function xyzMarkets(url) {
+  const dex = (url.searchParams.get("dex") || "xyz").replace(/[^a-z0-9_-]/gi, "").slice(0, 20);
+  const r = await fetch("https://api.hyperliquid.xyz/info", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "metaAndAssetCtxs", dex }) });
+  if (!r.ok) throw new Error("Hyperliquid HTTP " + r.status);
+  return J(await r.json());
+}
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -320,6 +327,7 @@ export default {
         case "/api/btcnet": return await withCache(request, ctx, 900, () => btcnet());
         case "/api/inflation": return await withCache(request, ctx, 1800, () => inflation(env));
         case "/api/state": return await withCache(request, ctx, 60, () => cloudState(env));
+        case "/api/xyz": return await withCache(request, ctx, 30, () => xyzMarkets(url));
         case "/api/sources": return J({
           candles: CANDLES.map(c => c[0]),
           rank: { CoinGecko: true, CoinMarketCap: !!env.CMC_API_KEY, CryptoRank: !!env.CRYPTORANK_API_KEY, CoinPaprika: true },
