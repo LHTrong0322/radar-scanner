@@ -1725,7 +1725,10 @@ loadWickless(); setInterval(loadWickless,5*60*1000); setInterval(renderWickless,
 
 /* ---------- Delta-neutral trade.xyz × Metric ---------- */
 const ARB={rows:[],at:0,src:"",metric:null,mAt:0};
-const matchMetric=(sym,oracle,minLiq)=>(ARB.metric||[]).filter(x=>x.base===sym.toUpperCase()&&x.liq>=minLiq&&(!(oracle>0)||Math.abs(x.price/oracle-1)<.1)).sort((a,b)=>b.liq-a.liq)[0]||null;
+// khớp mã: tên token Metric chứa mã trade.xyz (bTSLA, TSLAx, TSLAon, wTSLA…, thêm tối đa 4 ký tự) và giá lệch ≤ 10% so với giá gốc
+const mAl=s=>String(s||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
+const matchMetric=(sym,oracle,minLiq)=>{const S=mAl(sym);return (ARB.metric||[]).filter(x=>{const k=x.key||mAl(x.sym);return x.liq>=minLiq&&k.includes(S)&&k.length-S.length<=4&&(!(oracle>0)?k===S:Math.abs(x.price/oracle-1)<.1)})
+  .sort((a,b)=>(b.live-a.live)||((mAl(b.sym)===S)-(mAl(a.sym)===S))||b.liq-a.liq)[0]||null};
 async function loadArb(){
   let raw=null,src="";
   try{ const r=await fetch("https://api.hyperliquid.xyz/info",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"metaAndAssetCtxs",dex:"xyz"})}); if(r.ok){raw=await r.json();src="Hyperliquid trực tiếp"} }catch(e){}
@@ -1748,13 +1751,13 @@ function renderArb(){
   const rows=ARB.rows.map(r=>{const mt=ARB.metric?matchMetric(r.sym,r.oracle,minLiq):(r.metric&&r.metric.liq>=minLiq?r.metric:null);
       if(haveM&&!mt) return null; const prem=mt?(r.mark/mt.price-1)*100:r.prem; return {...r,mt,prem,edge:prem-fee+r.fund/365*7}})
     .filter(Boolean).sort((a,b)=>b.prem-a.prem);
-  const n=rows.filter(r=>r.prem>=min&&r.fund>=0&&r.mt).length;
+  const n=rows.filter(r=>r.prem>=min&&r.fund>=0&&r.mt&&r.mt.live!==false).length;
   $("arbNote").textContent=`${n} cơ hội · ${rows.length} mã có trên Metric · ${ARB.src} · ${new Date(ARB.at).toLocaleTimeString("vi-VN")}`+(haveM?"":" · ⚠ chưa kiểm tra được Metric");
   const sg=(v,d=2)=>(v>=0?"+":"")+v.toFixed(d);
   $("arbBody").innerHTML=rows.map(r=>{
-    const ok=r.prem>=min&&r.fund>=0&&!!r.mt, weak=r.prem>=min&&r.fund<0;
+    const ok=r.prem>=min&&r.fund>=0&&!!r.mt&&r.mt.live!==false, weak=r.prem>=min&&r.fund<0;
     const tip=ok?`<span class="pill up">Short perp + mua trên Metric</span>`:weak?`<span class="pill" title="Premium đạt nhưng funding âm: short phải trả funding">Premium tốt, funding âm</span>`:r.prem<0?`<span class="mut">Perp rẻ hơn giá ${r.mt?"Metric":"gốc"}</span>`:!r.mt&&r.prem>=min?`<span class="mut">Chưa xác minh trên Metric</span>`:`<span class="mut">Chênh lệch thấp</span>`;
-    const m=r.mt?`<span title="Giá trực tiếp từ pool Metric · mua (ask) ${fp(r.mt.price)}${r.mt.bid?` · bán (bid) ${fp(r.mt.bid)}`:""}${r.mt.ref?` · giá tham chiếu ${fp(r.mt.ref)}`:""}">${fp(r.mt.price)}</span> <small class="mut">${r.mt.sym} · ${r.mt.chain}</small>`:`<span class="mut">?</span>`;
+    const m=r.mt?`<span title="Giá trực tiếp từ pool Metric · mua (ask) ${fp(r.mt.price)}${r.mt.bid?` · bán (bid) ${fp(r.mt.bid)}`:""}${r.mt.ref?` · giá tham chiếu ${fp(r.mt.ref)}`:""}">${r.mt.live===false?"≈ ":""}${fp(r.mt.price)}</span> <small class="mut">${r.mt.sym} · ${r.mt.chain}${r.mt.live===false?" · chưa có giá trực tiếp":""}</small>`:`<span class="mut">?</span>`;
     return `<tr class="${ok?"":"dim"}"><td class="sym">${r.sym}</td><td>${fp(r.mark)}</td><td>${m}</td>
       <td><b class="${r.prem>=min?"up":r.prem<0?"dn":"mut"}">${sg(r.prem,3)}%</b></td><td class="${r.fund>=0?"up":"dn"}">${sg(r.fund,1)}%</td>
       <td>${compact(r.vol)}</td><td>${r.mt?compact(r.mt.liq):"–"}</td><td class="${r.edge>=0?"up":"dn"}">${sg(r.edge)}%</td><td>${tip}</td></tr>`}).join("")||`<tr><td colspan="9" class="mut full">${haveM?"Hiện không có mã nào trên trade.xyz đồng thời có trên Metric với thanh khoản đủ lớn":"Không có dữ liệu"}</td></tr>`;

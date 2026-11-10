@@ -29,13 +29,14 @@ export async function arbScan() {
     const prem = (mark / ref - 1) * 100, fund = parseFloat(c.funding || 0) * 8760 * 100;     // funding theo giờ → %/năm
     const vol = parseFloat(c.dayNtlVlm || 0), oi = parseFloat(c.openInterest || 0) * mark;
     rows.push({ coin: u.name, sym, mark, oracle, prem: +prem.toFixed(3), premOracle: +((mark / oracle - 1) * 100).toFixed(3), fund: +fund.toFixed(1),
-      metric: mt ? { chain: mt.chain, sym: mt.sym, price: mt.price, liq: mt.liq, tier: mt.tier } : null,
+      metric: mt ? { chain: mt.chain, sym: mt.sym, price: mt.price, bid: mt.bid || null, live: mt.live, liq: mt.liq, tier: mt.tier } : null,
       vol: Math.round(vol), oi: Math.round(oi), maxLev: u.maxLeverage,
       // lợi nhuận ước tính nếu premium về 0 + funding 7 ngày, trừ phí (chỉ có nghĩa khi short = premium dương)
       edge7: +(prem - FEE_RT + fund / 365 * 7).toFixed(2) });
   });
   rows.sort((a, b) => b.prem - a.prem);
-  return { at: Date.now(), dex: DEX, minPrem: MIN_PREM, fees: FEE_RT, metricOk: !!mlist, metricCount: mlist ? mlist.length : 0, rows };
+  return { at: Date.now(), dex: DEX, minPrem: MIN_PREM, fees: FEE_RT, metricOk: !!mlist, metricCount: mlist ? mlist.length : 0,
+    metricSyms: mlist ? [...new Set(mlist.map(x => `${x.sym}@${x.chain}${x.live ? "" : "*"}`))].slice(0, 200) : [], rows };
 }
 
 export async function arbRun({ state, outbox, errors, esc, link }) {
@@ -43,7 +44,7 @@ export async function arbRun({ state, outbox, errors, esc, link }) {
   try { A = await arbScan(); } catch (e) { errors.push(`Delta-neutral: không đọc được trade.xyz (${e.message})`); return state.arb || null; }
   const seen = state.arbAlert || {}, now = Date.now(), hits = [];
   for (const r of A.rows) {
-    if (!A.metricOk || !r.metric || r.prem < MIN_PREM || r.fund < 0 || r.vol < MIN_VOL) continue;   // chỉ báo khi chắc chắn có trên Metric          // chỉ báo khi short có lợi: premium dương, funding không âm
+    if (!A.metricOk || !r.metric || !r.metric.live || r.prem < MIN_PREM || r.fund < 0 || r.vol < MIN_VOL) continue;   // chỉ báo khi chắc chắn có trên Metric          // chỉ báo khi short có lợi: premium dương, funding không âm
     const s = seen[r.coin];
     if (s && now - s.at < 6 * 36e5 && r.prem < s.prem + .5) continue;           // đã báo trong 6 giờ, trừ khi premium tăng thêm ≥ 0.5%
     seen[r.coin] = { at: now, prem: r.prem }; hits.push(r);

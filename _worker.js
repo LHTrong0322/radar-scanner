@@ -308,45 +308,52 @@ async function cloudState(env) {
   return new Response(await r.text(), { headers: { ...HDR, "cache-control": "no-store" } });
 }
 
-// Metric (metric.xyz): token cổ phiếu có pool trên Ethereum · BNB Chain · Robinhood Chain, kèm giá mua/bán trực tiếp từ pool
-const M_STABLE = new Set(["USDC", "USDT", "USDG", "USD1", "DAI", "FDUSD", "USDE", "PYUSD", "RLUSD", "USDS", "WETH", "ETH", "WBNB", "BNB", "WBTC", "BTCB", "CBBTC"]);
-const M_CHAIN = { ethereum: 1, eth: 1, mainnet: 1, bsc: 56, bnb: 56, "bnb chain": 56, robinhood: 4663, "robinhood chain": 4663 };
-const mBase = sym => String(sym || "").trim().replace(/^(w|b|r|x|s)(?=[A-Z]{1,6}(x|on|X|ON)?$)/, "").replace(/(x|on|\.R|\.r)$/, "").toUpperCase();
+// Metric (metric.xyz): token cổ phiếu có pool trên Ethereum · BNB Chain · Robinhood Chain, kèm giá mua/bán trực tiếp từ pool (cùng logic với metric.mjs của bot)
+const M_CHAINS = [[1, "ethereum"], [56, "bsc"], [4663, "robinhood"]];
+const M_MAJOR = new Set(["WETH", "ETH", "WBNB", "BNB", "WBTC", "BTCB", "CBBTC", "BTC"]);
+const mStable = t => { const s = String(t.symbol || "").toUpperCase(); const p = parseFloat(t.fiatPrice); return /USD|DAI|USDG|PYUSD|RLUSD/.test(s) && (!(p > 0) || Math.abs(p - 1) < .03); };
+const mAl = s => String(s || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
 const Q64 = 2n ** 64n, MAXQ = 2n ** 128n - 1n;
 const q64 = v => { try { const b = BigInt(v); if (b <= 0n || b >= MAXQ) return null; return Number(b * 100000000n / Q64) / 1e8; } catch (e) { return null; } };
 async function metricList() {
-  const out = []; let offset = 0;
-  for (let page = 0; page < 10; page++) {
-    const r = await fetch(`https://api.metric.xyz/public/v1/evm/metadata?count=500&offset=${offset}&include24h=true&minTvlFiat=100`, { headers: { Accept: "application/json" } });
-    if (!r.ok) throw new Error("Metric HTTP " + r.status);
-    const j = await r.json();
-    for (const p of j.data || []) {
-      const t0 = p.token0 || {}, t1 = p.token1 || {}, s0 = String(t0.symbol || "").toUpperCase(), s1 = String(t1.symbol || "").toUpperCase();
-      let st, k; if (M_STABLE.has(s1) && !M_STABLE.has(s0)) { st = t0; k = "token0"; } else if (M_STABLE.has(s0) && !M_STABLE.has(s1)) { st = t1; k = "token1"; } else continue;
-      const tier = (p.classificationSummary && p.classificationSummary.tierQualification) || "unclassified";
-      if (tier === "black" || (p.priceProviderStatus && p.priceProviderStatus !== "healthy")) continue;
-      const liq = parseFloat((p.analytics24h && p.analytics24h[k] && p.analytics24h[k].liquidityFiat) || p.tvlFiat || 0);
-      out.push({ base: mBase(st.symbol), sym: st.symbol, chain: p.chain, chainId: p.chainId || M_CHAIN[String(p.chain || "").toLowerCase()] || null, pool: p.poolAddress, pos: k, ref: parseFloat(st.fiatPrice || 0), liq: Math.round(liq), tier });
-    }
-    if (j.nextOffset == null) break; offset = j.nextOffset;
-  }
-  const by = new Map(); for (const it of out) if (it.chainId) { if (!by.has(it.chainId)) by.set(it.chainId, []); by.get(it.chainId).push(it); }
-  await Promise.all([...by].map(async ([cid, arr]) => {
-    for (let i = 0; i < arr.length; i += 100) {
-      const part = arr.slice(i, i + 100);
-      try {
-        const r = await fetch(`https://api.metric.xyz/public/v1/evm/${cid}/bid_ask/batch`, { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify({ pools: part.map(x => x.pool), depth: false }) });
-        if (!r.ok) continue;
-        const j = await r.json(), m = new Map((j.results || []).map(x => [String(x.poolAddress).toLowerCase(), x.quote]));
-        for (const it of part) {
-          const q = m.get(String(it.pool).toLowerCase()); if (!q || q.priceProviderStatus !== "healthy") continue;
-          const bid = q64(q.bidAdj), ask = q64(q.askAdj);
-          if (it.pos === "token0") { it.ask = ask; it.bid = bid; } else { it.ask = bid ? 1 / bid : null; it.bid = ask ? 1 / ask : null; }
+  const out = []; let ok = 0;
+  await Promise.all(M_CHAINS.map(async ([cid, cname]) => {
+    const mine = [];
+    try {
+      let offset = 0;
+      for (let page = 0; page < 10; page++) {
+        const r = await fetch(`https://api.metric.xyz/public/v1/evm/${cid}/metadata?count=500&offset=${offset}&include24h=true&minTvlFiat=0`, { headers: { Accept: "application/json" } });
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        const j = await r.json();
+        for (const p of j.data || []) {
+          const t0 = p.token0 || {}, t1 = p.token1 || {}; let st, pos;
+          if (mStable(t1) && !mStable(t0) && !M_MAJOR.has(mAl(t0.symbol))) { st = t0; pos = 0; }
+          else if (mStable(t0) && !mStable(t1) && !M_MAJOR.has(mAl(t1.symbol))) { st = t1; pos = 1; } else continue;
+          const tier = (p.classificationSummary && p.classificationSummary.tierQualification) || "unclassified"; if (tier === "black") continue;
+          const k = pos ? "token1" : "token0", liq = parseFloat((p.analytics24h && p.analytics24h[k] && p.analytics24h[k].liquidityFiat) || p.tvlFiat || 0);
+          mine.push({ sym: st.symbol, key: mAl(st.symbol), chain: p.chain || cname, chainId: cid, pool: p.poolAddress, pos, ref: parseFloat(st.fiatPrice || 0), liq: Math.round(liq), tier });
         }
-      } catch (e) { }
-    }
+        if (j.nextOffset == null) break; offset = j.nextOffset;
+      }
+      ok++;
+      for (let i = 0; i < mine.length; i += 100) {
+        const part = mine.slice(i, i + 100);
+        try {
+          const r = await fetch(`https://api.metric.xyz/public/v1/evm/${cid}/bid_ask/batch`, { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify({ pools: part.map(x => x.pool), depth: false }) });
+          if (!r.ok) continue;
+          const j = await r.json(), m = new Map((j.results || []).map(x => [String(x.poolAddress).toLowerCase(), x.quote]));
+          for (const it of part) {
+            const q = m.get(String(it.pool).toLowerCase()); if (!q || (q.priceProviderStatus && q.priceProviderStatus !== "healthy")) continue;
+            const bid = q64(q.bidAdj), ask = q64(q.askAdj);
+            if (it.pos === 0) { it.ask = ask; it.bid = bid; } else { it.ask = bid ? 1 / bid : null; it.bid = ask ? 1 / ask : null; }
+          }
+        } catch (e) { }
+      }
+      out.push(...mine);
+    } catch (e) { }
   }));
-  return J({ at: Date.now(), stocks: out.filter(x => x.ask > 0).map(({ pool, pos, ...x }) => ({ ...x, price: x.ask })) });
+  if (!ok) throw new Error("Metric không phản hồi");
+  return J({ at: Date.now(), stocks: out.map(({ pool, pos, ...x }) => ({ ...x, live: x.ask > 0, price: x.ask > 0 ? x.ask : x.ref })).filter(x => x.price > 0) });
 }
 // trade.xyz (sàn HIP-3 "xyz" trên Hyperliquid): giá perp, giá gốc (oracle), funding · dùng cho bảng delta-neutral
 async function xyzMarkets(url) {
