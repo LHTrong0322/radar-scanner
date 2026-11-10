@@ -420,7 +420,7 @@ async function main() {
   const pub = x => ({ base: x.base, sym: x.a.kind === "stock" ? x.a.sym : x.base + "USDT", src: x.a.kind === "stock" ? "st" : "bn", ex: x.a.ex, tf: x.tf, score: Math.round(x.score),
     rank: x.rank, entry: x.P.entry, mode: x.P.mode, stop: x.P.stop, tp1: x.P.tp1, tp2: x.P.tp2, rr1: x.P.rr1, rr2: x.P.rr2, tp1Why: x.P.tp1Why, tp2Why: x.P.tp2Why, why: x.why, htf: x.htf, hT: x.hT });
   const out = { version: 1, updatedAt: Date.now(), tookSec: Math.round((Date.now() - t0) / 1000), rankSrc, scanned: assets.length,
-    picks: picks.map(pub), near: nears.map(pub), journal: keep, errors: errors.slice(0, 40), arcusMeta: state.arcusMeta, hlMeta: state.hlMeta, arb, arbAlert: state.arbAlert };
+    picks: picks.map(pub), near: nears.map(pub), journal: keep, errors: errors.slice(0, 40), arcusMeta: state.arcusMeta, hlMeta: state.hlMeta, arb, arbAlert: state.arbAlert, universe: state.universe };
   fs.mkdirSync(path.dirname(STATE_PATH), { recursive: true });
   fs.writeFileSync(STATE_PATH, JSON.stringify(out));
   if (process.env.PING === "true") outbox.push(`✅ <b>Crypto RSI Radar</b> đã kết nối Telegram.\nVừa quét ${assets.length} mã (${rankSrc}) · ${picks.length} kèo đạt chuẩn · ${active.length} lệnh đang theo dõi.\nTừ giờ bot sẽ báo khi có kèo mới, chạm TP hoặc dính SL.` + link());
