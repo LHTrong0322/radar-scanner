@@ -12,7 +12,8 @@ const USER = (process.env.HL_ADDRESS || "").trim().toLowerCase();
 const MODE = (process.env.TRADE_MODE || "selftest").toLowerCase();       // selftest · auto · manage · off
 const USD = parseFloat(process.env.TRADE_USD || "20") || 20;
 const RISK = parseFloat(process.env.TRADE_RISK_USD || "0") || 0;
-const MAX_OPEN = parseInt(process.env.TRADE_MAX_OPEN || "3", 10) || 3;
+const MAX_OPEN = parseInt(process.env.TRADE_MAX_OPEN || "99", 10) || 99;             // trần số lệnh tuyệt đối
+const MAX_RISK_PCT = parseFloat(process.env.TRADE_MAX_RISK_PCT || "30") || 30;        // tổng rủi ro các lệnh đang mở ≤ 30% portfolio
 const MAX_FUND_APR = parseFloat(process.env.TRADE_MAX_FUNDING_APR || "30");
 const LIQ_USE = Math.min(.95, Math.max(.3, parseFloat(process.env.TRADE_LIQ_BUFFER || "0.7") || .7));
 const MIN_NOTIONAL = 10;                                                    // sàn yêu cầu mỗi lệnh ≥ 10 USD
@@ -122,7 +123,8 @@ async function account() {
   const u = ((sp && sp.balances) || []).find(b => b.coin === "USDC");
   const spot = u ? Math.max(0, parseFloat(u.total || 0) - parseFloat(u.hold || 0)) : 0;
   const perp = parseFloat(s.withdrawable || 0);
-  return { pos, perp, spot, free: perp + spot };      // tài khoản hợp nhất (unified) dùng được cả USDC bên Spot
+  const uTot = u ? parseFloat(u.total || 0) : 0, acct = [s, ...more].reduce((a, st) => a + parseFloat((st && st.marginSummary && st.marginSummary.accountValue) || 0), 0);
+  return { pos, perp, spot, free: perp + spot, equity: acct + uTot };      // tài khoản hợp nhất (unified) dùng được cả USDC bên Spot
 }
 async function orders() {
   const r = await Promise.all(DEXES.map(d => info(d ? { type: "frontendOpenOrders", user: USER, dex: d } : { type: "frontendOpenOrders", user: USER }).catch(e => { if (!d) throw e; return []; })));
@@ -244,6 +246,9 @@ export async function hyperRun({ state, newIds, outbox, errors, esc, link }) {
   const taken = new Set(state.journal.filter(j => j.hl && live(j.hl.st)).map(j => j.hl.coin));
   const ADOPT_MS = (parseFloat(process.env.TRADE_ADOPT_HOURS || "720") || 0) * 36e5;     // kèo cũ trong 30 ngày
   let nLive = state.journal.filter(j => j.hl && live(j.hl.st)).length, free = A.free;
+  // rủi ro đang chịu (R): lệnh đã dời SL về Entry (be) coi như 0R
+  let riskR = state.journal.filter(j => j.hl && ["placed", "open"].includes(j.hl.st)).length;
+  const maxR = RISK > 0 && A.equity > 0 ? Math.floor(A.equity * MAX_RISK_PCT / 100 / RISK + 1e-9) : MAX_OPEN;
   for (const j of [...state.journal].reverse()) {                  // kèo mới nhất trước
     if ((j.hl && !["skip", "na"].includes(j.hl.st)) || !["open", "pending"].includes(j.status)) continue;   // kèo bị bỏ qua trước đó được xét lại
     const late = !newIds.has(j.id); if (late && !(Date.now() - j.at < ADOPT_MS)) continue;
@@ -254,6 +259,7 @@ export async function hyperRun({ state, newIds, outbox, errors, esc, link }) {
     const skip = why => { if (late) { console.log(`${TAG}: chưa vào ${j.base} (${why})`); return; } j.hl = { st: "skip", why, coin, at: Date.now() }; say(`Bỏ qua <b>${esc(j.base)}</b>: ${why}.`); };
     try {
       if (nLive >= MAX_OPEN) { skip(`đã đủ ${MAX_OPEN} lệnh đang mở`); continue; }
+      if (riskR + 1 > maxR) { skip(`tổng rủi ro các lệnh đang mở đã chạm ${MAX_RISK_PCT}% portfolio (${riskR}R)`); continue; }
       if (A.pos.has(coin) || taken.has(coin)) { skip("đang có vị thế / lệnh mã này trên sàn"); continue; }
       const apr = parseFloat(m.ctx.funding || 0) * 8760 * 100;
       if (apr > MAX_FUND_APR) { skip(`funding ${apr.toFixed(0)}%/năm cao hơn ngưỡng ${MAX_FUND_APR}%`); continue; }
@@ -275,7 +281,7 @@ export async function hyperRun({ state, newIds, outbox, errors, esc, link }) {
                         : limitO(m, true, fmtPx(mark * 1.03, m.szDecimals, "up"), sz, "Ioc", cid);
       await placeOrders([ent, trigO(m, fmtPx(stop, m.szDecimals), sz, "sl"), trigO(m, fmtPx(tp1, m.szDecimals), part ? half : sz, "tp")], "normalTpsl");
       j.hl = { st: "placed", coin, mult, cid, part, at: Date.now(), kind: limit ? "limit" : "market" };
-      nLive++; free -= P.margin; taken.add(coin);
+      nLive++; riskR++; free -= P.margin; taken.add(coin);
       const vol = szN * entry;
       say(`${limit ? "Đặt lệnh chờ mua" : "Mua"}${late ? " (vào muộn kèo cũ)" : ""} <b>${esc(j.base)}</b>${m.short !== (j.src === "st" ? j.sym : j.base).toUpperCase() || m.dex ? ` (trên sàn: ${esc(m.name)})` : ""} (${j.tf.toUpperCase()}) · Entry ${limit ? j.entry : "market"} · SL ${j.stop} (-${(P.sl * 100).toFixed(1)}%) · TP1 ${j.tp1}${part ? " (50%)" : " (đóng hết, lệnh quá nhỏ để chia đôi)"} · TP2 ${j.tp2}\n` +
         (RISK > 0 ? `Rủi ro 1R = ${RISK} USDC · khối lượng ~${vol.toFixed(0)} USDC · đòn bẩy ${P.lev}x isolated · ký quỹ ~${P.margin.toFixed(1)} USDC · giá thanh lý ~${(P.liq / mult).toPrecision(5)} (SL dùng ${(P.share * 100).toFixed(0)}% khoảng cách)` : `~${vol.toFixed(0)} USDC, đòn bẩy 1x`) + link());
