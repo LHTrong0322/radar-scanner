@@ -617,7 +617,9 @@ async function load(){
     return;
   }
   if(!mk) showAlert(`<b>CoinGecko chưa phản hồi</b> (${cgErr||"lỗi mạng"}), tạm xếp hạng theo volume Binance. Bấm “Tải lại” sau ít phút, hoặc nhập CoinGecko key.`);
-  EXTRA_CRYPTO.forEach((b,k)=>{ if([...S.rows.values()].some(r=>r.base===b)) return; const bs=b+"USDT", x=bin&&bin.get(bs), key=x?bs:"x:"+b;
+  // coin từng lọt top 100 (bot lưu trong state.universe) vẫn được quét tiếp dù đã rớt hạng
+  if(!S.uni){ try{ const ac=new AbortController(), tm=setTimeout(()=>ac.abort(),5000); const r=await fetch("/api/state",{cache:"no-store",signal:ac.signal}); clearTimeout(tm); if(r.ok){ const j=await r.json(); S.uni=Object.keys(j.universe||{}) } }catch(e){} }
+  [...new Set([...EXTRA_CRYPTO,...(S.uni||[])])].forEach((b,k)=>{ if([...S.rows.values()].some(r=>r.base===b)) return; const bs=b+"USDT", x=bin&&bin.get(bs), key=x?bs:"x:"+b;
     S.rows.set(key,{key,sym:x?bs:"",base:b,name:b,rank:800+k+1,price:x?+x.lastPrice:null,chg:x?+x.priceChangePercent:0,src:x?"bn":"cg",c:[],ind:null}) });
   STOCKS.forEach(([sym,label,name,ex],k)=>S.rows.set("st:"+sym,{key:"st:"+sym,sym,base:label,name,ex,rank:900+k+1,src:"st",price:null,chg:0,c:[],ind:null}));
   S.stockErr=false;

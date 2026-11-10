@@ -299,6 +299,11 @@ async function main() {
   const assets = list.filter(m => !K.skipCoin(m)).slice(0, 100)
     .map((m, i) => ({ kind: "crypto", base: (m.symbol || "").toUpperCase().replace(/[^A-Z0-9]/g, ""), rank: i + 1 }))
     .filter(a => a.base);
+  // coin từng lọt top 100 được lưu lại và quét tiếp kể cả khi rớt khỏi top 100 sau đó
+  const uni = state.universe = state.universe || {};
+  for (const a of assets) if (!uni[a.base]) uni[a.base] = Date.now();
+  for (const j of state.journal || []) if (j.src !== "st" && j.base && !uni[j.base]) uni[j.base] = j.at || Date.now();   // coin bot từng pick (lúc đó nằm trong top 100)
+  for (const b of Object.keys(uni)) if (!assets.some(a => a.base === b)) assets.push({ kind: "crypto", base: b, rank: 0 });
   // coin ngoài top 100 vẫn muốn quét (khai báo EXTRA_CRYPTO trong index.html)
   const extra = ((fs.readFileSync(path.join(ROOT, "index.html"), "utf8").match(/const EXTRA_CRYPTO=(\[[^\]]*\])/) || [])[1]);
   try { for (const b of JSON.parse(extra || "[]")) if (!assets.some(a => a.base === b)) assets.push({ kind: "crypto", base: b, rank: 0 }); } catch (e) { }
