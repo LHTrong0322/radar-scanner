@@ -214,10 +214,13 @@ export async function hyperRun({ state, newIds, outbox, errors, esc, link }) {
       if (h.st === "placed") {
         const resting = O.some(o => o.cloid === h.cid);
         if (size > 0) { h.st = "open"; h.at = Date.now(); say(`Đã khớp lệnh mua <b>${esc(j.base)}</b> (${j.tf.toUpperCase()}), SL và TP1 đã nằm sẵn trên sàn.`); continue; }
+        const ended = ["expired", "cancel", "manual", "sl", "tp2", "tp1_be", "trail", "struct"].includes(j.status);
+        if (!resting && ended) { h.st = "cancel"; h.why = j.cancelWhy || "kèo hết hạn trước khi khớp"; say(`Đã huỷ lệnh chờ <b>${esc(j.base)}</b> trên sàn (${esc(h.why)}).`); continue; }
         if (!resting) { h.st = "fail"; h.why = "lệnh vào không khớp / bị huỷ"; say(`Lệnh vào <b>${esc(j.base)}</b> không khớp, bỏ kèo.`); continue; }
-        if (["expired", "cancel", "manual", "sl", "tp2", "tp1_be", "trail", "struct"].includes(j.status)) {
+        if (ended) {
           await cancelCloid(m, h.cid);
-          if (!A.pos.has(h.coin)) await cancelOids(O.filter(o => o.coin === h.coin && o.isTrigger).map(o => ({ asset: m.asset, oid: o.oid })));   // dọn SL/TP con
+          if (!A.pos.has(h.coin)) await cancelOids(O.filter(o => o.coin === h.coin && o.isTrigger).map(o => ({ asset: m.asset, oid: o.oid })))
+            .catch(e => { if (!/never placed|already canceled|filled|not found/i.test(e.message)) throw e; });   // SL/TP con thường đã tự huỷ theo lệnh mẹ
           h.st = "cancel"; h.why = j.cancelWhy || "kèo hết hạn trước khi khớp"; say(`Huỷ lệnh chờ <b>${esc(j.base)}</b> trên sàn (${esc(j.cancelWhy || "kèo hết hạn")}).`);
         }
         continue;

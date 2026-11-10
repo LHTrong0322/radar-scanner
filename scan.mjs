@@ -339,7 +339,7 @@ async function main() {
     j.recheck = RECHECK;
     const x = evals.get(j.base + "|" + j.tf);
     const why = !x ? "điểm kỹ thuật không còn đủ để vào kèo (hoặc kèo bị loại do SL quá xa)"
-      : x.score < 65 ? `điểm chỉ còn ${Math.round(x.score)}/100 (cần ≥ 65)`
+      : x.score < 65 ? `điểm chỉ còn ${x.score.toFixed(1)}/100 (cần ≥ 65)`
       : x.P.rr1 < 2 ? `R:R tới TP1 chỉ còn ${x.P.rr1.toFixed(1)} (cần ≥ 2)` : null;
     if (why) { Object.assign(j, { status: "cancel", exitAt: Date.now(), roi: 0, r: 0, cancelWhy: why }); cancelled.push(`• <b>${esc(j.base)}</b> ${String(j.tf).toUpperCase()} (Entry ${fp(j.entry)}): ${why}`); }
     else j.score = Math.round(x.score);
