@@ -138,7 +138,7 @@ export async function hyperRun({ state, newIds, outbox, errors, esc, link }) {
     state.hlMeta = state.hlMeta || {};
     const key = WALLET.address.slice(2, 10).toLowerCase(), st0 = state.hlMeta.selftest;
     const force = process.env.PING === "true";                // bấm Run workflow (có tick) → kiểm tra lại ngay
-    if (!force && st0 && st0.key === key && st0.env === ENV && (st0.ok || Date.now() - st0.at < ((st0.fund ?? 1) ? 1 : 12) * 36e5)) return;
+    if (!force && st0 && st0.key === key && st0.env === ENV && (st0.ok || (st0.fund !== undefined && Date.now() - st0.at < (st0.fund ? 1 : 12) * 36e5))) return;
     const steps = [];
     try {
       const m = M.get("BTC"); if (!m) throw new Error("không thấy BTC");
