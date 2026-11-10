@@ -215,7 +215,7 @@ export async function hyperRun({ state, newIds, outbox, errors, esc, link }) {
         const resting = O.some(o => o.cloid === h.cid);
         if (size > 0) { h.st = "open"; h.at = Date.now(); say(`Đã khớp lệnh mua <b>${esc(j.base)}</b> (${j.tf.toUpperCase()}), SL và TP1 đã nằm sẵn trên sàn.`); continue; }
         if (!resting) { h.st = "fail"; h.why = "lệnh vào không khớp / bị huỷ"; say(`Lệnh vào <b>${esc(j.base)}</b> không khớp, bỏ kèo.`); continue; }
-        if (["expired", "cancel", "manual", "sl", "tp2", "tp1_be", "trail"].includes(j.status)) {
+        if (["expired", "cancel", "manual", "sl", "tp2", "tp1_be", "trail", "struct"].includes(j.status)) {
           await cancelCloid(m, h.cid);
           if (!A.pos.has(h.coin)) await cancelOids(O.filter(o => o.coin === h.coin && o.isTrigger).map(o => ({ asset: m.asset, oid: o.oid })));   // dọn SL/TP con
           h.st = "cancel"; h.why = "kèo hết hạn trước khi khớp"; say(`Huỷ lệnh chờ <b>${esc(j.base)}</b> (kèo hết hạn).`);
@@ -228,6 +228,13 @@ export async function hyperRun({ state, newIds, outbox, errors, esc, link }) {
         h.st = "closed"; h.at = Date.now(); say(`Đã đóng vị thế <b>${esc(j.base)}</b> trên sàn.`); continue;
       }
       const szS = fmtSz(size, m.szDecimals);
+      if (j.status === "struct") {                                     // cấu trúc tăng bị phá → đóng toàn bộ vị thế bằng lệnh thị trường (reduce-only)
+        await cancelOids([...sls, ...tps].map(o => ({ asset: m.asset, oid: o.oid })));
+        await placeOrders([limitO(m, false, fmtPx(mark * .97, m.szDecimals, "down"), szS, "Ioc", null, true)]);
+        h.st = "closed"; h.at = Date.now(); h.why = "phá cấu trúc tăng";
+        say(`<b>${esc(j.base)}</b> phá cấu trúc tăng (nến ${String(j.tf).toUpperCase()} đóng dưới đáy gần nhất): đã đóng toàn bộ vị thế bằng lệnh thị trường.`);
+        continue;
+      }
       // các mức TP của kèo (có thể 2–4 mức), tỷ lệ chốt: TP1 50%, phần còn lại chia đều
       const T = (Array.isArray(j.tps) && j.tps.length >= 2 ? j.tps : [j.tp1, j.tp2]).map(x => x * mult);
       const F = Array.isArray(j.tpf) && j.tpf.length === T.length ? j.tpf : (T.length <= 1 ? [1] : [.5, ...Array(T.length - 1).fill(.5 / (T.length - 1))]);

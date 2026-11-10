@@ -268,6 +268,7 @@ function msgUpdate(j, prev) {
   if (j.status === "tp2") return `🏁 <b>${h}</b> chốt TP cuối${T.length > 2 ? ` (TP${T.length})` : ""} ${fp(T[T.length - 1])} · ROI ${roi}`;
   if (j.status === "trail") return `☑️ <b>${h}</b> chạm TP${j.hit} rồi giá quay đầu, phần còn lại chốt ở TP${j.hit - 1} · ROI ${roi}`;
   if (j.status === "tp1_be") return `☑️ <b>${h}</b> chốt TP1 rồi về hoà phần còn lại · ROI ${roi}`;
+  if (j.status === "struct") return `⚠️ <b>${h}</b> phá cấu trúc tăng (nến ${String(j.tf).toUpperCase()} đóng cửa dưới đáy gần nhất) → thoát lệnh ở ${fp(j.exit)} · ROI ${roi}`;
   if (j.status === "sl") return `🛑 <b>${h}</b> dính SL ${fp(j.stop)} · ROI ${roi}`;
   if (j.status === "expired") return `⌛ <b>${h}</b> lệnh chờ bị hủy (không khớp)`;
   return null;
@@ -330,7 +331,7 @@ async function main() {
   const picks = best(ok), pickSet = new Set(picks.map(x => x.base)), nears = best(near).filter(x => !pickSet.has(x.base)).slice(0, 12);
 
   // 4.3 ghi kèo mới vào nhật ký
-  const isDone = st => ["tp2", "tp1_be", "trail", "sl", "expired", "manual", "cancel"].includes(st);
+  const isDone = st => ["tp2", "tp1_be", "trail", "struct", "sl", "expired", "manual", "cancel"].includes(st);
   const newOnes = [], newIds = new Set();
   for (const x of picks) {
     const sym = x.a.kind === "stock" ? x.a.sym : x.base + "USDT";
