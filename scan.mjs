@@ -332,25 +332,27 @@ async function main() {
       const rs = K.pickReasons(t.ind), why = SIDE === "short" ? { g: rs.g.map(K.swapTxt), w: rs.w.map(K.swapTxt) } : rs;
       const P = t.buy.plan, it = { a, base: a.base, tf, P, score: sc, hT, htf, why, rank: sc + Math.min(P.rr1, 5) * 5 };
       evals.set(a.base + "|" + tf, it);
-      if (sc >= 65 && P.rr1 >= 2) ok.push(it); else if (sc >= 55 && P.rr1 >= 1.5) near.push(it);
+      if (sc >= 70 && P.rr1 >= 2) ok.push(it); else if (sc >= 60 && P.rr1 >= 1.5) near.push(it);
     });
   });
   const best = arr => { const m = new Map(); for (const x of arr) { const o = m.get(x.base); if (!o || x.rank > o.rank) m.set(x.base, x); } return [...m.values()].sort((p, q) => q.rank - p.rank); };
   const picks = best(ok), pickSet = new Set(picks.map(x => x.base)), nears = best(near).filter(x => !pickSet.has(x.base)).slice(0, 12);
 
   // 4.25 chấm lại (một lần) các lệnh chờ khớp theo bảng điểm mới: không còn đạt chuẩn vào kèo thì huỷ
-  const RECHECK = 4, cancelled = [], replanned = [], replanIds = [];
+  const RECHECK = 5, cancelled = [], replanned = [], replanIds = [];
   for (const j of state.journal) {
-    if (j.status !== "pending" || ((j.recheck || 0) >= RECHECK && (j.side || "long") === SIDE)) continue;
+    // kèo "vào ngay" mới ghi (< 48h) nhưng CHƯA có lệnh thật trên sàn cũng được chấm lại theo chuẩn mới
+    const paperOpen = j.status === "open" && (!j.hl || ["skip", "na"].includes(j.hl.st)) && Date.now() - j.at < 48 * 36e5 && !j.half;
+    if ((j.status !== "pending" && !paperOpen) || ((j.recheck || 0) >= RECHECK && (j.side || "long") === SIDE)) continue;
     if (!assets.some(a => a.base === j.base)) continue;                // mã không quét được lượt này → để lượt sau
     if ((j.side || "long") !== SIDE) { Object.assign(j, { status: "cancel", exitAt: Date.now(), roi: 0, r: 0, cancelWhy: `đã chuyển sang mode ${SIDE.toUpperCase()}` }); cancelled.push(`• <b>${esc(j.base)}</b> ${String(j.tf).toUpperCase()}: lệnh chờ ${(j.side || "long").toUpperCase()}, bot đã chuyển sang mode ${SIDE.toUpperCase()}`); continue; }
     j.recheck = RECHECK;
     const x = evals.get(j.base + "|" + j.tf);
     const why = !x ? "điểm kỹ thuật không còn đủ để vào kèo (hoặc kèo bị loại do SL quá xa)"
-      : x.score < 65 ? `điểm chỉ còn ${x.score.toFixed(1)}/100 (cần ≥ 65)`
+      : x.score < 70 ? `điểm chỉ còn ${x.score.toFixed(1)}/100 (cần ≥ 70)`
       : x.P.rr1 < 2 ? `R:R tới TP1 chỉ còn ${x.P.rr1.toFixed(1)} (cần ≥ 2)` : null;
     if (why) { Object.assign(j, { status: "cancel", exitAt: Date.now(), roi: 0, r: 0, cancelWhy: why }); cancelled.push(`• <b>${esc(j.base)}</b> ${String(j.tf).toUpperCase()} (Entry ${fp(j.entry)}): ${why}`); }
-    else {                                                               // còn đạt → dời Entry / SL / TP theo thuật toán mới
+    else if (j.status === "pending") {                                  // còn đạt → dời Entry / SL / TP theo thuật toán mới
       const P = x.P, old = `${fp(j.entry)} / SL ${fp(j.stop)} / TP1 ${fp(j.tp1)}`;
       Object.assign(j, { rev: (j.rev || 0) + 1, at: Date.now(), mode: P.mode, entry: P.entry, stop: P.stop, tp1: P.tp1, tp2: P.tp2, tps: P.tps, tpf: P.tpf, tpWhys: P.tpWhys,
         tp1Why: P.tp1Why, tp2Why: P.tp2Why, rr1: P.rr1, score: Math.round(x.score), status: P.mode === "Chờ hồi" ? "pending" : "open", fillAt: P.mode === "Chờ hồi" ? null : Date.now() });
@@ -374,7 +376,7 @@ async function main() {
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), at: Date.now(), sym, base: x.base,
       src: x.a.kind === "stock" ? "st" : "bn", ex: x.a.ex, tf: x.tf, side: SIDE, mode: P.mode, entry: P.entry, stop: P.stop, tp1: P.tp1, tp2: P.tp2, tps: P.tps, tpf: P.tpf, tpWhys: P.tpWhys,
       tp1Why: P.tp1Why, tp2Why: P.tp2Why, tpVer: 2, rr1: P.rr1, score: Math.round(x.score),
-      status: P.mode === "Chờ hồi" ? "pending" : "open", fillAt: P.mode === "Chờ hồi" ? null : Date.now(), roi: 0, r: 0, by: "github"
+      status: P.mode === "Chờ hồi" ? "pending" : "open", fillAt: P.mode === "Chờ hồi" ? null : Date.now(), roi: 0, r: 0, by: "github", recheck: RECHECK
     });
     newIds.add(state.journal.at(-1).id);
     newOnes.push(x);
