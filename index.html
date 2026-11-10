@@ -96,6 +96,8 @@ input[type=number],input[type=password],input.txt,select{font:500 12.5px var(--m
 .stat{background:var(--panel);padding:12px 16px;min-width:0}
 .stat .k{font:600 10.5px var(--body);text-transform:uppercase;letter-spacing:.08em;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .stat .v{font:700 26px/1.15 var(--display);font-variant-numeric:tabular-nums;margin-top:4px}
+.stat .s{font:500 12px var(--body);color:var(--muted);margin-top:3px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stat .s b.up{color:var(--up)} .stat .s b.dn{color:var(--dn)}
 .stat.os .v,.stat .v.up{color:var(--up)} .stat.ob .v,.stat .v.dn{color:var(--dn)} .stat.up .v{color:var(--up)} .stat.dn .v{color:var(--dn)}
 .stat.acc .v{color:var(--accent)}
 
@@ -343,9 +345,9 @@ details.how p{color:var(--muted);font-size:12.5px;line-height:1.6;max-width:90ch
       <div class="summary" style="margin-bottom:14px">
         <div class="stat"><div class="k">Total trades</div><div class="v" id="jTotal">0</div></div>
         <div class="stat"><div class="k">Win rate</div><div class="v" id="jWin">–</div></div>
-        <div class="stat"><div class="k">Avg ROI / trade</div><div class="v" id="jAvg">–</div></div>
-        <div class="stat"><div class="k">Realized ROI</div><div class="v" id="jSum">–</div></div>
-        <div class="stat"><div class="k">Unrealized PnL</div><div class="v" id="jOpen">–</div></div>
+        <div class="stat"><div class="k">Avg R / trade</div><div class="v" id="jAvg">–</div><div class="s" id="jAvgS"></div></div>
+        <div class="stat"><div class="k">Realized</div><div class="v" id="jSum">–</div><div class="s" id="jSumS"></div></div>
+        <div class="stat"><div class="k">Unrealized</div><div class="v" id="jOpen">–</div><div class="s" id="jOpenS"></div></div>
       </div>
       <div class="controls" style="margin-bottom:12px">
         <div class="seg" id="jFlt" role="group" aria-label="Lọc nhật ký">
@@ -354,6 +356,8 @@ details.how p{color:var(--muted);font-size:12.5px;line-height:1.6;max-width:90ch
         <span class="spacer"></span>
         <button class="btn" id="jCloseAll">Close all</button>
         <button class="btn pri" id="jImport" hidden>Chuyển kèo cũ lên GitHub</button>
+        <label class="f" for="jCap" title="Tổng vốn dùng để tính % trên toàn danh mục">Vốn <input id="jCap" type="number" min="1" step="1" value="100" style="width:80px"> USDC</label>
+        <label class="f" for="jRisk" title="Số tiền rủi ro cho mỗi lệnh (1R)">1R = <input id="jRisk" type="number" min="0.1" step="0.5" value="3" style="width:64px"> USDC</label>
         <button class="btn" id="jCsv">Xuất CSV</button>
         <button class="btn" id="jClear">Xoá journal</button>
       </div>
@@ -1426,14 +1430,21 @@ function closeTrade(j){
   Object.assign(j,{status:"manual",exitAt:Date.now(),exit:px,cur:px,roi:real*100,r:risk>0?real/risk:0});
   return true;
 }
+const PFKEY="rsiRadarPf";
+function pf(){let o={};try{o=JSON.parse(localStorage.getItem(PFKEY)||"{}")}catch(e){}
+  const cap=parseFloat(o.cap)>0?parseFloat(o.cap):100, risk=parseFloat(o.risk)>0?parseFloat(o.risk):3; return {cap,risk}}
 function renderJournal(){
   const J=S.journal, closed=J.filter(j=>jClosed(j.status)), open=J.filter(j=>j.status==="open");
   const wins=closed.filter(j=>j.roi>0).length, sum=closed.reduce((a,j)=>a+j.roi,0), osum=open.reduce((a,j)=>a+j.roi,0);
   const sg=v=>(v>=0?"+":"")+v.toFixed(2)+"%", set=(id,t,c)=>{const e=$(id);e.textContent=t;e.className="v"+(c?" "+c:"")};
+  // tính theo R; % là % trên tổng vốn danh mục (mỗi R = rủi ro cố định / vốn)
+  const {cap,risk}=pf(), rPct=risk/cap*100, sR=v=>(v>=0?"+":"")+v.toFixed(2)+"R", usd=v=>(v>=0?"+$":"-$")+Math.abs(v).toFixed(2);
+  const sumR=closed.reduce((a,j)=>a+(j.r||0),0), openR=open.reduce((a,j)=>a+(j.r||0),0), cls=v=>v>=0?"up":"dn";
+  const sub=(id,r)=>{$(id).innerHTML=r==null?"":`<b class="${cls(r)}">${sg(r*rPct)}</b> danh mục · ${usd(r*risk)}`};
   set("jTotal",J.length); set("jWin",closed.length?Math.round(wins/closed.length*100)+"%":"–");
-  set("jAvg",closed.length?sg(sum/closed.length):"–",closed.length?(sum>=0?"up":"dn"):"");
-  set("jSum",closed.length?sg(sum):"–",closed.length?(sum>=0?"up":"dn"):"");
-  set("jOpen",open.length?sg(osum):"–",open.length?(osum>=0?"up":"dn"):"");
+  set("jAvg",closed.length?sR(sumR/closed.length):"–",closed.length?cls(sumR):""); sub("jAvgS",closed.length?sumR/closed.length:null);
+  set("jSum",closed.length?sR(sumR):"–",closed.length?cls(sumR):""); sub("jSumS",closed.length?sumR:null);
+  set("jOpen",open.length?sR(openR):"–",open.length?cls(openR):""); sub("jOpenS",open.length?openR:null);
   const avgR=closed.length?closed.reduce((a,j)=>a+j.r,0)/closed.length:null;
   $("jNote").textContent=(S.cloud?`Đám mây GitHub · quét lúc ${new Date(S.cloud.updatedAt).toLocaleTimeString("vi-VN")} · `:"")+(J.length?`${closed.length} closed · ${open.length} open · ${J.filter(j=>j.status==="pending").length} pending`+(avgR!=null?` · avg R ${avgR>=0?"+":""}${avgR.toFixed(2)}R`:""):"chưa có trade nào");
   let L=[...J].reverse();
@@ -1451,6 +1462,9 @@ function renderJournal(){
     :`<tr><td colspan="11" class="mut full">${J.length?"Không có kèo nào trong mục này.":"Nhật ký bắt đầu ghi từ bây giờ: mỗi khi bảng “Kèo trade” có kèo đạt chuẩn, kèo đó sẽ được lưu lại và theo dõi lãi/lỗ tự động. Hãy giữ trang mở hoặc quay lại thường xuyên để ghi được nhiều kèo."}</td></tr>`;
 }
 seg("jFlt",v=>{S.jFilter=v;renderJournal()});
+{const p=pf(); $("jCap").value=p.cap; $("jRisk").value=p.risk;
+ const save=()=>{try{localStorage.setItem(PFKEY,JSON.stringify({cap:$("jCap").value,risk:$("jRisk").value}))}catch(e){} renderJournal()};
+ $("jCap").addEventListener("input",save); $("jRisk").addEventListener("input",save);}
 const armed=new Map();
 function confirmBtn(b,key,text,run){
   if(armed.get(key)&&Date.now()-armed.get(key)<4000){armed.delete(key);run();return}
