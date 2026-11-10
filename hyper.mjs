@@ -299,7 +299,7 @@ export async function hyperRun({ state, newIds, outbox, errors, esc, link, allow
   for (const j of [...state.journal].reverse()) {                  // kèo mới nhất trước
     if ((j.hl && !["skip", "na"].includes(j.hl.st)) || !["open", "pending"].includes(j.status)) continue;   // kèo bị bỏ qua trước đó được xét lại
     const late = !newIds.has(j.id); if (late && !(Date.now() - j.at < ADOPT_MS)) continue;
-    if (allowed && allowed.size && !allowed.has(j.base)) { if (!j.hl) j.hl = { st: "skip", why: "ngoài danh sách quét (top 100 + coin thêm + cổ phiếu)", at: Date.now() }; continue; }   // chỉ trade mã nằm trong danh sách được quét/pick
+    if (j.by !== "github" && allowed && allowed.size && !allowed.has(j.base)) { if (!j.hl) j.hl = { st: "skip", why: "kèo nhập ngoài, mã không thuộc danh sách quét", at: Date.now() }; continue; }   // kèo bot tự pick luôn hợp lệ (kể cả khi coin rớt khỏi top 100 sau đó); chỉ chặn kèo nhập từ ngoài không thuộc danh sách
     if (j.hl && j.hl.st === "skip" && !late) continue;
     let f = null; try { f = findMarket(M, j); } catch (e) { console.log(`${TAG}: lỗi tìm mã ${j.base} (${e.message})`); }
     if (!f) { if (!j.hl) j.hl = { st: "na" }; continue; }
