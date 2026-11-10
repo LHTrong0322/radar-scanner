@@ -1,0 +1,10 @@
+{
+ "name": "43-bo-break-may",
+ "desc": "Bỏ +2 điểm 'đã break lên mây Ichimoku' (Entry 0.7 điểm hiệu quả)",
+ "patch": [
+  {
+   "find": "if(ichi.state===1) add(ichi.top,\"đã break lên mây Ichimoku\",2)",
+   "replace": ""
+  }
+ ]
+}

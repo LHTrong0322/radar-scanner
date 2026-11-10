@@ -1,0 +1,14 @@
+{
+ "name": "44-kc-cu-bi-pha-3d",
+ "desc": "Kháng cự cũ bị phá / đỉnh swing cũ thành hỗ trợ = 3 điểm (Entry 9.2, SL 8.6 điểm hiệu quả)",
+ "patch": [
+  {
+   "find": "add(p.v,p.tp===\"L\"?\"đáy swing lớn\":\"đỉnh swing cũ (nay là hỗ trợ)\",2);",
+   "replace": "add(p.v,p.tp===\"L\"?\"đáy swing lớn\":\"đỉnh swing cũ (nay là hỗ trợ)\",p.tp===\"L\"?2:3);"
+  },
+  {
+   "find": "if(ph) add(c[i].h,\"kháng cự cũ đã bị phá\",1.5);",
+   "replace": "if(ph) add(c[i].h,\"kháng cự cũ đã bị phá\",3);"
+  }
+ ]
+}

@@ -1,0 +1,10 @@
+{
+ "name": "46-tp1-xa-hon",
+ "desc": "TP1 phải cách giá ≥ 1.5 ATR (TP1 ở đỉnh swing gần đang kém)",
+ "patch": [
+  {
+   "find": "z.lo>from+.3*atr&&(z.lo>from+.75*atr||z.w>=3)",
+   "replace": "z.lo>from+.3*atr&&(z.lo>from+1.5*atr||z.w>=5)"
+  }
+ ]
+}

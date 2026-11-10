@@ -1,0 +1,10 @@
+{
+ "name": "41-bo-4h",
+ "desc": "Bỏ hẳn khung 4H, chỉ trade 1D/1W",
+ "patch": [
+  {
+   "find": "const TF_ADD={\"4h\":0,\"1d\":0,\"1w\":0};",
+   "replace": "const TF_ADD={\"4h\":100,\"1d\":0,\"1w\":0};"
+  }
+ ]
+}

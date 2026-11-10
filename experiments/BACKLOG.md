@@ -17,3 +17,9 @@ Quy tắc:
 - [ ] Lệnh chờ hết hạn sau 6 / 24 nến (đang 12)
 - [ ] TP1 tối thiểu 1.5R (đẩy TP1 lên vùng kế tiếp nếu quá gần)
 - [ ] Đệm SL 0.4 / 0.6 ATR (tinh chỉnh quanh mức tốt nhất)
+
+## Kết quả vòng 1 (backtest 2 năm, 99 mã, nhãn vong1) — main: 888 lệnh, −15.5R, −0.017R/lệnh, năm 1 +28.5R, năm 2 −44R
+Điểm hiệu quả (5 = như main): 01 bỏ thoát cấu trúc 4.9 ❌ · 02 cấu trúc sau TP1 4.7 ❌ · 03 bỏ cổng Dow 4.6 ⚠️ · 04 SL 0.7ATR 5.2 ⚠️ · 05 SL 0.3ATR 5.3 ⚠️ · 06 điểm 75 4.2 ❌ · 07 điểm 65 4.7 ⚠️ · 08 TP1 30% 5.1 ⚠️ · 09 TP1 70% 4.9 ⚠️ · 10 3TP 5.1 ✅ · bỏ Trend 4.9 · bỏ Momentum 5.0 · bỏ Elliott 4.5 ❌ · bỏ Entry 4.7 ❌ · bỏ R:R 4.3 ❌ · bỏ Divergence 5.0 · bỏ SL 5.2 ✅
+Nhận xét: không thay đổi đơn lẻ nào tạo khác biệt lớn (đều 4.2–5.3) → vấn đề nằm ở chất lượng chọn kèo nói chung, đặc biệt khung 4H (−16.6R) và năm gần nhất (−44R).
+Tương quan (Entry/SL/TP1): kháng cự cũ bị phá ở Entry +0.21R (434 lệnh) và SL +0.18R; POC ở SL +0.26–0.29R; EMA21 ở SL +0.25R; +DI vừa cắt ở Entry +0.34R (40 lệnh); TP1 tại đỉnh swing lớn −0.21R (632 lệnh); RSI 45–55 ở Entry −0.22R; break mây ở Entry −0.22R; mức MACD ở Entry/SL −0.41R.
+Vòng 2: 40–48 + 30-gop-v1.

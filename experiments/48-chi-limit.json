@@ -1,0 +1,10 @@
+{
+ "name": "48-chi-limit",
+ "desc": "Không vào lệnh market theo điểm động lượng (chỉ vào ngay khi có tín hiệu mới), còn lại đặt lệnh chờ",
+ "patch": [
+  {
+   "find": "else if(mkt>=3){",
+   "replace": "else if(mkt>=99){"
+  }
+ ]
+}

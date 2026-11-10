@@ -1,0 +1,10 @@
+{
+ "name": "40-4h-them-10d",
+ "desc": "Khung 4H cần thêm 10 điểm (ngưỡng 80) — 4H đang kéo lợi nhuận xuống",
+ "patch": [
+  {
+   "find": "const TF_ADD={\"4h\":0,\"1d\":0,\"1w\":0};",
+   "replace": "const TF_ADD={\"4h\":10,\"1d\":0,\"1w\":0};"
+  }
+ ]
+}

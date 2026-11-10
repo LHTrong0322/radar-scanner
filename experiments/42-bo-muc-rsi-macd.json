@@ -1,0 +1,14 @@
+{
+ "name": "42-bo-muc-rsi-macd",
+ "desc": "Bỏ các mức giá quy từ RSI/MACD (điểm hiệu quả thấp ở Entry/SL)",
+ "patch": [
+  {
+   "find": "add(K.r70,\"RSI chạm 70 (quá mua)\",1); add(K.r45,\"RSI 45–55 (kháng cự)\",1); add(K.r55,\"RSI 45–55 (kháng cự)\",1); if(K.mf&&!K.mf.bull) add(K.mf.px,\"MACD cắt lên Signal\",.5)",
+   "replace": ""
+  },
+  {
+   "find": "add(K.r45,\"RSI 45–55 (hỗ trợ)\",1); add(K.r55,\"RSI 45–55 (hỗ trợ)\",1); add(K.r30,\"RSI chạm 30 (quá bán)\",1); if(K.mf&&K.mf.bull) add(K.mf.px,\"MACD còn trên Signal\",1)",
+   "replace": ""
+  }
+ ]
+}

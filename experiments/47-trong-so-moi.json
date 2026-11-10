@@ -1,0 +1,10 @@
+{
+ "name": "47-trong-so-moi",
+ "desc": "Điểm /100: Trend 45, Elliott 25, Entry 10, R:R 15, Momentum 10, Divergence 5, SL 0",
+ "patch": [
+  {
+   "find": "const parts=[[\"Trend\",T,30],[\"Momentum\",M,15],[\"Elliott\",W,15],[\"Entry\",En,20],[\"R:R\",RR,20],[\"Divergence\",D,10],[\"SL\",SLq,5]];",
+   "replace": "const parts=[[\"Trend\",T,45],[\"Momentum\",M,10],[\"Elliott\",W,25],[\"Entry\",En,10],[\"R:R\",RR,15],[\"Divergence\",D,5],[\"SL\",SLq,0]];"
+  }
+ ]
+}

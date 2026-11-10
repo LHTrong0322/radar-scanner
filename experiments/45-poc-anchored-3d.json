@@ -1,0 +1,10 @@
+{
+ "name": "45-poc-anchored-3d",
+ "desc": "POC anchored 3 điểm (SL 10, Entry 7.2 điểm hiệu quả)",
+ "patch": [
+  {
+   "find": "out.push([an.poc,\"POC anchored VP\",2])",
+   "replace": "out.push([an.poc,\"POC anchored VP\",3])"
+  }
+ ]
+}
