@@ -1014,12 +1014,18 @@ function resLevels(c,at,e200,ichi){
 }
 // Vùng dùng làm TP: đủ mạnh (≥1.5) và cách giá ít nhất 0.75 ATR (bỏ mức vi mô sát giá), trừ vùng rất mạnh
 const tpZones=(res,from,atr)=>(res||[]).filter(z=>z.w>=1.5&&z.lo>from+.3*atr&&(z.lo>from+.75*atr||z.w>=3));   // vùng rất mạnh (≥3 yếu tố) thì giữ dù sát giá
+// Tỷ lệ chốt: TP1 chốt 50% (để dời SL về hoà vốn), phần còn lại chia đều cho các TP sau
+const tpFrac=n=>n<=1?[1]:[.5,...Array(n-1).fill(.5/(n-1))];
 function pickTPs(Z,atr,fb,risk,tp1Fallback){
   const z1=Z[0], tp1=z1?z1.lo:tp1Fallback[1], tp1Why=z1?z1.why:tp1Fallback[0];
   const z2=Z.find(z=>z.lo>tp1+.5*atr&&z.w>=2)||Z.find(z=>z.lo>tp1+.5*atr);
   let tp2=z2?z2.lo:fb[1], tp2Why=z2?z2.why:fb[0];
   if(tp2<=tp1){ tp2=tp1+risk; tp2Why="TP1 + 1R" }
-  return {tp1,tp2,tp1Why,tp2Why};
+  // Kèo còn dư địa: thêm TP3, TP4 ở các vùng kháng cự mạnh kế tiếp (cách nhau ≥ 1 ATR) và mục tiêu Fibonacci nếu xa hơn
+  const tps=[tp1,tp2], whys=[tp1Why,tp2Why];
+  for(const z of Z){ if(tps.length>=4) break; if(z.lo>tps[tps.length-1]+Math.max(atr,.5*risk)&&z.w>=2){ tps.push(z.lo); whys.push(z.why) } }
+  if(tps.length<4&&fb&&fb[1]>tps[tps.length-1]+Math.max(atr,.5*risk)&&fb[0]!=="TP cũ"){ tps.push(fb[1]); whys.push(fb[0]) }
+  return {tp1,tp2,tp1Why,tp2Why,tps,whys,tpf:tpFrac(tps.length)};
 }
 function planTrade(i){
   const {px,atr,piv,e21}=i.lv; if(!atr) return null;
@@ -1048,8 +1054,9 @@ function planTrade(i){
   }
   const mm=Math.max(px,entry)+Math.max(2*risk, piv.length>1?Math.abs(piv[piv.length-1].v-piv[piv.length-2].v):3*atr);
   const fb=proj!=null?["mục tiêu Fibonacci của sóng Elliott",proj]:["biên độ nhịp gần nhất",mm];
-  const {tp1,tp2,tp1Why,tp2Why}=pickTPs(Z,atr,fb,risk,fb);
-  return {reject,slPct,entry,mode,ref,px,stop,risk,why,tp1,tp2,tp1Why,tp2Why,rr1:(tp1-entry)/risk,rr2:(tp2-entry)/risk,blue:!Z.length};
+  const {tp1,tp2,tp1Why,tp2Why,tps,whys,tpf}=pickTPs(Z,atr,fb,risk,fb);
+  const rrMax=(tps[tps.length-1]-entry)/risk, rrAvg=tps.reduce((a,t,k)=>a+tpf[k]*(t-entry)/risk,0);
+  return {reject,slPct,entry,mode,ref,px,stop,risk,why,tp1,tp2,tp1Why,tp2Why,tps,tpWhys:whys,tpf,rr1:(tp1-entry)/risk,rr2:(tp2-entry)/risk,rrMax,rrAvg,blue:!Z.length};
 }
 function buyScore(i){
   if(!i||i.rsi==null) return null;
@@ -1134,7 +1141,9 @@ function rrCell(b){
   const P=b&&b.plan; if(!P) return `<td><span class="mut">–</span></td>`;
   if(P.reject) return `<td><span class="dn" title="SL theo cấu trúc ${fp(P.stop)}, cách Entry ${(P.slPct*100).toFixed(1)}% (tối đa ${MAX_SL*100}%). Kèo bị loại.">SL ${(P.slPct*100).toFixed(0)}% · reject</span></td>`;
   const t=[`${modeTxt(P.mode)}: Entry ${fp(P.entry)} (${P.ref})`,`SL ${fp(P.stop)} (${P.why}, rủi ro ${(P.risk/P.entry*100).toFixed(1)}%)`,
-    `TP1 ${fp(P.tp1)} · R:R ${P.rr1.toFixed(2)} · ${P.tp1Why}`,`TP2 ${fp(P.tp2)} · R:R ${P.rr2.toFixed(2)} · ${P.tp2Why}`];
+    `TP1 ${fp(P.tp1)} · R:R ${P.rr1.toFixed(2)} · ${P.tp1Why}`,`TP2 ${fp(P.tp2)} · R:R ${P.rr2.toFixed(2)} · ${P.tp2Why}`,
+    ...(P.tps||[]).slice(2).map((t,k)=>`TP${k+3} ${fp(t)} · R:R ${((t-P.entry)/P.risk).toFixed(2)} · ${P.tpWhys[k+2]}`),
+    ...(P.tps&&P.tps.length>2?[`Chốt lời: ${P.tpf.map((f,k)=>`TP${k+1} ${Math.round(f*100)}%`).join(" · ")}; chạm TP1 dời SL về Entry, chạm TP tiếp theo dời SL lên TP trước`]:[])];
   const c=P.rr1>=2?"c-adx-hi":P.rr1<1?"dn":"";
   return `<td><span class="${c}" title="${t.join("&#10;")}">${P.rr1.toFixed(1)}R</span><small class="mut"> / ${P.rr2.toFixed(1)}R</small></td>`;
 }
@@ -1357,7 +1366,7 @@ function renderPicks(){
       <td title="${P.ref}${wait?` · giá hiện tại ${fp(P.px)}, cách ${pct(P.entry,P.px)}`:""}"><span class="pill ${wait?"":"up"}">${modeTxt(P.mode)}</span> ${fp(P.entry)}</td>
       <td class="dn" title="${P.why}">${fp(P.stop)}<span class="pc dn">${pct(P.stop,P.entry)}</span></td>
       <td class="up" title="${P.tp1Why}">${fp(P.tp1)}<span class="pc up">${pct(P.tp1,P.entry)}</span><br><small class="mut">${P.tp1Why}</small></td>
-      <td class="up" title="${P.tp2Why}">${fp(P.tp2)}<span class="pc up">${pct(P.tp2,P.entry)}</span><br><small class="mut">${P.tp2Why}</small></td>
+      <td class="up" title="${P.tp2Why}${P.tps&&P.tps.length>2?" · "+P.tps.slice(2).map((t,k)=>`TP${k+3}: ${P.tpWhys[k+2]}`).join(" · "):""}">${fp(P.tp2)}<span class="pc up">${pct(P.tp2,P.entry)}</span><br><small class="mut">${P.tp2Why}</small>${moreTps(P.tps,P.entry,0)}</td>
       <td><b>${P.rr1.toFixed(1)}R</b><small class="mut"> / ${P.rr2.toFixed(1)}R</small></td>
       <td>${h}</td>
       <td class="rs">${x.why.g.join(" · ")}${x.why.w.length?` <span class="dn">· lưu ý: ${x.why.w.join(", ")}</span>`:""}</td></tr>`}).join("")
@@ -1373,7 +1382,7 @@ S.jFilter="all"; S.jBusy=false;
 const jSave=()=>{try{localStorage.setItem(JKEY,JSON.stringify((S.cloud?S.journal.filter(j=>j.local):S.journal).slice(-400)))}catch{}};
 // Dọn kèo cũ có SL cách Entry quá 35% (ghi trước khi có quy tắc loại)
 { const n=S.journal.length; S.journal=S.journal.filter(j=>!(j.entry>0&&(j.entry-j.stop)/j.entry>MAX_SL)); if(S.journal.length!==n) jSave(); }
-const jDone=st=>["tp2","tp1_be","sl","expired","manual","cancel"].includes(st);
+const jDone=st=>["tp2","tp1_be","trail","sl","expired","manual","cancel"].includes(st);
 const jClosed=st=>["tp2","tp1_be","sl","manual"].includes(st);
 function journalAdd(){
   if(S.cloud) return;                                    // nhật ký đám mây do GitHub ghi
@@ -1383,14 +1392,15 @@ function journalAdd(){
     if(active) continue;                                   // đã có kèo đang theo dõi cho coin này
     const P=x.P;
     S.journal.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),at:Date.now(),sym:x.r.sym,base:x.r.base,src:x.r.src,ex:x.r.ex,exName:x.r.exName,tf:x.tf,
-      mode:P.mode,entry:P.entry,stop:P.stop,tp1:P.tp1,tp2:P.tp2,tp1Why:P.tp1Why,tp2Why:P.tp2Why,tpVer:TP_VER,rr1:P.rr1,score:Math.round(x.score),
+      mode:P.mode,entry:P.entry,stop:P.stop,tp1:P.tp1,tp2:P.tp2,tp1Why:P.tp1Why,tp2Why:P.tp2Why,tps:P.tps,tpf:P.tpf,tpWhys:P.tpWhys,tpVer:TP_VER,rr1:P.rr1,score:Math.round(x.score),
       status:P.mode==="Chờ hồi"?"pending":"open",fillAt:P.mode==="Chờ hồi"?null:Date.now(),roi:0,r:0});
     added++;
   }
   if(added){jSave();renderJournal()}
 }
 function simulate(j,c,cur){
-  let st=j.mode==="Chờ hồi"?"pending":"open", sl=j.stop, half=false, real=0, fillAt=st==="open"?j.at:null, exitAt=null, exit=null;
+  const T=Array.isArray(j.tps)&&j.tps.length>=2?j.tps:[j.tp1,j.tp2], F=Array.isArray(j.tpf)&&j.tpf.length===T.length?j.tpf:tpFrac(T.length);
+  let st=j.mode==="Chờ hồi"?"pending":"open", sl=j.stop, half=false, real=0, left=1, hit=0, fillAt=st==="open"?j.at:null, exitAt=null, exit=null;
   const expiry=j.at+12*TFMS[j.tf];
   for(const k of c){
     if(k.t<j.at) continue;                                  // chỉ dùng nến mở sau thời điểm ghi kèo (tránh nhìn trước)
@@ -1400,15 +1410,16 @@ function simulate(j,c,cur){
       else if(k.h>=j.tp1){st="expired";break}
       else continue;
     }
-    if(k.l<=sl){ real+=(half?.5:1)*(sl/j.entry-1); st=half?"tp1_be":"sl"; exitAt=k.t; exit=sl; break }
-    if(!half&&k.h>=j.tp1){ half=true; real+=.5*(j.tp1/j.entry-1); sl=j.entry }
-    if(half&&k.h>=j.tp2){ real+=.5*(j.tp2/j.entry-1); st="tp2"; exitAt=k.t; exit=j.tp2; break }
+    if(k.l<=sl){ real+=left*(sl/j.entry-1); left=0; st=hit===0?"sl":hit===1?"tp1_be":"trail"; exitAt=k.t; exit=sl; break }
+    while(hit<T.length&&k.h>=T[hit]){ real+=F[hit]*(T[hit]/j.entry-1); left-=F[hit]; hit++; sl=hit===1?j.entry:T[hit-2] }
+    if(hit>=1) half=true;
+    if(hit>=T.length){ left=0; st="tp2"; exitAt=k.t; exit=T[T.length-1]; break }
   }
   let roi=real;
-  if(st==="open"&&cur) roi=real+(half?.5:1)*(cur/j.entry-1);
+  if(st==="open"&&cur) roi=real+left*(cur/j.entry-1);
   if(st==="pending"||st==="expired") roi=0;
   const riskPct=1-j.stop/j.entry;
-  return {status:st,half,fillAt,exitAt,exit,roi:roi*100,r:riskPct>0?roi/riskPct:0,cur};
+  return {status:st,half,hit,nTp:T.length,real,left,slNow:st==="open"?sl:null,fillAt,exitAt,exit,roi:roi*100,r:riskPct>0?roi/riskPct:0,cur};
 }
 // Áp dụng cách đặt TP mới cho các lệnh đang mở / chờ khớp (một lần mỗi lệnh)
 const TP_VER=2;
@@ -1423,7 +1434,7 @@ function retargetJournal(){
     if(!Z.length){ j.tpVer=TP_VER; continue }                     // không có vùng kháng cự nào: giữ TP cũ
     const keep=["TP cũ",j.tp1], old2=["TP cũ",Math.max(j.tp2,j.tp1)];
     const T=pickTPs(Z,atr,old2,risk,keep);
-    Object.assign(j,{tp1Old:j.tp1,tp2Old:j.tp2,tp1:T.tp1,tp2:T.tp2,tp1Why:T.tp1Why,tp2Why:T.tp2Why,rr1:risk>0?(T.tp1-j.entry)/risk:j.rr1,tpVer:TP_VER});
+    Object.assign(j,{tp1Old:j.tp1,tp2Old:j.tp2,tp1:T.tp1,tp2:T.tp2,tp1Why:T.tp1Why,tp2Why:T.tp2Why,tps:T.tps,tpf:T.tpf,tpWhys:T.whys,rr1:risk>0?(T.tp1-j.entry)/risk:j.rr1,tpVer:TP_VER});
     n++;
   }
   if(n){ jSave(); renderJournal() }
@@ -1451,14 +1462,17 @@ async function journalUpdate(){
 const ARC={placed:["chờ khớp",""],open:["đang mở","up"],be:["SL về Entry","up"],closed:["đã đóng",""],skip:["bỏ qua",""],fail:["lỗi","dn"],cancel:["đã huỷ",""]};
 const arcusBadge=j=>[["hl","Hyperliquid","coin"],["arcus","Arcus","mk"]].map(([k,name,f])=>{const a=j[k]; if(!a||!ARC[a.st]) return ""; const [t,c]=ARC[a.st];
   return `<span class="cg ${c==="up"?"ck":""}" title="Lệnh thật trên sàn ${name}${a[f]?` (${a[f]})`:""}: ${t}${a.why?` · ${a.why}`:""}" style="${c==="dn"?"color:var(--dn)":""}">${name} · ${t}</span>`}).join("");
-const JST={pending:["Pending",""],open:["Open","up"],tp1_be:["TP1 hit · BE phần còn lại","up"],tp2:["TP2 hit","up"],sl:["SL hit","dn"],expired:["Cancelled · not filled",""],manual:["Manual close","up"],cancel:["Manual cancel",""]};
-const jLabel=j=>j.status==="open"&&j.half?["Partial 50% ở TP1 · SL → BE","up"]:j.status==="manual"?[j.roi>=0?"Manual take profit":"Manual cut loss",j.roi>=0?"up":"dn"]:(JST[j.status]||[j.status,""]);
+// TP3, TP4… hiển thị nhỏ dưới TP2 (gạch nếu đã chạm)
+const moreTps=(tps,entry,hit)=>Array.isArray(tps)&&tps.length>2?`<br><small class="mut">${tps.slice(2).map((t,k)=>`<span style="${hit>k+2?"text-decoration:line-through":""}">TP${k+3} ${fp(t)} (${pctOf(t,entry)})</span>`).join(" · ")}</small>`:"";
+const JST={pending:["Pending",""],open:["Open","up"],tp1_be:["TP1 hit · BE phần còn lại","up"],tp2:["TP2 hit","up"],trail:["TP hit · SL dời lên TP trước","up"],sl:["SL hit","dn"],expired:["Cancelled · not filled",""],manual:["Manual close","up"],cancel:["Manual cancel",""]};
+const jLabel=j=>j.status==="open"&&j.hit>=2?[`TP${j.hit}/${j.nTp} hit · SL → TP${j.hit-1}`,"up"]:j.status==="open"&&j.half?[`TP1${j.nTp>2?`/${j.nTp}`:""} hit · SL → BE`,"up"]:
+  j.status==="tp2"&&j.nTp>2?[`TP${j.nTp} hit (chốt hết)`,"up"]:j.status==="trail"?[`TP${j.hit}/${j.nTp} hit · phần còn lại chốt ở TP${j.hit-1}`,"up"]:j.status==="manual"?[j.roi>=0?"Manual take profit":"Manual cut loss",j.roi>=0?"up":"dn"]:(JST[j.status]||[j.status,""]);
 function jPrice(j){const r=rowBySym(j.sym)||S.rows.get("cg:"+j.base); return r&&r.price?r.price:(j.cur||null)}
 function closeTrade(j){
   if(j.status==="pending"){ Object.assign(j,{status:"cancel",exitAt:Date.now(),roi:0,r:0}); return true }
   if(j.status!=="open") return false;
   const px=jPrice(j); if(!px) return false;
-  const real=j.half?.5*(j.tp1/j.entry-1)+.5*(px/j.entry-1):(px/j.entry-1), risk=1-j.stop/j.entry;
+  const real=j.real!=null&&j.left!=null?j.real+j.left*(px/j.entry-1):j.half?.5*(j.tp1/j.entry-1)+.5*(px/j.entry-1):(px/j.entry-1), risk=1-j.stop/j.entry;
   Object.assign(j,{status:"manual",exitAt:Date.now(),exit:px,cur:px,roi:real*100,r:risk>0?real/risk:0});
   return true;
 }
@@ -1487,7 +1501,7 @@ function renderJournal(){
     const act=S.cloud&&!j.local?"":j.status==="open"?`<button class="btn sm" data-act="close" data-id="${j.id}">Close</button>`:j.status==="pending"?`<button class="btn sm" data-act="close" data-id="${j.id}">Cancel</button>`:"";
     const tip=`${modeTxt(j.mode)} · score ${j.score} · R:R kế hoạch ${j.rr1.toFixed(1)}`+(j.fillAt?` · khớp ${dt(j.fillAt)}`:"")+(j.exitAt?` · đóng ${dt(j.exitAt)}`:"")+(j.status==="open"&&j.cur?` · giá hiện tại ${fp(j.cur)}`:"")+(j.tp1Why?` · TP1: ${j.tp1Why} · TP2: ${j.tp2Why}`:"")+(j.tp1Old!=null?` · TP cũ ${fp(j.tp1Old)} / ${fp(j.tp2Old)}`:"");
     return `<tr data-tv="${tvSym(j)}" title="${tip}"><td class="sym">${j.base}${srcBadge(j)}${S.cloud&&j.local?'<span class="cg" title="Kèo cũ lưu trên máy này, chưa chuyển lên GitHub">máy này</span>':""}${arcusBadge(j)}</td><td>${dt(j.at)}</td><td>${j.tf.toUpperCase()}</td>
-      <td>${fp(j.entry)}</td><td class="dn">${fp(j.stop)}<span class="pc dn">${pctOf(j.stop,j.entry)}</span></td><td class="up">${fp(j.tp1)}<span class="pc up">${pctOf(j.tp1,j.entry)}</span></td><td class="up">${fp(j.tp2)}<span class="pc up">${pctOf(j.tp2,j.entry)}</span></td>
+      <td>${fp(j.entry)}</td><td class="dn">${fp(j.stop)}<span class="pc dn">${pctOf(j.stop,j.entry)}</span></td><td class="up">${fp(j.tp1)}<span class="pc up">${pctOf(j.tp1,j.entry)}</span></td><td class="up">${fp(j.tp2)}<span class="pc up">${pctOf(j.tp2,j.entry)}</span>${moreTps(j.tps,j.entry,j.hit)}</td>
       <td><span class="pill ${c}">${lab}</span></td>
       <td>${showRoi?`<b class="${j.roi>=0?"up":"dn"}">${sg(j.roi)}</b>${j.status==="open"?' <small class="mut">unrealized</small>':""}`:'<span class="mut">–</span>'}</td>
       <td>${showRoi?`<span class="${j.r>=0?"up":"dn"}">${j.r>=0?"+":""}${j.r.toFixed(2)}R</span>`:'<span class="mut">–</span>'}</td><td>${act}</td></tr>`}).join("")

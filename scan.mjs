@@ -251,14 +251,22 @@ function msgNewPick(x) {
     `SL: ${fp(P.stop)} (${pct(P.stop, P.entry)})`,
     `TP1: ${fp(P.tp1)} (${pct(P.tp1, P.entry)}) · ${esc(P.tp1Why)}`,
     `TP2: ${fp(P.tp2)} (${pct(P.tp2, P.entry)}) · ${esc(P.tp2Why)}`,
+    ...(P.tps || []).slice(2).map((t, k) => `TP${k + 3}: ${fp(t)} (${pct(t, P.entry)}) · ${esc(P.tpWhys[k + 2])}`),
+    P.tps && P.tps.length > 2 ? `Chốt: ${P.tpf.map((f, k) => `TP${k + 1} ${Math.round(f * 100)}%`).join(" · ")} · chạm TP dời SL lên TP trước` : "",
     x.why.g.length ? `Lý do: ${esc(x.why.g.join(" · "))}` : "",
     x.why.w.length ? `⚠️ Lưu ý: ${esc(x.why.w.join(", "))}` : ""].filter(Boolean).join("\n") + link();
 }
 function msgUpdate(j, prev) {
   const roi = `${j.roi >= 0 ? "+" : ""}${j.roi.toFixed(2)}% (${j.r >= 0 ? "+" : ""}${j.r.toFixed(2)}R)`, h = `${esc(j.base)} · ${j.tf.toUpperCase()}`;
   if (prev.status === "pending" && j.status !== "pending" && j.status !== "expired") return `🔔 <b>${h}</b> khớp lệnh chờ ở ${fp(j.entry)}`;
-  if (!prev.half && j.half && j.status === "open") return `✅ <b>${h}</b> chạm TP1 ${fp(j.tp1)} · đã chốt 50%, SL dời về Entry`;
-  if (j.status === "tp2") return `🏁 <b>${h}</b> chốt TP2 ${fp(j.tp2)} · ROI ${roi}`;
+  const T = Array.isArray(j.tps) && j.tps.length >= 2 ? j.tps : [j.tp1, j.tp2], F = j.tpf || [.5, .5];
+  if (j.status === "open" && (j.hit || 0) > (prev.hit || 0)) {
+    const k = j.hit;
+    return k === 1 ? `✅ <b>${h}</b> chạm TP1 ${fp(T[0])} · đã chốt ${Math.round(F[0] * 100)}%, SL dời về Entry`
+                   : `✅ <b>${h}</b> chạm TP${k}/${T.length} ${fp(T[k - 1])} · chốt thêm ${Math.round(F[k - 1] * 100)}%, SL dời lên TP${k - 1} ${fp(T[k - 2])}`;
+  }
+  if (j.status === "tp2") return `🏁 <b>${h}</b> chốt TP cuối${T.length > 2 ? ` (TP${T.length})` : ""} ${fp(T[T.length - 1])} · ROI ${roi}`;
+  if (j.status === "trail") return `☑️ <b>${h}</b> chạm TP${j.hit} rồi giá quay đầu, phần còn lại chốt ở TP${j.hit - 1} · ROI ${roi}`;
   if (j.status === "tp1_be") return `☑️ <b>${h}</b> chốt TP1 rồi về hoà phần còn lại · ROI ${roi}`;
   if (j.status === "sl") return `🛑 <b>${h}</b> dính SL ${fp(j.stop)} · ROI ${roi}`;
   if (j.status === "expired") return `⌛ <b>${h}</b> lệnh chờ bị hủy (không khớp)`;
@@ -322,7 +330,7 @@ async function main() {
   const picks = best(ok), pickSet = new Set(picks.map(x => x.base)), nears = best(near).filter(x => !pickSet.has(x.base)).slice(0, 12);
 
   // 4.3 ghi kèo mới vào nhật ký
-  const isDone = st => ["tp2", "tp1_be", "sl", "expired", "manual", "cancel"].includes(st);
+  const isDone = st => ["tp2", "tp1_be", "trail", "sl", "expired", "manual", "cancel"].includes(st);
   const newOnes = [], newIds = new Set();
   for (const x of picks) {
     const sym = x.a.kind === "stock" ? x.a.sym : x.base + "USDT";
@@ -330,7 +338,7 @@ async function main() {
     const P = x.P;
     state.journal.push({
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), at: Date.now(), sym, base: x.base,
-      src: x.a.kind === "stock" ? "st" : "bn", ex: x.a.ex, tf: x.tf, mode: P.mode, entry: P.entry, stop: P.stop, tp1: P.tp1, tp2: P.tp2,
+      src: x.a.kind === "stock" ? "st" : "bn", ex: x.a.ex, tf: x.tf, mode: P.mode, entry: P.entry, stop: P.stop, tp1: P.tp1, tp2: P.tp2, tps: P.tps, tpf: P.tpf, tpWhys: P.tpWhys,
       tp1Why: P.tp1Why, tp2Why: P.tp2Why, tpVer: 2, rr1: P.rr1, score: Math.round(x.score),
       status: P.mode === "Chờ hồi" ? "pending" : "open", fillAt: P.mode === "Chờ hồi" ? null : Date.now(), roi: 0, r: 0, by: "github"
     });
@@ -350,9 +358,9 @@ async function main() {
         catch (e) { try { c = await xStock(j.sym, "1h"); } catch (e2) { c = await stockDaily(j.sym); } }
       }
       else c = (await cryptoCandles(j.base, "1h", 1000, j.at - 36e5)).c;
-      const cur = c.length ? c.at(-1).c : null, prev = { status: j.status, half: !!j.half };
+      const cur = c.length ? c.at(-1).c : null, prev = { status: j.status, half: !!j.half, hit: j.hit || (j.half ? 1 : 0) };
       Object.assign(j, K.simulate(j, c, cur), { checked: Date.now() });
-      const m = msgUpdate(j, prev); if (m && (j.status !== prev.status || j.half !== prev.half)) outbox.push(m);
+      const m = msgUpdate(j, prev); if (m && (j.status !== prev.status || j.half !== prev.half || (j.hit || 0) !== prev.hit)) outbox.push(m);
     } catch (e) { errors.push(`${j.base}: không chấm được lệnh (${e.message})`); }
   });
 

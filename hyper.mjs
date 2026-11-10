@@ -215,7 +215,7 @@ export async function hyperRun({ state, newIds, outbox, errors, esc, link }) {
         const resting = O.some(o => o.cloid === h.cid);
         if (size > 0) { h.st = "open"; h.at = Date.now(); say(`Đã khớp lệnh mua <b>${esc(j.base)}</b> (${j.tf.toUpperCase()}), SL và TP1 đã nằm sẵn trên sàn.`); continue; }
         if (!resting) { h.st = "fail"; h.why = "lệnh vào không khớp / bị huỷ"; say(`Lệnh vào <b>${esc(j.base)}</b> không khớp, bỏ kèo.`); continue; }
-        if (["expired", "cancel", "manual", "sl", "tp2", "tp1_be"].includes(j.status)) {
+        if (["expired", "cancel", "manual", "sl", "tp2", "tp1_be", "trail"].includes(j.status)) {
           await cancelCloid(m, h.cid);
           if (!A.pos.has(h.coin)) await cancelOids(O.filter(o => o.coin === h.coin && o.isTrigger).map(o => ({ asset: m.asset, oid: o.oid })));   // dọn SL/TP con
           h.st = "cancel"; h.why = "kèo hết hạn trước khi khớp"; say(`Huỷ lệnh chờ <b>${esc(j.base)}</b> (kèo hết hạn).`);
@@ -228,16 +228,45 @@ export async function hyperRun({ state, newIds, outbox, errors, esc, link }) {
         h.st = "closed"; h.at = Date.now(); say(`Đã đóng vị thế <b>${esc(j.base)}</b> trên sàn.`); continue;
       }
       const szS = fmtSz(size, m.szDecimals);
-      if (h.st === "open" && h.part && !tps.length && (j.half || mark >= tp1 * .98)) {   // TP1 đã khớp
+      // các mức TP của kèo (có thể 2–4 mức), tỷ lệ chốt: TP1 50%, phần còn lại chia đều
+      const T = (Array.isArray(j.tps) && j.tps.length >= 2 ? j.tps : [j.tp1, j.tp2]).map(x => x * mult);
+      const F = Array.isArray(j.tpf) && j.tpf.length === T.length ? j.tpf : (T.length <= 1 ? [1] : [.5, ...Array(T.length - 1).fill(.5 / (T.length - 1))]);
+      const near = (o, px) => Math.abs(parseFloat(o.triggerPx) / px - 1) < .002;
+      const replaceSL = async (px, why) => {
         await cancelOids(sls.map(o => ({ asset: m.asset, oid: o.oid })));
-        const be = Math.min(entry, mark * .995), legs = [trigO(m, fmtPx(be, m.szDecimals), szS, "sl")];
-        if (tp2 > mark) legs.push(trigO(m, fmtPx(tp2, m.szDecimals), szS, "tp"));
+        await placeOrders([trigO(m, fmtPx(Math.min(px, mark * .995), m.szDecimals), szS, "sl")]);
+        if (why) say(why);
+      };
+      if (h.st === "open" && h.part && !tps.length && (j.half || mark >= T[0] * .98)) {   // TP1 đã khớp → đặt thang TP cho phần còn lại, SL về Entry
+        await cancelOids(sls.map(o => ({ asset: m.asset, oid: o.oid })));
+        const rest = F.slice(1).reduce((a, x) => a + x, 0) || 1, lad = [], legs = [trigO(m, fmtPx(Math.min(entry, mark * .995), m.szDecimals), szS, "sl")];
+        let acc = 0, used = 0;
+        for (let i = 1; i < T.length; i++) {
+          acc += F[i] / rest;
+          const last = i === T.length - 1, want = last ? size - used : size * acc;
+          if (!last && want * T[i] < MIN_NOTIONAL * 1.05) continue;             // phần quá nhỏ (< 10 USD) gộp sang TP sau
+          const sz = last ? fmtSz(size - used, m.szDecimals) : fmtSz(want, m.szDecimals); if (!(parseFloat(sz) > 0)) continue;
+          legs.push(trigO(m, fmtPx(T[i], m.szDecimals), sz, "tp")); lad.push(T[i]); used += parseFloat(sz); acc = 0;
+        }
         await placeOrders(legs);
-        h.st = "be"; h.at = Date.now(); say(`<b>${esc(j.base)}</b> chạm TP1: đã chốt 50%, dời SL về Entry, đặt TP2 cho phần còn lại.`);
+        h.st = "be"; h.lad = lad; h.ladHit = 0; h.at = Date.now();
+        say(`<b>${esc(j.base)}</b> chạm TP1: đã chốt ${Math.round(F[0] * 100)}%, dời SL về Entry, đặt ${lad.length} TP cho phần còn lại (${lad.map(x => fmtPx(x / mult, m.szDecimals)).join(" · ")}).`);
+      } else if (h.st === "be") {
+        const lad = Array.isArray(h.lad) ? h.lad : [T[1]];                       // lệnh cũ chỉ có TP2
+        const filled = lad.filter(px => !tps.some(o => near(o, px))).length;     // TP đã khớp (không còn trên sổ)
+        const trailPx = k => { if (!k) return entry; const i = T.findIndex(x => Math.abs(x / lad[k - 1] - 1) < 1e-6); return i > 0 ? T[i - 1] : (k === 1 ? T[0] : lad[k - 2]); };   // SL = mức TP ngay trước TP vừa khớp
+        if (filled > (h.ladHit || 0) && filled < lad.length) {
+          h.ladHit = filled; const slPx = trailPx(filled);
+          await replaceSL(slPx, `<b>${esc(j.base)}</b> chạm thêm TP (${filled + 1}/${lad.length + 1}): dời SL lên ${fmtPx(slPx / mult, m.szDecimals)} để khoá lời.`);
+        } else if (!sls.length) {
+          const slPx = trailPx(h.ladHit || 0);
+          await replaceSL(slPx, `Đặt lại SL cho <b>${esc(j.base)}</b> (không thấy SL trên sàn).`);
+        } else if (sls.some(o => Math.abs(parseFloat(o.sz) - size) / size > .02)) {   // SL lệch khối lượng sau khi chốt bớt → chỉnh lại cho khớp vị thế
+          const slPx = trailPx(h.ladHit || 0);
+          await replaceSL(slPx, null);
+        }
       } else if (!sls.length) {                                          // không thấy SL → đặt lại cho cả vị thế
-        const s = h.st === "be" ? Math.min(entry, mark * .995) : Math.min(stop, mark * .995);
-        await placeOrders([trigO(m, fmtPx(s, m.szDecimals), szS, "sl")]);
-        say(`Đặt lại SL cho <b>${esc(j.base)}</b> (không thấy SL trên sàn).`);
+        await replaceSL(stop, `Đặt lại SL cho <b>${esc(j.base)}</b> (không thấy SL trên sàn).`);
       }
     } catch (e) { errors.push(`${TAG} ${j.base}: ${e.message}`); }
   }
@@ -286,7 +315,7 @@ export async function hyperRun({ state, newIds, outbox, errors, esc, link }) {
       j.hl = { st: "placed", coin, mult, cid, part, at: Date.now(), kind: limit ? "limit" : "market" };
       nLive++; riskR++; free -= P.margin; taken.add(coin);
       const vol = szN * entry;
-      say(`${limit ? "Đặt lệnh chờ mua" : "Mua"}${late ? " (vào muộn kèo cũ)" : ""} <b>${esc(j.base)}</b>${m.short !== (j.src === "st" ? j.sym : j.base).toUpperCase() || m.dex ? ` (trên sàn: ${esc(m.name)})` : ""} (${j.tf.toUpperCase()}) · Entry ${limit ? j.entry : "market"} · SL ${j.stop} (-${(P.sl * 100).toFixed(1)}%) · TP1 ${j.tp1}${part ? " (50%)" : " (đóng hết, lệnh quá nhỏ để chia đôi)"} · TP2 ${j.tp2}\n` +
+      say(`${limit ? "Đặt lệnh chờ mua" : "Mua"}${late ? " (vào muộn kèo cũ)" : ""} <b>${esc(j.base)}</b>${m.short !== (j.src === "st" ? j.sym : j.base).toUpperCase() || m.dex ? ` (trên sàn: ${esc(m.name)})` : ""} (${j.tf.toUpperCase()}) · Entry ${limit ? j.entry : "market"} · SL ${j.stop} (-${(P.sl * 100).toFixed(1)}%) · TP1 ${j.tp1}${part ? " (50%)" : " (đóng hết, lệnh quá nhỏ để chia đôi)"} · TP2 ${j.tp2}${Array.isArray(j.tps) && j.tps.length > 2 ? " · " + j.tps.slice(2).map((x, i) => `TP${i + 3} ${x}`).join(" · ") + " (phần còn lại chia đều các TP sau TP1)" : ""}\n` +
         (RISK > 0 ? `Rủi ro 1R = ${RISK} USDC · khối lượng ~${vol.toFixed(0)} USDC · đòn bẩy ${P.lev}x isolated · ký quỹ ~${P.margin.toFixed(1)} USDC · giá thanh lý ~${(P.liq / mult).toPrecision(5)} (SL dùng ${(P.share * 100).toFixed(0)}% khoảng cách)` : `~${vol.toFixed(0)} USDC, đòn bẩy 1x`) + link());
     } catch (e) { j.hl = { st: "fail", why: e.message.slice(0, 140), coin, at: Date.now() }; errors.push(`${TAG} ${j.base}: ${e.message}`); say(`Lỗi khi vào lệnh <b>${esc(j.base)}</b>: ${esc(e.message.slice(0, 160))}`); }
   }
