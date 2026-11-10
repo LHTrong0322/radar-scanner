@@ -47,6 +47,8 @@ jobs:
           TRADE_USD: ${{ vars.TRADE_USD || '50' }}
           TRADE_MAX_OPEN: ${{ vars.TRADE_MAX_OPEN || '5' }}
           TRADE_MAX_FUNDING_APR: ${{ vars.TRADE_MAX_FUNDING_APR || '30' }}
+          TRADE_RISK_USD: ${{ vars.TRADE_RISK_USD || '0' }}
+          TRADE_LIQ_BUFFER: ${{ vars.TRADE_LIQ_BUFFER || '0.7' }}
       - name: Lưu kết quả
         run: |
           git config user.name "radar-bot"

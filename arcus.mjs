@@ -13,6 +13,8 @@ const MODE = (process.env.TRADE_MODE || "auto").toLowerCase();          // auto 
 const USD = parseFloat(process.env.TRADE_USD || "50") || 50;
 const MAX_OPEN = parseInt(process.env.TRADE_MAX_OPEN || "5", 10) || 5;
 const MAX_FUND_APR = parseFloat(process.env.TRADE_MAX_FUNDING_APR || "30");
+const RISK = parseFloat(process.env.TRADE_RISK_USD || "0") || 0;          // > 0: mỗi lệnh lỗ tối đa RISK USDG khi dính SL (1R)
+const LIQ_USE = Math.min(.95, Math.max(.3, parseFloat(process.env.TRADE_LIQ_BUFFER || "0.7") || .7));   // SL chiếm tối đa 70% khoảng cách tới giá thanh lý
 const TAG = ENV === "mainnet" ? "Arcus" : "Arcus testnet";
 
 /* ---------- khoá Ed25519 ---------- */
@@ -129,12 +131,32 @@ async function cancelCid(m, cid) {
       body: { address: ADDR, marketId: Number(m.marketId), accountIndex: AI, kind: "clientId", clientId: cid, timestamp: ts } });
   } catch (e) { if (!/NOT_FOUND|not found/i.test(e.message)) throw e; }
 }
+async function setLev(m, lev, isolated) {
+  const ts = nowNs(), body = { accountIndex: AI, address: ADDR, leverage: lev, marketId: Number(m.marketId) };
+  if (isolated) body.isolated = true;
+  return api("POST", "/v1/setLeverage", { query: { address: ADDR }, headers: authHdr(ts, sign(ts.toString() + "setLeverage" + canon(body))), body });
+}
 async function setLev1(m) {
-  const ts = nowNs(), body = { accountIndex: AI, address: ADDR, leverage: 1, marketId: Number(m.marketId) };
-  try { await api("POST", "/v1/setLeverage", { query: { address: ADDR }, headers: authHdr(ts, sign(ts.toString() + "setLeverage" + canon(body))), body }); }
+  try { await setLev(m, 1, false); }
   catch (e) { console.log(`${TAG}: không đặt được đòn bẩy 1x cho ${m.marketDisplayName} (${e.message})`); }
 }
 const tick = m => m.tickSize, step = m => m.stepSize;
+// đòn bẩy tối đa và tỉ lệ ký quỹ duy trì của sàn (đọc nhiều tên trường; không rõ thì dùng mức an toàn)
+function levInfo(m) {
+  const num = (...k) => { for (const x of k) { const v = parseFloat(m[x]); if (v > 0) return v; } return null; };
+  const imf = num("initialMarginFraction", "imf", "initialMarginRatio");
+  const maxLev = num("maxLeverage", "maxLev", "leverageMax") || (imf ? 1 / imf : null);
+  const lev = maxLev || 5, mmr = num("maintenanceMarginFraction", "mmf", "maintenanceMarginRatio") || .6 / lev;
+  return { maxLev: Math.floor(lev), mmr, known: !!maxLev };
+}
+// R cố định: khối lượng = RISK / %SL; đòn bẩy cao nhất mà SL vẫn chỉ chiếm ≤ LIQ_USE khoảng cách tới giá thanh lý (isolated)
+function riskPlan(m, entry, stop) {
+  const sl = (entry - stop) / entry, { maxLev, mmr } = levInfo(m);
+  const notional = RISK / sl, levLiq = 1 / (sl / LIQ_USE + mmr);
+  const lev = Math.max(1, Math.min(maxLev, Math.floor(levLiq)));
+  const liqDist = 1 / lev - mmr, margin = notional / lev;
+  return { sl, notional, lev, margin, liq: entry * (1 - liqDist), slShare: sl / liqDist };
+}
 const sellLeg = (m, cid, kind, stop, qty, pos) => ({ m, side: "SELL", type: "MARKET", tif: "IOC", tpsl: kind, reduce: true, pos, cid,
   qty: pos ? { n: 0n, s: "0" } : qty, stop: quant(stop, tick(m), "round"), px: quant(stop * .93, tick(m), "down") });
 
@@ -239,14 +261,19 @@ export async function arcusRun({ state, newIds, outbox, errors, esc, link }) {
       const apr = await fundingApr(m.marketId);
       if (apr > MAX_FUND_APR) { skip(`funding ${apr.toFixed(0)}%/năm cao hơn ngưỡng ${MAX_FUND_APR}%`); continue; }
       if (free == null) free = await freeCollateral();
-      if (free < USD * 1.05) { skip(`không đủ tiền ký quỹ (cần ~${USD} USDC)`); continue; }
       const mark = mkPrice(m), limit = j.status === "pending";
       const entry = limit ? j.entry : (mark || j.entry);
       if (!(entry > 0) || j.stop >= entry || j.tp1 <= entry) { skip("giá trên sàn đã lệch khỏi vùng Entry/SL/TP"); continue; }
-      const qty = quant(USD / entry, step(m), "down");
-      if (qty.n === 0n || parseFloat(qty.s) * entry < 5) { skip("khối lượng nhỏ hơn mức tối thiểu của sàn"); continue; }
+      const rp = RISK > 0 ? riskPlan(m, entry, j.stop) : null;
+      const need = rp ? rp.margin * 1.1 + RISK * .1 : USD * 1.05;
+      if (free < need) { skip(`không đủ tiền ký quỹ (cần ~${need.toFixed(1)} USDG)`); continue; }
+      const qty = quant((rp ? rp.notional : USD) / entry, step(m), "down");
+      if (qty.n === 0n || parseFloat(qty.s) * entry < 5) { skip("khối lượng nhỏ hơn mức tối thiểu 5 USD của sàn"); continue; }
       const half = quant(parseFloat(qty.s) / 2, step(m), "down");
-      await setLev1(m);
+      if (rp) {
+        try { const r = await setLev(m, rp.lev, true); if (String(r.status || "").toUpperCase() === "REJECTED") throw new Error(r.rejectReason || "sàn từ chối"); }
+        catch (e) { skip(`không đặt được đòn bẩy ${rp.lev}x isolated (${e.message.slice(0, 80)})`); continue; }
+      } else await setLev1(m);
       const cid = `r${j.id}`;
       const ent = limit
         ? { m, side: "BUY", type: "LIMIT", tif: "GTT", cid: cid + "e", qty, px: quant(j.entry, tick(m), "down") }
@@ -255,8 +282,11 @@ export async function arcusRun({ state, newIds, outbox, errors, esc, link }) {
       if (half.n > 0n) legs.push(sellLeg(m, cid + "t", "TAKE_PROFIT", j.tp1, half, false));
       await batch("entryTpsl", legs);
       j.arcus = { st: "placed", mid: Number(m.marketId), mk: m.marketDisplayName, at: Date.now(), kind: limit ? "limit" : "market" };
-      nLive++; free -= USD;
-      say(`${limit ? "Đặt lệnh chờ mua" : "Mua"} <b>${esc(j.base)}</b> (${j.tf.toUpperCase()}) ~${USD} USDC · Entry ${limit ? j.entry : "market"} · SL ${j.stop} · TP1 ${j.tp1} (50%) · TP2 ${j.tp2}` + link());
+      nLive++; free -= rp ? rp.margin : USD;
+      const vol = parseFloat(qty.s) * entry;
+      say(`${limit ? "Đặt lệnh chờ mua" : "Mua"} <b>${esc(j.base)}</b> (${j.tf.toUpperCase()}) · Entry ${limit ? j.entry : "market"} · SL ${j.stop} (-${((entry - j.stop) / entry * 100).toFixed(1)}%) · TP1 ${j.tp1} (50%) · TP2 ${j.tp2}\n` +
+        (rp ? `Rủi ro 1R = ${RISK} USDG · khối lượng ~${vol.toFixed(0)} USDG · đòn bẩy ${rp.lev}x isolated · ký quỹ ~${rp.margin.toFixed(1)} USDG · giá thanh lý ~${rp.liq.toPrecision(5)} (SL dùng ${(rp.slShare * 100).toFixed(0)}% khoảng cách)${levInfo(m).known ? "" : " · chưa đọc được đòn bẩy tối đa của sàn, tạm giới hạn 5x"}`
+            : `~${vol.toFixed(0)} USDG, đòn bẩy 1x`) + link());
     } catch (e) { j.arcus = { st: "fail", why: e.message.slice(0, 140), mk: m.marketDisplayName, at: Date.now() }; errors.push(`${TAG} ${j.base}: ${e.message}`); say(`Lỗi khi vào lệnh <b>${esc(j.base)}</b>: ${esc(e.message.slice(0, 160))}`); }
   }
 }
