@@ -398,7 +398,7 @@ async function main() {
 
   // 4.45 tự đặt lệnh trên sàn (chỉ chạy khi đã cài khoá trong GitHub Secrets) · ưu tiên Hyperliquid
   if (process.env.HL_ADDRESS && process.env.HL_AGENT_KEY) {
-    try { const { hyperRun } = await import(pathToFileURL(path.join(HERE, "hyper.mjs")).href); await hyperRun({ state, newIds, outbox, errors, esc, link }); }
+    try { const { hyperRun } = await import(pathToFileURL(path.join(HERE, "hyper.mjs")).href); await hyperRun({ state, newIds, outbox, errors, esc, link, allowed: new Set(assets.map(a => a.base)) }); }
     catch (e) { errors.push(`Hyperliquid: ${e.message}`); }
   } else if (process.env.ARCUS_ADDRESS && process.env.ARCUS_PRIVATE_KEY) {
     try { const { arcusRun } = await import(pathToFileURL(path.join(HERE, "arcus.mjs")).href); await arcusRun({ state, newIds, outbox, errors, esc, link }); }

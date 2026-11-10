@@ -156,7 +156,7 @@ function plan(m, entry, stop) {
 }
 
 /* ---------- chạy mỗi lượt quét ---------- */
-export async function hyperRun({ state, newIds, outbox, errors, esc, link }) {
+export async function hyperRun({ state, newIds, outbox, errors, esc, link, allowed }) {
   if (!USER || !process.env.HL_AGENT_KEY) return;
   if (MODE === "off") { console.log(`${TAG}: đang tắt (TRADE_MODE=off)`); return; }
   try { await libs(); } catch (e) { errors.push(`${TAG}: ${e.message}`); return; }
@@ -299,6 +299,7 @@ export async function hyperRun({ state, newIds, outbox, errors, esc, link }) {
   for (const j of [...state.journal].reverse()) {                  // kèo mới nhất trước
     if ((j.hl && !["skip", "na"].includes(j.hl.st)) || !["open", "pending"].includes(j.status)) continue;   // kèo bị bỏ qua trước đó được xét lại
     const late = !newIds.has(j.id); if (late && !(Date.now() - j.at < ADOPT_MS)) continue;
+    if (allowed && allowed.size && !allowed.has(j.base)) { if (!j.hl) j.hl = { st: "skip", why: "ngoài danh sách quét (top 100 + coin thêm + cổ phiếu)", at: Date.now() }; continue; }   // chỉ trade mã nằm trong danh sách được quét/pick
     if (j.hl && j.hl.st === "skip" && !late) continue;
     let f = null; try { f = findMarket(M, j); } catch (e) { console.log(`${TAG}: lỗi tìm mã ${j.base} (${e.message})`); }
     if (!f) { if (!j.hl) j.hl = { st: "na" }; continue; }
