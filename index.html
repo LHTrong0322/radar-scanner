@@ -991,7 +991,9 @@ function dowCell(d){
 const clamp=(v,a=-1,b=1)=>Math.max(a,Math.min(b,v));
 const MAX_SL=.35;
 const PICK_MIN=70;   // điểm tối thiểu để thành kèo
-const MAX_TPS=2;     // số TP tối đa (backtest 2 năm: 2 TP tốt hơn 3–4 TP)   // stop loss spot tối đa 35% tính từ Entry
+const MAX_TPS=2;
+const MIN_RR=2;       // R:R tối thiểu tới TP1
+const TF_ADD={"4h":0,"1d":0,"1w":0};   // điểm cộng thêm vào ngưỡng theo khung (để thử nghiệm)     // số TP tối đa (backtest 2 năm: 2 TP tốt hơn 3–4 TP)   // stop loss spot tối đa 35% tính từ Entry
 const pctOf=(v,b)=>{const x=(v/b-1)*100;return (x>=0?"+":"")+x.toFixed(1)+"%"};
 const zoneOS=()=>S.os, zoneOB=()=>S.ob-5;   // phân kỳ dương: RSI ≤ ngưỡng quá bán (30) · phân kỳ âm: RSI ≥ ngưỡng quá mua − 5 (65)
 const wavg=parts=>{let s=0,w=0;for(const [v,k] of parts) if(v!=null&&isFinite(v)){s+=v*k;w+=k} return w?s/w:null};
@@ -1493,7 +1495,7 @@ function computePicks(){
       const rs=pickReasons(t.ind), why=curSide()==='short'?{g:rs.g.map(swapTxt),w:rs.w.map(swapTxt)}:rs;
       const it={r,tf,ind:t.ind,buy:t.buy,P:t.buy.plan,score:sc,htf,hT,why,side:curSide()};
       it.rank=sc+Math.min(it.P.rr1,5)*5;                                            // ưu tiên R:R
-      if(sc>=PICK_MIN&&it.P.rr1>=2) ok.push(it);
+      if(sc>=PICK_MIN+(TF_ADD[tf]||0)&&it.P.rr1>=MIN_RR) ok.push(it);
       else if(sc>=60&&it.P.rr1>=1.5) near.push(it);
     });
   }

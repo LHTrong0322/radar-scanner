@@ -23,7 +23,7 @@ function loadCore(file, text) {
   const src = [grab(/const TFMS=[^\n]*/), grab(/const SETS=[^\n]*/), grab(/const SKIP=[^\n]*/), grab(/const STOCKS=[^\n]*/), js.slice(a, b),
     grab(/const trendOf=[^\n]*/), grab(/function simulate\([\s\S]*?\n\}/)].join("\n");
   const extra = (js.match(/const EXTRA_CRYPTO=(\[[^\]]*\])/) || [])[1];
-  const K = new Function("S", src + "\nreturn {compute,trendOf,simulate,clamp,TFMS,PICK_MIN:typeof PICK_MIN!=='undefined'?PICK_MIN:70};")({ tf: "4h", win: 3, os: 30, ob: 70 });
+  const K = new Function("S", src + "\nreturn {compute,trendOf,simulate,clamp,TFMS,PICK_MIN:typeof PICK_MIN!=='undefined'?PICK_MIN:70,MIN_RR:typeof MIN_RR!=='undefined'?MIN_RR:2,TF_ADD:typeof TF_ADD!=='undefined'?TF_ADD:{}};")({ tf: "4h", win: 3, os: 30, ob: 70 });
   K.extra = extra ? JSON.parse(extra) : [];
   return K;
 }
@@ -117,7 +117,7 @@ function signals(K, D, startT) {
         if (hc.length >= 60) { const h = { src: "ex", c: hc, tf: htf, side: SIDE }; K.compute(h); const hT = K.trendOf(h); if (hT != null) { if (hT > .3) sc += 3; else if (hT < -.3) sc -= 5; } }
       }
       sc = K.clamp(sc, 0, 100);
-      if (sc >= K.PICK_MIN && B.plan.rr1 >= 2) out.push({ t: bars[i].t + MS[tf], tf, sc, P: B.plan, parts: Object.fromEntries(B.parts.map(([n, v]) => [n, v == null ? null : +v.toFixed(3)])), rank: sc + Math.min(B.plan.rr1, 5) * 5 });
+      if (sc >= K.PICK_MIN + (K.TF_ADD[tf] || 0) && B.plan.rr1 >= K.MIN_RR) out.push({ t: bars[i].t + MS[tf], tf, sc, P: B.plan, parts: Object.fromEntries(B.parts.map(([n, v]) => [n, v == null ? null : +v.toFixed(3)])), rank: sc + Math.min(B.plan.rr1, 5) * 5 });
     }
   }
   return out.sort((a, b) => a.t - b.t || b.rank - a.rank);
