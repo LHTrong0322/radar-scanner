@@ -1,0 +1,10 @@
+{
+ "name": "54-btc-tren-ema200",
+ "desc": "Chỉ long khi BTC 1D đang trên EMA200",
+ "patch": [
+  {
+   "find": "const REGIME=false;",
+   "replace": "const REGIME=true;"
+  }
+ ]
+}

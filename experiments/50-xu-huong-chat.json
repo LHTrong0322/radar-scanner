@@ -1,0 +1,10 @@
+{
+ "name": "50-xu-huong-chat",
+ "desc": "Chart phải có xu hướng tăng rõ (phần Trend ≥ 0.3), không thì khoá điểm 45",
+ "patch": [
+  {
+   "find": "if(T!=null&&T<-.3){score=Math.min(score,45);",
+   "replace": "if(T!=null&&T<.3){score=Math.min(score,45);"
+  }
+ ]
+}

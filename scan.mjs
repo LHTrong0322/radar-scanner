@@ -34,7 +34,7 @@ function loadCore() {
     grab(/function simulate\([\s\S]*?\n\}/, "simulate"),
   ].join("\n");
   const S = { tf: "4h", win: 3, os: 30, ob: 70 };
-  return new Function("S", src + "\nreturn {TFMS,SETS,STOCKS,skipCoin,bucket,compute,trendOf,pickReasons,simulate,MAX_SL,clamp,swapTxt,PICK_MIN:typeof PICK_MIN!=='undefined'?PICK_MIN:70,MIN_RR:typeof MIN_RR!=='undefined'?MIN_RR:2,TF_ADD:typeof TF_ADD!=='undefined'?TF_ADD:{}};")(S);
+  return new Function("S", src + "\nreturn {TFMS,SETS,STOCKS,skipCoin,bucket,compute,trendOf,pickReasons,simulate,MAX_SL,clamp,swapTxt,PICK_MIN:typeof PICK_MIN!=='undefined'?PICK_MIN:70,MIN_RR:typeof MIN_RR!=='undefined'?MIN_RR:2,TF_ADD:typeof TF_ADD!=='undefined'?TF_ADD:{},HTF_MIN:typeof HTF_MIN!=='undefined'?HTF_MIN:null,REGIME:typeof REGIME!=='undefined'?REGIME:false,ema};")(S);
 }
 const K = loadCore();
 
@@ -327,6 +327,7 @@ async function main() {
     PICK_TFS.forEach((tf, k) => {
       const t = R[tf]; if (!t || !t.buy || !t.buy.plan || t.buy.plan.reject) return;
       const htf = PICK_TFS[k + 1] || null, hT = htf ? K.trendOf(R[htf]) : null;
+      if (K.HTF_MIN != null && htf && (hT == null || hT < K.HTF_MIN)) return;
       let sc = t.buy.score; if (hT != null) { if (hT > .3) sc += 3; else if (hT < -.3) sc -= 5; }
       sc = K.clamp(sc, 0, 100);
       const rs = K.pickReasons(t.ind), why = SIDE === "short" ? { g: rs.g.map(K.swapTxt), w: rs.w.map(K.swapTxt) } : rs;
@@ -336,6 +337,13 @@ async function main() {
     });
   });
   const best = arr => { const m = new Map(); for (const x of arr) { const o = m.get(x.base); if (!o || x.rank > o.rank) m.set(x.base, x); } return [...m.values()].sort((p, q) => q.rank - p.rank); };
+  // bộ lọc thị trường (REGIME trong index.html): chỉ LONG khi BTC 1D trên EMA200 (SHORT: dưới)
+  let regimeOK = true;
+  if (K.REGIME) {
+    try { const bc = (await cryptoCandles("BTC", "1d", 400)).c, e = K.ema(bc.map(x => x.c), 200), up = bc.at(-1).c > e.at(-1); regimeOK = SIDE === "short" ? !up : up;
+      if (!regimeOK) console.log(`Bộ lọc thị trường: BTC ${up ? "trên" : "dưới"} EMA200 1D → không mở kèo ${SIDE}`); } catch (e) { }
+    if (!regimeOK) ok.length = 0;
+  }
   const picks = best(ok), pickSet = new Set(picks.map(x => x.base)), nears = best(near).filter(x => !pickSet.has(x.base)).slice(0, 12);
 
   // 4.25 chấm lại (một lần) các lệnh chờ khớp theo bảng điểm mới: không còn đạt chuẩn vào kèo thì huỷ

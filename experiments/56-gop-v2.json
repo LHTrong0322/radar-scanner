@@ -1,0 +1,34 @@
+{
+ "name": "56-gop-v2",
+ "desc": "Gộp v1 + bỏ điểm break mây",
+ "patch": [
+  {
+   "find": "const parts=[[\"Trend\",T,30],[\"Momentum\",M,15],[\"Elliott\",W,15],[\"Entry\",En,20],[\"R:R\",RR,20],[\"Divergence\",D,10],[\"SL\",SLq,5]];",
+   "replace": "const parts=[[\"Trend\",T,30],[\"Momentum\",M,15],[\"Elliott\",W,15],[\"Entry\",En,20],[\"R:R\",RR,20],[\"Divergence\",D,10],[\"SL\",SLq,0]];"
+  },
+  {
+   "find": "const TF_ADD={\"4h\":0,\"1d\":0,\"1w\":0};",
+   "replace": "const TF_ADD={\"4h\":10,\"1d\":0,\"1w\":0};"
+  },
+  {
+   "find": "add(K.r70,\"RSI chạm 70 (quá mua)\",1); add(K.r45,\"RSI 45–55 (kháng cự)\",1); add(K.r55,\"RSI 45–55 (kháng cự)\",1); if(K.mf&&!K.mf.bull) add(K.mf.px,\"MACD cắt lên Signal\",.5)",
+   "replace": ""
+  },
+  {
+   "find": "add(K.r45,\"RSI 45–55 (hỗ trợ)\",1); add(K.r55,\"RSI 45–55 (hỗ trợ)\",1); add(K.r30,\"RSI chạm 30 (quá bán)\",1); if(K.mf&&K.mf.bull) add(K.mf.px,\"MACD còn trên Signal\",1)",
+   "replace": ""
+  },
+  {
+   "find": "add(p.v,p.tp===\"L\"?\"đáy swing lớn\":\"đỉnh swing cũ (nay là hỗ trợ)\",2);",
+   "replace": "add(p.v,p.tp===\"L\"?\"đáy swing lớn\":\"đỉnh swing cũ (nay là hỗ trợ)\",p.tp===\"L\"?2:3);"
+  },
+  {
+   "find": "if(ph) add(c[i].h,\"kháng cự cũ đã bị phá\",1.5);",
+   "replace": "if(ph) add(c[i].h,\"kháng cự cũ đã bị phá\",3);"
+  },
+  {
+   "find": "if(ichi.state===1) add(ichi.top,\"đã break lên mây Ichimoku\",2)",
+   "replace": ""
+  }
+ ]
+}

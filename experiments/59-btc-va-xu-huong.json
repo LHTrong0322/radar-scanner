@@ -1,0 +1,14 @@
+{
+ "name": "59-btc-va-xu-huong",
+ "desc": "BTC trên EMA200 + phần Trend ≥ 0.3",
+ "patch": [
+  {
+   "find": "const REGIME=false;",
+   "replace": "const REGIME=true;"
+  },
+  {
+   "find": "if(T!=null&&T<-.3){score=Math.min(score,45);",
+   "replace": "if(T!=null&&T<.3){score=Math.min(score,45);"
+  }
+ ]
+}

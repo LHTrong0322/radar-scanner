@@ -1,0 +1,14 @@
+{
+ "name": "55-bo-4h-bo-break-may",
+ "desc": "Bỏ khung 4H + bỏ điểm break mây",
+ "patch": [
+  {
+   "find": "const TF_ADD={\"4h\":0,\"1d\":0,\"1w\":0};",
+   "replace": "const TF_ADD={\"4h\":100,\"1d\":0,\"1w\":0};"
+  },
+  {
+   "find": "if(ichi.state===1) add(ichi.top,\"đã break lên mây Ichimoku\",2)",
+   "replace": ""
+  }
+ ]
+}

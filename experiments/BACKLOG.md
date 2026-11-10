@@ -23,3 +23,7 @@ Quy tắc:
 Nhận xét: không thay đổi đơn lẻ nào tạo khác biệt lớn (đều 4.2–5.3) → vấn đề nằm ở chất lượng chọn kèo nói chung, đặc biệt khung 4H (−16.6R) và năm gần nhất (−44R).
 Tương quan (Entry/SL/TP1): kháng cự cũ bị phá ở Entry +0.21R (434 lệnh) và SL +0.18R; POC ở SL +0.26–0.29R; EMA21 ở SL +0.25R; +DI vừa cắt ở Entry +0.34R (40 lệnh); TP1 tại đỉnh swing lớn −0.21R (632 lệnh); RSI 45–55 ở Entry −0.22R; break mây ở Entry −0.22R; mức MACD ở Entry/SL −0.41R.
 Vòng 2: 40–48 + 30-gop-v1.
+
+## Kết quả vòng 2 (nhãn vong2) — main −15.5R (−0.017R/lệnh)
+30-gop-v1 5.6 ⚠️ (+8.3R, năm1 +4.5 / năm2 +3.8, DD 75) · 40 4H +10đ 4.2 ❌ · 41 bỏ 4H 6.0 ⚠️ (208 lệnh, +6.6R, DD 36) · 42 bỏ mức RSI/MACD 4.3 ⚠️ · 43 bỏ break mây 5.4 ✅ · 44 kháng cự cũ 3đ 5.2 ⚠️ · 45 POC anchored 3đ 4.3 ❌ · 46 TP1 xa hơn 4.1 ⚠️ (DD 228!) · 47 trọng số mới 4.3 ❌ · 48 chỉ limit 4.7 ⚠️
+Nhận xét: chênh lệch giữa các bản cỡ ±0.04R/lệnh ≈ sai số thống kê (~800 lệnh) → tinh chỉnh nhỏ chưa đủ; vòng 3 thử bộ lọc lớn: xu hướng chặt, khung lớn bắt buộc, BTC trên EMA200 (thêm hằng HTF_MIN, REGIME mặc định tắt).

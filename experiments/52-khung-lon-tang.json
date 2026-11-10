@@ -1,0 +1,10 @@
+{
+ "name": "52-khung-lon-tang",
+ "desc": "Bắt buộc khung lớn hơn đang tăng (trend khung lớn ≥ 0.3)",
+ "patch": [
+  {
+   "find": "const HTF_MIN=null;",
+   "replace": "const HTF_MIN=.3;"
+  }
+ ]
+}

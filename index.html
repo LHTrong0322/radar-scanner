@@ -993,7 +993,9 @@ const MAX_SL=.35;
 const PICK_MIN=70;   // điểm tối thiểu để thành kèo
 const MAX_TPS=2;
 const MIN_RR=2;       // R:R tối thiểu tới TP1
-const TF_ADD={"4h":0,"1d":0,"1w":0};   // điểm cộng thêm vào ngưỡng theo khung (để thử nghiệm)     // số TP tối đa (backtest 2 năm: 2 TP tốt hơn 3–4 TP)   // stop loss spot tối đa 35% tính từ Entry
+const TF_ADD={"4h":0,"1d":0,"1w":0};
+const HTF_MIN=null;  // xu hướng khung lớn tối thiểu để vào kèo (null = không bắt buộc)
+const REGIME=false;  // true: chỉ LONG khi BTC 1D trên EMA200 (SHORT: dưới)   // điểm cộng thêm vào ngưỡng theo khung (để thử nghiệm)     // số TP tối đa (backtest 2 năm: 2 TP tốt hơn 3–4 TP)   // stop loss spot tối đa 35% tính từ Entry
 const pctOf=(v,b)=>{const x=(v/b-1)*100;return (x>=0?"+":"")+x.toFixed(1)+"%"};
 const zoneOS=()=>S.os, zoneOB=()=>S.ob-5;   // phân kỳ dương: RSI ≤ ngưỡng quá bán (30) · phân kỳ âm: RSI ≥ ngưỡng quá mua − 5 (65)
 const wavg=parts=>{let s=0,w=0;for(const [v,k] of parts) if(v!=null&&isFinite(v)){s+=v*k;w+=k} return w?s/w:null};
@@ -1490,6 +1492,7 @@ function computePicks(){
     PICK_TFS.forEach((tf,k)=>{
       const t=R[tf]; if(!t||!t.buy||!t.buy.plan||t.buy.plan.reject) return;   // SL > 35% → bỏ
       const htf=PICK_TFS[k+1]||null, hT=htf?trendOf(R[htf]):null, T=trendOf(t);
+      if(HTF_MIN!=null&&htf&&(hT==null||hT<HTF_MIN)) return;
       let sc=t.buy.score; if(hT!=null){ if(hT>.3) sc+=3; else if(hT<-.3) sc-=5 }   // khung lớn chỉ cộng/trừ nhẹ
       sc=clamp(sc,0,100);
       const rs=pickReasons(t.ind), why=curSide()==='short'?{g:rs.g.map(swapTxt),w:rs.w.map(swapTxt)}:rs;

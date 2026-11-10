@@ -25,7 +25,7 @@ function loadCore(file, text) {
   const src = [grab(/const TFMS=[^\n]*/), grab(/const SETS=[^\n]*/), grab(/const SKIP=[^\n]*/), grab(/const STOCKS=[^\n]*/), js.slice(a, b),
     grab(/const trendOf=[^\n]*/), grab(/function simulate\([\s\S]*?\n\}/)].join("\n");
   const extra = (js.match(/const EXTRA_CRYPTO=(\[[^\]]*\])/) || [])[1];
-  const K = new Function("S", src + "\nreturn {compute,trendOf,simulate,clamp,TFMS,PICK_MIN:typeof PICK_MIN!=='undefined'?PICK_MIN:70,MIN_RR:typeof MIN_RR!=='undefined'?MIN_RR:2,TF_ADD:typeof TF_ADD!=='undefined'?TF_ADD:{}};")({ tf: "4h", win: 3, os: 30, ob: 70 });
+  const K = new Function("S", src + "\nreturn {compute,trendOf,simulate,clamp,TFMS,PICK_MIN:typeof PICK_MIN!=='undefined'?PICK_MIN:70,MIN_RR:typeof MIN_RR!=='undefined'?MIN_RR:2,TF_ADD:typeof TF_ADD!=='undefined'?TF_ADD:{},HTF_MIN:typeof HTF_MIN!=='undefined'?HTF_MIN:null,REGIME:typeof REGIME!=='undefined'?REGIME:false,ema};")({ tf: "4h", win: 3, os: 30, ob: 70 });
   K.extra = extra ? JSON.parse(extra) : [];
   return K;
 }
@@ -117,8 +117,11 @@ function signals(K, D, startT) {
       const htf = HTF[tf];
       if (htf && D[htf]) {
         const hc = partial(D[htf], bars, bars[i].t, htf).slice(-WIN);
-        if (hc.length >= 60) { const h = { src: "ex", c: hc, tf: htf, side: SIDE }; K.compute(h); const hT = K.trendOf(h); if (hT != null) { if (hT > .3) sc += 3; else if (hT < -.3) sc -= 5; } }
+        let hT = null;
+        if (hc.length >= 60) { const h = { src: "ex", c: hc, tf: htf, side: SIDE }; K.compute(h); hT = K.trendOf(h); if (hT != null) { if (hT > .3) sc += 3; else if (hT < -.3) sc -= 5; } }
+        if (K.HTF_MIN != null && (hT == null || hT < K.HTF_MIN)) continue;
       }
+      if (K.REGIME && !regimeOK(bars[i].t + MS[tf])) continue;
       sc = K.clamp(sc, 0, 100);
       if (sc >= K.PICK_MIN + (K.TF_ADD[tf] || 0) && B.plan.rr1 >= K.MIN_RR) out.push({ t: bars[i].t + MS[tf], tf, sc, P: B.plan, parts: Object.fromEntries(B.parts.map(([n, v]) => [n, v == null ? null : +v.toFixed(3)])), rank: sc + Math.min(B.plan.rr1, 5) * 5 });
     }
@@ -211,10 +214,18 @@ function effectMd(E) {
     `\nLưu ý: đây là tương quan trong các lệnh đã đạt chuẩn vào kèo, không phải quan hệ nhân quả; yếu tố hay đi cùng nhau có thể "mượn" hiệu quả của nhau. Dùng để chọn thí nghiệm, sau đó kiểm chứng bằng so sánh phiên bản.`].join("\n");
 }
 
+/* ---------- bộ lọc thị trường: BTC 1D so với EMA200 ---------- */
+let REG = [];
+function regimeOK(t) {
+  if (!REG.length) return true; let lo = 0, hi = REG.length - 1, k = -1;
+  while (lo <= hi) { const m = (lo + hi) >> 1; if (REG[m][0] <= t) { k = m; lo = m + 1; } else hi = m - 1; }
+  if (k < 0) return true; return SIDE === "short" ? !REG[k][1] : REG[k][1];
+}
+
 /* ---------- chạy ---------- */
 // Luồng phụ (worker): nhận dữ liệu 1 mã + chỉ số phiên bản → trả về danh sách lệnh. Chạy song song trên mọi nhân CPU.
 if (!isMainThread) {
-  const KS = workerData.texts.map(t => loadCore(null, t));
+  const KS = workerData.texts.map(t => loadCore(null, t)); REG = workerData.reg || [];
   parentPort.on("message", ({ id, vi, D, base, startT }) => {
     try { parentPort.postMessage({ id, T: trades(KS[vi], D, base, startT) }); }
     catch (e) { parentPort.postMessage({ id, T: [], err: e.message }); }
@@ -244,7 +255,9 @@ const startT = Date.now() - DAYS * 864e5, from = { "4h": startT - WIN * MS["4h"]
 const NW = Math.max(1, Math.min(8, os.cpus().length));
 console.log(`Backtest ${uni.length} mã · ${DAYS} ngày · ${SIDE} · ${NW} luồng${V.length ? ` · so sánh ${V.length} phiên bản: ${V.map(v => v.name).join(", ")}` : ""}`);
 const texts = [mainText, ...V.map(v => v.text)];
-const workers = Array.from({ length: NW }, () => new Worker(new URL(import.meta.url), { workerData: { texts }, argv: process.argv.slice(2) }));
+try { const bd = await candles("BTC", "1d", Date.UTC(2017, 0, 1)), e = K1.ema(bd.map(x => x.c), 200); REG = bd.map((x, i) => [x.t + MS["1d"], e[i] != null && x.c > e[i]]); }
+catch (e) { console.log("Không lấy được BTC cho bộ lọc thị trường"); }
+const workers = Array.from({ length: NW }, () => new Worker(new URL(import.meta.url), { workerData: { texts, reg: REG }, argv: process.argv.slice(2) }));
 const wait = new Map(); let seq = 0, rr = 0;
 for (const w of workers) w.on("message", m => { const f = wait.get(m.id); wait.delete(m.id); if (m.err) console.log("  lỗi luồng:", m.err); f(m.T); });
 const task = (vi, D, base) => new Promise(res => { const id = ++seq; wait.set(id, res); workers[rr++ % NW].postMessage({ id, vi, D, base, startT }); });

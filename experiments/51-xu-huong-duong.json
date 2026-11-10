@@ -1,0 +1,10 @@
+{
+ "name": "51-xu-huong-duong",
+ "desc": "Phần Trend phải ≥ 0 (không vào khi xu hướng nghiêng giảm)",
+ "patch": [
+  {
+   "find": "if(T!=null&&T<-.3){score=Math.min(score,45);",
+   "replace": "if(T!=null&&T<0){score=Math.min(score,45);"
+  }
+ ]
+}
