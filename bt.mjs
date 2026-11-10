@@ -6,6 +6,8 @@
 // Cách chạy: node bt.mjs [--days 730] [--max 150] [--side long|short] [--html index.html] [--html2 file] [--label ten] [--out backtests]
 import fs from "node:fs";
 import path from "node:path";
+import os from "node:os";
+import { Worker, isMainThread, parentPort, workerData } from "node:worker_threads";
 
 const arg = (k, d) => { const i = process.argv.indexOf("--" + k); return i > 0 ? process.argv[i + 1] : d; };
 const DAYS = +arg("days", 730), MAX = +arg("max", 200), SIDE = arg("side", "long") === "short" ? "short" : "long";
@@ -31,7 +33,8 @@ function loadCore(file, text) {
 /* ---------- dữ liệu nến (có phân trang để lấy đủ 1–2 năm) ---------- */
 async function getJ(url, opt = {}) {
   for (let k = 0; k < 3; k++) {
-    try { const r = await fetch(url, { ...opt, signal: AbortSignal.timeout(20000) }); if (r.status === 429) { await sleep(2000 * (k + 1)); continue; } if (!r.ok) throw new Error("HTTP " + r.status); return await r.json(); }
+    const ac = new AbortController(), tm = setTimeout(() => ac.abort(), 20000);   // hẹn giờ thường (giữ tiến trình sống), không dùng AbortSignal.timeout
+    try { const r = await fetch(url, { ...opt, signal: ac.signal }).finally(() => clearTimeout(tm)); if (r.status === 429) { await sleep(2000 * (k + 1)); continue; } if (!r.ok) throw new Error("HTTP " + r.status); return await r.json(); }
     catch (e) { if (k === 2) throw e; await sleep(800); }
   }
 }
@@ -209,39 +212,56 @@ function effectMd(E) {
 }
 
 /* ---------- chạy ---------- */
-const t0 = Date.now(), K1 = loadCore(HTML);
+// Luồng phụ (worker): nhận dữ liệu 1 mã + chỉ số phiên bản → trả về danh sách lệnh. Chạy song song trên mọi nhân CPU.
+if (!isMainThread) {
+  const KS = workerData.texts.map(t => loadCore(null, t));
+  parentPort.on("message", ({ id, vi, D, base, startT }) => {
+    try { parentPort.postMessage({ id, T: trades(KS[vi], D, base, startT) }); }
+    catch (e) { parentPort.postMessage({ id, T: [], err: e.message }); }
+  });
+} else {
+const t0 = Date.now(), mainText = fs.readFileSync(HTML, "utf8"), K1 = loadCore(null, mainText);
 const VFILES = HTML2 ? HTML2.split(",").filter(Boolean) : [], VNAMES = NAMES ? NAMES.split(",") : [];
-const V = VFILES.map((f, i) => ({ name: VNAMES[i] || path.basename(f, ".html"), K: loadCore(f), T: [] }));
+const V = VFILES.map((f, i) => ({ name: VNAMES[i] || path.basename(f, ".html"), text: fs.readFileSync(f, "utf8"), T: [] }));
 // thí nghiệm dạng "vá" (experiments/*.json: [{find, replace}, ...]) áp lên index.html hiện tại → không cần nhánh riêng
 const EXP = arg("exp", ""), expSkip = [];
 if (EXP) {
-  const base = fs.readFileSync(HTML, "utf8"), files = fs.existsSync(EXP) && fs.statSync(EXP).isDirectory() ? fs.readdirSync(EXP).filter(f => f.endsWith(".json")).sort().map(f => path.join(EXP, f)) : EXP.split(",");
+  const files = fs.existsSync(EXP) && fs.statSync(EXP).isDirectory() ? fs.readdirSync(EXP).filter(f => f.endsWith(".json")).sort().map(f => path.join(EXP, f)) : EXP.split(",");
   for (const f of files) {
     try {
-      const X = JSON.parse(fs.readFileSync(f, "utf8")); let t = base;
+      const X = JSON.parse(fs.readFileSync(f, "utf8")); let t = mainText;
       for (const p of X.patch || []) { if (!t.includes(p.find)) throw new Error("không tìm thấy đoạn cần vá: " + p.find.slice(0, 60)); t = t.split(p.find).join(p.replace); }
-      V.push({ name: X.name || path.basename(f, ".json"), desc: X.desc || "", K: loadCore(null, t), T: [] });
+      loadCore(null, t);                                                      // kiểm tra bản vá chạy được
+      V.push({ name: X.name || path.basename(f, ".json"), desc: X.desc || "", text: t, T: [] });
     } catch (e) { expSkip.push(`${path.basename(f)}: ${e.message}`); }
   }
 }
-const K2 = V.length === 1 && !EXP ? V[0].K : null;
+const K2 = V.length === 1 && !EXP;
 let uni = [];
 try { const st = JSON.parse(fs.readFileSync("state.json", "utf8")); uni = Object.keys(st.universe || {}); if (!uni.length) uni = [...new Set((st.journal || []).filter(j => j.src !== "st").map(j => j.base))]; } catch (e) { }
 uni = [...new Set([...uni, ...K1.extra])].filter(b => /^[A-Z0-9]{2,12}$/.test(b)).slice(0, MAX);
 const startT = Date.now() - DAYS * 864e5, from = { "4h": startT - WIN * MS["4h"], "1d": startT - WIN * MS["1d"], "1w": Date.UTC(2017, 0, 1) };
-console.log(`Backtest ${uni.length} mã · ${DAYS} ngày · ${SIDE}${V.length ? ` · so sánh ${V.length} phiên bản: ${V.map(v => v.name).join(", ")}` : ""}`);
+const NW = Math.max(1, Math.min(8, os.cpus().length));
+console.log(`Backtest ${uni.length} mã · ${DAYS} ngày · ${SIDE} · ${NW} luồng${V.length ? ` · so sánh ${V.length} phiên bản: ${V.map(v => v.name).join(", ")}` : ""}`);
+const texts = [mainText, ...V.map(v => v.text)];
+const workers = Array.from({ length: NW }, () => new Worker(new URL(import.meta.url), { workerData: { texts }, argv: process.argv.slice(2) }));
+const wait = new Map(); let seq = 0, rr = 0;
+for (const w of workers) w.on("message", m => { const f = wait.get(m.id); wait.delete(m.id); if (m.err) console.log("  lỗi luồng:", m.err); f(m.T); });
+const task = (vi, D, base) => new Promise(res => { const id = ++seq; wait.set(id, res); workers[rr++ % NW].postMessage({ id, vi, D, base, startT }); });
+const keep = setInterval(() => { }, 10000);                  // giữ tiến trình sống khi chờ mạng
 const A = [], B = [], miss = [];
 let done = 0;
 async function runOne(b) {
   const D = {};
   for (const tf of TFS) { try { D[tf] = await candles(b, tf, from[tf]); } catch (e) { } }
   if (!D["4h"] || !D["1d"]) { miss.push(b); return; }
-  A.push(...trades(K1, D, b, startT));
-  for (const v of V) v.T.push(...trades(v.K, D, b, startT));
-  if (K2) B.push(...V[0].T.slice(B.length));
+  const R = await Promise.all(texts.map((_, vi) => task(vi, D, b)));
+  A.push(...R[0]); V.forEach((v, i) => v.T.push(...R[i + 1]));
   if (++done % 10 === 0) console.log(`  ${done}/${uni.length} mã · ${((Date.now() - t0) / 1000).toFixed(0)}s`);
 }
-let qi = 0; await Promise.all(Array.from({ length: 4 }, async () => { while (qi < uni.length) await runOne(uni[qi++]); }));
+let qi = 0; await Promise.all(Array.from({ length: 3 }, async () => { while (qi < uni.length) await runOne(uni[qi++]); }));
+clearInterval(keep); for (const w of workers) w.terminate();
+if (K2) B.push(...V[0].T);
 const RA = report(A), RB = K2 ? report(B) : null;
 // bảng so sánh nhiều phiên bản
 const MID = Date.now() - DAYS * 864e5 / 2;                 // chia đôi kỳ backtest: nửa đầu / nửa sau (kiểm tra độ ổn định, tránh "học thuộc" dữ liệu)
@@ -258,6 +278,9 @@ const name = `${new Date().toISOString().slice(0, 10)}-${SIDE}${LABEL ? "-" + LA
 fs.mkdirSync(OUT, { recursive: true });
 const text = cmp + effectMd(effect(A)) + "\n" + md(`Backtest ${SIDE.toUpperCase()}${LABEL ? " · " + LABEL : ""}`, RA, RB) + (miss.length ? `\n\nKhông lấy được dữ liệu: ${miss.join(", ")}` : "");
 fs.writeFileSync(path.join(OUT, name + ".md"), text);
-fs.writeFileSync(path.join(OUT, name + ".json"), JSON.stringify({ at: Date.now(), days: DAYS, side: SIDE, label: LABEL, assets: uni.length, miss, A: RA, B: RB, variants: V.map(v => ({ name: v.name, R: report(v.T) })), tradesA: A, tradesB: K2 ? B : undefined }));
+const slim = T => T.map(({ parts, eWhy, sWhy, tWhy, ...x }) => x);
+fs.writeFileSync(path.join(OUT, name + ".json"), JSON.stringify({ at: Date.now(), days: DAYS, side: SIDE, label: LABEL, assets: uni.length, miss,
+  A: RA, variants: V.map(v => ({ name: v.name, desc: v.desc || "", R: report(v.T), half1: half(v.T, true), half2: half(v.T, false) })), half1: half(A, true), half2: half(A, false), tradesA: A }));
 console.log(text);
 console.log(`\nXong sau ${((Date.now() - t0) / 1000).toFixed(0)}s → ${OUT}/${name}.md`);
+}
