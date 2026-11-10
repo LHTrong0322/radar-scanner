@@ -55,8 +55,42 @@ async function hyper(b, tf, from) {
   };
   try { return await one(b, 1); } catch (e) { return await one("k" + b, 1000); }
 }
+async function bybit(b, tf, from) {
+  const iv = { "4h": "240", "1d": "D", "1w": "W" }[tf]; let out = [], end = Date.now();
+  for (let p = 0; p < 20; p++) {
+    const j = await getJ(`https://api.bybit.com/v5/market/kline?category=spot&symbol=${b}USDT&interval=${iv}&limit=1000&start=${from}&end=${end}`);
+    const L = j && j.retCode === 0 ? j.result.list : []; if (!L.length) break;
+    out = L.map(a => ({ t: +a[0], o: +a[1], h: +a[2], l: +a[3], c: +a[4], v: +a[5] })).reverse().concat(out);
+    end = +L.at(-1)[0] - 1; if (L.length < 1000 || end <= from) break;
+  }
+  if (!out.length) throw new Error("bybit trống");
+  return out;
+}
+async function okx(b, tf, from) {
+  const bar = { "4h": "4H", "1d": "1Dutc", "1w": "1Wutc" }[tf]; let out = [], after = "";
+  for (let p = 0; p < 40; p++) {
+    const j = await getJ(`https://www.okx.com/api/v5/market/history-candles?instId=${b}-USDT&bar=${bar}&limit=100${after ? "&after=" + after : ""}`);
+    const L = j && j.code === "0" ? j.data : []; if (!L.length) break;
+    out = L.map(a => ({ t: +a[0], o: +a[1], h: +a[2], l: +a[3], c: +a[4], v: +a[5] })).reverse().concat(out);
+    after = L.at(-1)[0]; if (+after <= from || L.length < 100) break;
+  }
+  if (!out.length) throw new Error("okx trống");
+  return out.filter(k => k.t >= from);
+}
+async function gate(b, tf, from) {
+  const iv = { "4h": "4h", "1d": "1d", "1w": "7d" }[tf];
+  const j = await getJ(`https://api.gateio.ws/api/v4/spot/candlesticks?currency_pair=${b}_USDT&interval=${iv}&limit=1000`);
+  if (!Array.isArray(j) || !j.length) throw new Error("gate trống");
+  return j.map(a => ({ t: +a[0] * 1000, o: +a[5], h: +a[3], l: +a[4], c: +a[2], v: +a[6] })).filter(k => k.t >= from);
+}
 async function candles(b, tf, from) {
-  try { return await binance(b, tf, from); } catch (e) { return await hyper(b, tf, from); }
+  // lấy nguồn có lịch sử dài nhất trong các sàn (Binance → Bybit → OKX → Hyperliquid → Gate)
+  let best = null;
+  for (const f of [binance, bybit, okx, hyper, gate]) {
+    try { const c = await f(b, tf, from); if (c.length && (!best || c.length > best.length * 1.2)) best = c; if (best && best[0].t <= from + MS[tf] * 30) break; } catch (e) { }
+  }
+  if (!best) throw new Error("không sàn nào có " + b);
+  return best;
 }
 
 /* ---------- chạy thuật toán qua từng nến ---------- */
@@ -212,10 +246,13 @@ const RA = report(A), RB = K2 ? report(B) : null;
 // bảng so sánh nhiều phiên bản
 const MID = Date.now() - DAYS * 864e5 / 2;                 // chia đôi kỳ backtest: nửa đầu / nửa sau (kiểm tra độ ổn định, tránh "học thuộc" dữ liệu)
 const half = (T, first) => stats(T.filter(x => first ? x.at < MID : x.at >= MID));
-const cmpRow = (name, R, T) => { const s = R.all, tf = k => R.byTF[k] ? R.byTF[k].totalR : 0, h1 = half(T, true), h2 = half(T, false);
-  return `| ${name} | ${s.closed} | ${s.winRate ?? "–"}% | ${s.totalR} | ${s.expectancy ?? "–"} | ${s.profitFactor ?? "–"} | ${s.maxDD_R} | ${h1.totalR} (${h1.expectancy ?? "–"}/lệnh) | ${h2.totalR} (${h2.expectancy ?? "–"}/lệnh) | ${tf("4h")} | ${tf("1d")} | ${tf("1w")} | ${s.limitFillRate ?? "–"}% |`; };
-const cmp = V.length ? ["\n## So sánh các phiên bản\n", "| Phiên bản | Lệnh đóng | Win rate | Tổng R | R/lệnh | PF | Max DD | R năm 1 | R năm 2 | R 4H | R 1D | R 1W | Lệnh chờ khớp |", "|---|---|---|---|---|---|---|---|---|---|---|---|---|",
-  cmpRow("**main (hiện tại)**", RA, A), ...V.map(v => cmpRow(v.name, report(v.T), v.T))].join("\n") + "\n" +
+const effScore = R => R.all.expectancy == null || RA.all.expectancy == null ? "–" : Math.max(0, Math.min(10, +(5 + (R.all.expectancy - RA.all.expectancy) / .05).toFixed(1)));
+const stable = T => { const a = half(T, true).expectancy, b = half(T, false).expectancy, a0 = half(A, true).expectancy, b0 = half(A, false).expectancy;
+  if (a == null || b == null || a0 == null || b0 == null) return "–"; const da = a - a0, db = b - b0; return da > 0 && db > 0 ? "✅ tốt hơn cả 2 năm" : da < 0 && db < 0 ? "❌ tệ hơn cả 2 năm" : "⚠️ chỉ tốt 1 năm"; };
+const cmpRow = (name, R, T, main) => { const s = R.all, tf = k => R.byTF[k] ? R.byTF[k].totalR : 0, h1 = half(T, true), h2 = half(T, false);
+  return `| ${name} | ${main ? "5 (mốc)" : "**" + effScore(R) + "**"} | ${main ? "–" : stable(T)} | ${s.closed} | ${s.winRate ?? "–"}% | ${s.totalR} | ${s.expectancy ?? "–"} | ${s.profitFactor ?? "–"} | ${s.maxDD_R} | ${h1.totalR} (${h1.expectancy ?? "–"}/lệnh) | ${h2.totalR} (${h2.expectancy ?? "–"}/lệnh) | ${tf("4h")} | ${tf("1d")} | ${tf("1w")} | ${s.limitFillRate ?? "–"}% |`; };
+const cmp = V.length ? ["\n## So sánh các phiên bản\n", "| Phiên bản | Điểm hiệu quả (0–10) | Ổn định | Lệnh đóng | Win rate | Tổng R | R/lệnh | PF | Max DD | R năm 1 | R năm 2 | R 4H | R 1D | R 1W | Lệnh chờ khớp |", "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|",
+  cmpRow("**main (hiện tại)**", RA, A, true), ...V.map(v => cmpRow(v.name, report(v.T), v.T))].join("\n") + "\n" +
   V.filter(v => v.desc).map(v => `- **${v.name}**: ${v.desc}`).join("\n") + (expSkip.length ? `\n\nThí nghiệm bị bỏ qua: ${expSkip.join("; ")}` : "") + "\n" : "";
 const name = `${new Date().toISOString().slice(0, 10)}-${SIDE}${LABEL ? "-" + LABEL.replace(/[^a-z0-9-]/gi, "") : ""}`;
 fs.mkdirSync(OUT, { recursive: true });
