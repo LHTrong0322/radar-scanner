@@ -212,25 +212,29 @@ export async function hyperRun({ state, newIds, outbox, errors, esc, link }) {
 
   // 2) vào lệnh cho kèo mới
   if (MODE !== "auto") return;
-  // kèo mới của lượt này + kèo đang mở/chờ khớp ghi trong ADOPT_H giờ gần đây (vào muộn nếu giá vẫn gần Entry, R:R tới TP1 ≥ 1.5)
+  // kèo mới của lượt này + kèo cũ còn mở/chờ khớp: vào giá thị trường nếu giá ≤ Entry và còn cách SL (chưa phá cấu trúc)
   const taken = new Set(state.journal.filter(j => j.hl && live(j.hl.st)).map(j => j.hl.coin));
-  const ADOPT_MS = (parseFloat(process.env.TRADE_ADOPT_HOURS || "48") || 0) * 36e5;
+  const ADOPT_MS = (parseFloat(process.env.TRADE_ADOPT_HOURS || "720") || 0) * 36e5;     // kèo cũ trong 30 ngày
   let nLive = state.journal.filter(j => j.hl && live(j.hl.st)).length, free = A.free;
   for (const j of [...state.journal].reverse()) {                  // kèo mới nhất trước
     if (j.hl || j.src === "st" || !["open", "pending"].includes(j.status)) continue;
     const late = !newIds.has(j.id); if (late && !(Date.now() - j.at < ADOPT_MS)) continue;
     const f = findMarket(M, j.base); if (!f) { j.hl = { st: "na" }; continue; }
     const { m, mult } = f, coin = m.name;
-    const skip = why => { j.hl = { st: "skip", why, coin, at: Date.now() }; say(`Bỏ qua <b>${esc(j.base)}</b>: ${why}.`); };
+    // kèo cũ chưa đủ điều kiện → bỏ qua lặng lẽ, lượt sau xét lại (không spam Telegram)
+    const skip = why => { if (late) { console.log(`${TAG}: chưa vào ${j.base} (${why})`); return; } j.hl = { st: "skip", why, coin, at: Date.now() }; say(`Bỏ qua <b>${esc(j.base)}</b>: ${why}.`); };
     try {
       if (nLive >= MAX_OPEN) { skip(`đã đủ ${MAX_OPEN} lệnh đang mở`); continue; }
       if (A.pos.has(coin) || taken.has(coin)) { skip("đang có vị thế / lệnh mã này trên sàn"); continue; }
       const apr = parseFloat(m.ctx.funding || 0) * 8760 * 100;
       if (apr > MAX_FUND_APR) { skip(`funding ${apr.toFixed(0)}%/năm cao hơn ngưỡng ${MAX_FUND_APR}%`); continue; }
-      const mark = markOf(m), limit = j.status === "pending";
+      const mark = markOf(m), limit = !late && j.status === "pending";   // kèo cũ: chỉ vào giá thị trường khi giá ≤ Entry
       const entry = limit ? j.entry * mult : mark, stop = j.stop * mult, tp1 = j.tp1 * mult, tp2 = j.tp2 * mult;
       if (!(entry > 0) || stop >= entry * .998 || tp1 <= entry) { skip("giá trên sàn đã lệch khỏi vùng Entry/SL/TP"); continue; }
-      if (late && !limit && (tp1 - entry) / (entry - stop) < 1.5) { skip(`giá đã chạy xa Entry, R:R còn lại tới TP1 chỉ ${((tp1 - entry) / (entry - stop)).toFixed(1)}`); continue; }
+      if (late) {
+        if (mark > j.entry * mult * 1.003) { skip("giá đang cao hơn Entry, chờ giá về Entry"); continue; }
+        if (mark < stop + (j.entry * mult - stop) * .25) { skip("giá đã sát SL, cấu trúc kỹ thuật gần bị phá"); continue; }
+      }
       const P = plan(m, entry, stop);
       if (free < P.margin * 1.1 + 1) { skip(`không đủ tiền ký quỹ (cần ~${(P.margin * 1.1 + 1).toFixed(1)} USDC)`); continue; }
       const sz = fmtSz(P.notional / entry, m.szDecimals), szN = parseFloat(sz);
