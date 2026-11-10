@@ -50,6 +50,7 @@ jobs:
           ARCUS_ENV: ${{ vars.ARCUS_ENV || 'testnet' }}
           ARCUS_ACCOUNT_INDEX: ${{ vars.ARCUS_ACCOUNT_INDEX || '0' }}
           TRADE_MODE: ${{ vars.TRADE_MODE || 'selftest' }}
+          TRADE_SIDE: ${{ vars.TRADE_SIDE || 'long' }}
           TRADE_USD: ${{ vars.TRADE_USD || '20' }}
           TRADE_MAX_OPEN: ${{ vars.TRADE_MAX_OPEN || '99' }}
           TRADE_MAX_RISK_PCT: ${{ vars.TRADE_MAX_RISK_PCT || '30' }}

@@ -241,6 +241,7 @@ details.how p{color:var(--muted);font-size:12.5px;line-height:1.6;max-width:90ch
 .method h3{font:700 14px var(--display);margin:0 0 4px}
 .method p{margin:0;color:var(--muted);font-size:12.5px;line-height:1.6}
 .disclaimer{font-size:12px;color:var(--faint);text-align:center;margin:4px 0 0}
+.side-tog{display:flex;gap:6px;align-items:center;margin:4px 0 10px;flex-wrap:wrap}.side-tog button{font:inherit;font-size:12px;padding:4px 12px;border-radius:999px;border:1px solid var(--line,#8884);background:transparent;color:inherit;cursor:pointer}.side-tog button.on[data-side=long]{background:var(--up);color:#fff;border-color:var(--up)}.side-tog button.on[data-side=short]{background:var(--dn);color:#fff;border-color:var(--dn)}
 </style>
 </head>
 <body>
@@ -327,7 +328,8 @@ details.how p{color:var(--muted);font-size:12.5px;line-height:1.6;max-width:90ch
     </section>
 
     <section class="panel feature" id="pickPanel">
-      <h2><span><span class="eyebrow">Timeframe 4H · 1D · 1W</span>Trade setup R:R tốt</span><small id="pickNote">đang chờ dữ liệu…</small></h2>
+      <h2><span><span class="eyebrow">Timeframe 4H · 1D · 1W · <b id="sideTxt">LONG mode</b></span>Trade setup R:R tốt</span><small id="pickNote">đang chờ dữ liệu…</small></h2>
+      <div class="side-tog" id="sideTog" title="Long: chỉ tìm kèo mua · Short: chỉ tìm kèo bán (bear market). Chế độ của bot 24/7 đặt bằng biến TRADE_SIDE trên GitHub."><button data-side="long">Long</button><button data-side="short">Short</button><small class="mut" id="sideBot"></small></div>
       <div class="tablebox">
         <table class="picks">
           <thead><tr><th>Ticker</th><th>TF</th><th>Score</th><th>Entry</th><th>Stop loss</th><th>TP1</th><th>TP2</th><th>R:R</th><th>HTF</th><th>Lý do mua</th></tr></thead>
@@ -1072,7 +1074,7 @@ function resLevels(c,at,e200,ichi,ew,K){
   for(const [v,t,w] of vpLevels(c,ew)) add(v,t,w);               // volume profile: fixed range 250 nến + anchored từ gốc nhịp tăng
   if(e200!=null) add(e200,"EMA 200",2);
   if(ichi&&ichi.bot!=null){ add(ichi.bot,"đáy mây Ichimoku",1.2); add(ichi.top,"đỉnh mây Ichimoku",1.2) }
-  if(K){ add(K.r70,"RSI chạm 70 (quá mua)",1); add(K.r45,"vùng RSI 45–55 (kháng cự)",1); add(K.r55,"vùng RSI 45–55 (kháng cự)",1); if(K.mf&&!K.mf.bull) add(K.mf.px,"MACD cắt lên Signal",.5) }
+  if(K){ add(K.r70,"RSI chạm 70 (quá mua)",1); add(K.r45,"RSI 45–55 (kháng cự)",1); add(K.r55,"RSI 45–55 (kháng cự)",1); if(K.mf&&!K.mf.bull) add(K.mf.px,"MACD cắt lên Signal",.5) }
   return zoneUp(out,at);
 }
 // Vùng hỗ trợ dưới giá (chấm điểm như TP) → dùng chọn Entry chờ và SL
@@ -1094,7 +1096,7 @@ function supLevels(c,at,ev,ichi,ew,K,forSL){
   add(ev[21],"EMA 21",1); add(ev[50],"EMA 50",1.5); add(ev[200],"EMA 200",2);
   if(ichi&&ichi.bot!=null){ add(ichi.bot,"đáy mây Ichimoku",1.2); add(ichi.top,"đỉnh mây Ichimoku",1.2);
     if(ichi.state===1) add(ichi.top,"đã break lên mây Ichimoku",2) }               // giá đã phá lên trên mây → đỉnh mây thành hỗ trợ mạnh
-  if(K){ add(K.r45,"vùng RSI 45–55 (hỗ trợ)",1); add(K.r55,"vùng RSI 45–55 (hỗ trợ)",1); add(K.r30,"RSI chạm 30 (quá bán)",1); if(K.mf&&K.mf.bull) add(K.mf.px,"MACD còn trên Signal",1) }
+  if(K){ add(K.r45,"RSI 45–55 (hỗ trợ)",1); add(K.r55,"RSI 45–55 (hỗ trợ)",1); add(K.r30,"RSI chạm 30 (quá bán)",1); if(K.mf&&K.mf.bull) add(K.mf.px,"MACD còn trên Signal",1) }
   if(forSL&&ew&&isMotive(ew)&&ew.dir>0&&ew.inv!=null) add(ew.inv,"mức sai Elliott",2);   // chỉ dùng cho SL
   return zoneUp(out,at).reverse();                               // gần giá nhất trước
 }
@@ -1126,7 +1128,7 @@ function planTrade(i){
   if(ad&&ad.adx>25&&ad.pdi>ad.mdi) mom.push(["ADX "+ad.adx.toFixed(0)+" xu hướng mạnh, +DI trội",2]);
   if(ad&&ad.adx<13&&(ad.mdi>=ad.pdi||(i.lv.e50!=null&&px<i.lv.e50))) mom.push(["ADX "+ad.adx.toFixed(0)+" < 13, xu hướng giảm cạn lực, ủng hộ đảo chiều",1.5]);
   const nowZ=best(SZ.filter(z=>z.hi>=px-.6*atr)), mkt=(nowZ?nowZ.w:0)+mom.reduce((a,x)=>a+x[1],0);
-  const mktWhy=[nowZ?"vùng "+nowZ.why.replace(/ · [\d.]+ điểm$/,""):null,...mom.map(x=>x[0])].filter(Boolean).join(" + ")+` · ${+mkt.toFixed(1)} điểm`;
+  const mktWhy=[nowZ?("vùng "+nowZ.why).replace(/^vùng vùng/,"vùng").replace(/ · [\d.]+ điểm$/,""):null,...mom.map(x=>x[0])].filter(Boolean).join(" + ")+` · ${+mkt.toFixed(1)} điểm`;
   const below=best(SZ.filter(z=>z.hi<px-.6*atr&&z.hi>=px-3*atr&&z.w>=2));
   if(fresh){ ref="giá hiện tại, "+mktWhy; entryW=+mkt.toFixed(1) }
   else if(below&&below.w>mkt){ entry=below.hi; ref="vùng hỗ trợ "+below.why; mode="Chờ hồi"; entryW=below.w }
@@ -1306,8 +1308,26 @@ function divCell(d){
   };
   return `<td class="x">${[d.bull?one(d.bull,true):"",d.bear?one(d.bear,false):""].join(" ")}</td>`;
 }
+/* ---------- SHORT: dùng lại toàn bộ thuật toán long trên nến nghịch đảo (giá → 1/giá: xu hướng giảm thành xu hướng tăng),
+   rồi đổi Entry/SL/TP về giá thật và đổi chữ (đáy ↔ đỉnh, hỗ trợ ↔ kháng cự, tăng ↔ giảm…) ---------- */
+const invC=c=>c.map(k=>({t:k.t,o:1/k.o,h:1/k.l,l:1/k.h,c:1/k.c,v:k.v}));
+const SWAP=[["đáy","đỉnh"],["Đáy","Đỉnh"],["hỗ trợ","kháng cự"],["Hỗ trợ","Kháng cự"],["tăng","giảm"],["Tăng","Giảm"],["dưới","trên"],["quá bán","quá mua"],["+DI","-DI"],
+  ["Bull","Bear"],["bull","bear"],["bullish","bearish"],["phá lên","phá xuống"],["cắt lên","cắt xuống"],["break lên","break xuống"],["dương","âm"],["sàn","trần"],["RSI chạm 70","RSI chạm 30"]];
+function swapTxt(t){
+  if(typeof t!=="string") return t; let out=t; const ph=[];
+  SWAP.forEach(([a,b],k)=>{ out=out.split(a).join(`\u0001${k}a\u0001`).split(b).join(`\u0001${k}b\u0001`) });
+  out=out.replace(/\u0001(\d+)([ab])\u0001/g,(_,k,w)=>SWAP[k][w==="a"?1:0]);
+  return out.replace(/RSI (\d+(?:\.\d+)?)(?![\d.]*\s*[–-])(?! \()/g,(m,v)=>`RSI ${Math.round(100-parseFloat(v))}`);
+}
+function realPlan(P){
+  if(!P) return P; const iv=x=>x==null?x:1/x, entry=iv(P.entry), stop=iv(P.stop), tps=(P.tps||[]).map(iv), risk=stop-entry, tpf=P.tpf||[];
+  const slPct=(stop-entry)/entry;
+  return {...P,side:"short",entry,stop,px:iv(P.px),risk,slPct,reject:slPct>MAX_SL,tp1:iv(P.tp1),tp2:iv(P.tp2),tps,
+    rr1:(entry-iv(P.tp1))/risk,rr2:(entry-iv(P.tp2))/risk,rrMax:(entry-tps[tps.length-1])/risk,rrAvg:tps.reduce((a,t,k)=>a+(tpf[k]||0)*(entry-t)/risk,0),
+    ref:swapTxt(P.ref),why:swapTxt(P.why),tp1Why:swapTxt(P.tp1Why),tp2Why:swapTxt(P.tp2Why),tpWhys:(P.tpWhys||[]).map(swapTxt)};
+}
 function compute(row){
-  const c=row.c; if(c.length<30){row.ind=null;return}
+  const c=row.side==="short"?invC(row.c):row.c; if(c.length<30){row.ind=null;return}
   const cl=c.map(x=>x.c), E={};
   for(const n of [9,21,50,34,89,200]) E[n]=ema(cl,n);
   const ev={}; for(const n in E) ev[n]=E[n][cl.length-1];
@@ -1318,6 +1338,7 @@ function compute(row){
   row.ind.lv={px:cl[L],e21:E[21][L],e50:E[50][L],e200:E[200][L],atr:at,piv:at?swings(c,at*2,4,40):[],
     lastUp:c[L-1]?c[L-1].c>=c[L-1].o:true,res:at?resLevels(c,at,E[200][L],row.ind.ichi,row.ind.ew,K):[],sup:at?supLevels(c,at,ev,row.ind.ichi,row.ind.ew,K):[],supSL:at?supLevels(c,at,ev,row.ind.ichi,row.ind.ew,K,true):[]};
   row.buy=buyScore(row.ind);
+  if(row.side==='short'&&row.buy){ row.buy.plan=realPlan(row.buy.plan); row.buy.notes=(row.buy.notes||[]).map(swapTxt); row.buy.side='short' }
 }
 
 /* ---------- formatting ---------- */
@@ -1406,7 +1427,7 @@ async function loadMTF(gen){
   if(gen!==S.gen) return;
   S.pickStatus=""; computePicks(); renderPicks(); retargetJournal(); journalUpdate();
 }
-function evalTF(r,tf){
+function evalTF(r,tf,side){
   let c;
   if(tf===S.tf) c=r.c;
   else{
@@ -1415,7 +1436,7 @@ function evalTF(r,tf){
     if(l&&r.price) c[c.length-1]={...l,c:r.price,h:Math.max(l.h,r.price),l:Math.min(l.l,r.price)};
   }
   if(!c||c.length<60) return null;
-  const t={src:r.src,c,tf}; compute(t); return t.ind?t:null;
+  const t={src:r.src,c,tf,side}; compute(t); return t.ind?t:null;
 }
 const trendOf=t=>{if(!t||!t.buy) return null; const p=t.buy.parts.find(x=>x[0]==="Trend"); return p?p[1]:null};
 function pickReasons(i){
@@ -1435,17 +1456,28 @@ function pickReasons(i){
   if(i.ew&&isMotive(i.ew)&&i.ew.dir>0&&i.ew.legs===5) w.push("đang ở sóng 5, dễ đảo chiều");
   return {g,w};
 }
+// Chế độ Long/Short: mặc định theo bot (state.side), có thể đổi để xem thử trên máy này
+function curSide(){ let v=null; try{ v=localStorage.getItem("rsiRadarSide") }catch(e){} return v==="short"||v==="long"?v:(S.cloud&&S.cloud.side)||"long" }
+function sideUI(){
+  const sd=curSide(), t=$("sideTxt"); if(t){ t.textContent=sd.toUpperCase()+" mode"; t.style.color=sd==="short"?"var(--dn)":"var(--up)" }
+  document.querySelectorAll("#sideTog button").forEach(b=>b.classList.toggle("on",b.dataset.side===sd));
+  const bs=$("sideBot"); if(bs) bs.textContent=S.cloud?`bot 24/7 đang chạy ${(S.cloud.side||"long").toUpperCase()}`:"";
+}
+document.addEventListener("click",e=>{ const b=e.target.closest&&e.target.closest("#sideTog button"); if(!b) return;
+  try{ localStorage.setItem("rsiRadarSide",b.dataset.side) }catch(e){}
+  sideUI(); computePicks(); renderPicks() });
 function computePicks(){
   const ok=[], near=[];
   for(const r of S.rows.values()){
     if(r.src!=="bn"&&r.src!=="st"&&r.src!=="ex") continue;
-    const R={}; for(const tf of PICK_TFS) R[tf]=evalTF(r,tf);
+    const R={}; for(const tf of PICK_TFS) R[tf]=evalTF(r,tf,curSide());
     PICK_TFS.forEach((tf,k)=>{
       const t=R[tf]; if(!t||!t.buy||!t.buy.plan||t.buy.plan.reject) return;   // SL > 35% → bỏ
       const htf=PICK_TFS[k+1]||null, hT=htf?trendOf(R[htf]):null, T=trendOf(t);
       let sc=t.buy.score; if(hT!=null){ if(hT>.3) sc+=3; else if(hT<-.3) sc-=5 }   // khung lớn chỉ cộng/trừ nhẹ
       sc=clamp(sc,0,100);
-      const it={r,tf,ind:t.ind,buy:t.buy,P:t.buy.plan,score:sc,htf,hT,why:pickReasons(t.ind)};
+      const rs=pickReasons(t.ind), why=curSide()==='short'?{g:rs.g.map(swapTxt),w:rs.w.map(swapTxt)}:rs;
+      const it={r,tf,ind:t.ind,buy:t.buy,P:t.buy.plan,score:sc,htf,hT,why,side:curSide()};
       it.rank=sc+Math.min(it.P.rr1,5)*5;                                            // ưu tiên R:R
       if(sc>=65&&it.P.rr1>=2) ok.push(it);
       else if(sc>=55&&it.P.rr1>=1.5) near.push(it);
@@ -1454,7 +1486,7 @@ function computePicks(){
   const best=a=>{const m=new Map(); for(const x of a){const o=m.get(x.r.key); if(!o||x.rank>o.rank) m.set(x.r.key,x)} return [...m.values()].sort((a,b)=>b.rank-a.rank)};
   S.picks=best(ok); const has=new Set(S.picks.map(x=>x.r.key));
   S.near=best(near).filter(x=>!has.has(x.r.key)).slice(0,12);
-  S.picksAt=Date.now();
+  S.picksAt=Date.now(); sideUI();
   journalAdd();
 }
 function renderPicks(){
@@ -1495,7 +1527,7 @@ function journalAdd(){
     const active=S.journal.find(j=>j.sym===x.r.sym&&!jDone(j.status));
     if(active) continue;                                   // đã có kèo đang theo dõi cho coin này
     const P=x.P;
-    S.journal.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),at:Date.now(),sym:x.r.sym,base:x.r.base,src:x.r.src,ex:x.r.ex,exName:x.r.exName,tf:x.tf,
+    S.journal.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),at:Date.now(),sym:x.r.sym,base:x.r.base,src:x.r.src,ex:x.r.ex,exName:x.r.exName,tf:x.tf,side:x.side||'long',
       mode:P.mode,entry:P.entry,stop:P.stop,tp1:P.tp1,tp2:P.tp2,tp1Why:P.tp1Why,tp2Why:P.tp2Why,tps:P.tps,tpf:P.tpf,tpWhys:P.tpWhys,tpVer:TP_VER,rr1:P.rr1,score:Math.round(x.score),
       status:P.mode==="Chờ hồi"?"pending":"open",fillAt:P.mode==="Chờ hồi"?null:Date.now(),roi:0,r:0});
     added++;
@@ -1503,40 +1535,42 @@ function journalAdd(){
   if(added){jSave();renderJournal()}
 }
 function simulate(j,c,cur){
-  const T=Array.isArray(j.tps)&&j.tps.length>=2?j.tps:[j.tp1,j.tp2], F=Array.isArray(j.tpf)&&j.tpf.length===T.length?j.tpf:tpFrac(T.length);
-  let st=j.mode==="Chờ hồi"?"pending":"open", sl=j.stop, half=false, real=0, left=1, hit=0, fillAt=st==="open"?j.at:null, exitAt=null, exit=null;
+  // SHORT: chạy cùng logic trên nến nghịch đảo (1/giá); lợi nhuận tính theo công thức short thật (1 − giá ra / Entry)
+  const sh=j.side==="short", I=x=>x==null?x:sh?1/x:x, cc=sh?invC(c):c, E=I(j.entry), ret=x=>sh?1-E/x:x/E-1;
+  const T=(Array.isArray(j.tps)&&j.tps.length>=2?j.tps:[j.tp1,j.tp2]).map(I), F=Array.isArray(j.tpf)&&j.tpf.length===T.length?j.tpf:tpFrac(T.length), TP1=I(j.tp1);
+  let st=j.mode==="Chờ hồi"?"pending":"open", sl=I(j.stop), half=false, real=0, left=1, hit=0, fillAt=st==="open"?j.at:null, exitAt=null, exit=null;
   const expiry=j.at+12*TFMS[j.tf];
-  // Cấu trúc tăng (Dow) theo khung của kèo: gom nến 1H thành nến khung kèo; đáy cao hơn (higher low) mới nhất hình thành sau khi khớp
-  // là mốc cấu trúc. Nến khung kèo ĐÓNG CỬA dưới mốc này (mốc cao hơn SL) → cấu trúc tăng bị phá → thoát lệnh ở giá đóng cửa.
+  // Cấu trúc theo khung của kèo: gom nến 1H thành nến khung kèo; long: đáy cao hơn (higher low) mới nhất sau khi khớp; short: đỉnh thấp hơn (lower high).
+  // Nến khung kèo ĐÓNG CỬA phá mốc này (mốc nằm phía có lời so với SL) → cấu trúc bị phá → thoát lệnh ở giá đóng cửa.
   const tfMs=TFMS[j.tf]||36e5, keyOf=t=>j.tf==="1w"?Math.floor((t-4*864e5)/tfMs):Math.floor(t/tfMs), bars=[];
   let agg=null, hl=null;
   const closeBar=()=>{
     if(!agg) return false; bars.push(agg); const n=bars.length, last=agg; agg=null;
-    if(st==="open"&&hl!=null&&hl>sl&&last.c<hl&&last.t>=fillAt){ real+=left*(last.c/j.entry-1); left=0; st="struct"; exitAt=last.end; exit=last.c; return true }
+    if(st==="open"&&hl!=null&&hl>sl&&last.c<hl&&last.t>=fillAt){ real+=left*ret(last.c); left=0; st="struct"; exitAt=last.end; exit=last.c; return true }
     if(n>=5){ const p=bars[n-3]; if(fillAt!=null&&p.t>=fillAt&&p.l<bars[n-4].l&&p.l<bars[n-5].l&&p.l<=bars[n-2].l&&p.l<=bars[n-1].l&&(hl==null||p.l>hl)) hl=p.l }
     return false;
   };
-  for(const k of c){
+  for(const k of cc){
     if(k.t<j.at) continue;                                  // chỉ dùng nến mở sau thời điểm ghi kèo (tránh nhìn trước)
     const key=keyOf(k.t);
     if(agg&&agg.key!==key&&closeBar()) break;
     if(!agg) agg={key,t:k.t,end:k.t,o:k.o,h:k.h,l:k.l,c:k.c}; else { agg.h=Math.max(agg.h,k.h); agg.l=Math.min(agg.l,k.l); agg.c=k.c; agg.end=k.t }
     if(st==="pending"){
       if(k.t>expiry){st="expired";break}
-      if(k.l<=j.entry){st="open";fillAt=k.t}
-      else if(k.h>=j.tp1){st="expired";break}
+      if(k.l<=E){st="open";fillAt=k.t}
+      else if(k.h>=TP1){st="expired";break}
       else continue;
     }
-    if(k.l<=sl){ real+=left*(sl/j.entry-1); left=0; st=hit===0?"sl":hit===1?"tp1_be":"trail"; exitAt=k.t; exit=sl; break }
-    while(hit<T.length&&k.h>=T[hit]){ real+=F[hit]*(T[hit]/j.entry-1); left-=F[hit]; hit++; sl=hit===1?j.entry:T[hit-2] }
+    if(k.l<=sl){ real+=left*ret(sl); left=0; st=hit===0?"sl":hit===1?"tp1_be":"trail"; exitAt=k.t; exit=sl; break }
+    while(hit<T.length&&k.h>=T[hit]){ real+=F[hit]*ret(T[hit]); left-=F[hit]; hit++; sl=hit===1?E:T[hit-2] }
     if(hit>=1) half=true;
     if(hit>=T.length){ left=0; st="tp2"; exitAt=k.t; exit=T[T.length-1]; break }
   }
   let roi=real;
-  if(st==="open"&&cur) roi=real+left*(cur/j.entry-1);
+  if(st==="open"&&cur) roi=real+left*ret(I(cur));
   if(st==="pending"||st==="expired") roi=0;
-  const riskPct=1-j.stop/j.entry;
-  return {status:st,half,hit,nTp:T.length,real,left,slNow:st==="open"?sl:null,structLo:st==="open"&&hl!=null&&hl>sl?hl:null,fillAt,exitAt,exit,roi:roi*100,r:riskPct>0?roi/riskPct:0,cur};
+  const riskPct=-ret(I(j.stop));
+  return {status:st,half,hit,nTp:T.length,real,left,slNow:st==="open"?I(sl):null,structLo:st==="open"&&hl!=null&&hl>sl?I(hl):null,fillAt,exitAt,exit:I(exit),roi:roi*100,r:riskPct>0?roi/riskPct:0,cur};
 }
 // Áp dụng cách đặt TP mới cho các lệnh đang mở / chờ khớp (một lần mỗi lệnh)
 const TP_VER=2;
@@ -1544,7 +1578,7 @@ function retargetJournal(){
   if(S.cloud) return 0;
   let n=0;
   for(const j of S.journal){
-    if(jDone(j.status)||j.tpVer===TP_VER) continue;
+    if(jDone(j.status)||j.tpVer===TP_VER||j.side==='short') continue;
     const r=rowBySym(j.sym)||S.rows.get("cg:"+j.base); if(!r) continue;
     const t=evalTF(r,j.tf); if(!t||!t.ind||!t.ind.lv||!t.ind.lv.atr) continue;
     const atr=t.ind.lv.atr, risk=j.entry-j.stop, Z=tpZones(t.ind.lv.res,j.entry,atr);
@@ -1589,7 +1623,8 @@ function closeTrade(j){
   if(j.status==="pending"){ Object.assign(j,{status:"cancel",exitAt:Date.now(),roi:0,r:0}); return true }
   if(j.status!=="open") return false;
   const px=jPrice(j); if(!px) return false;
-  const real=j.real!=null&&j.left!=null?j.real+j.left*(px/j.entry-1):j.half?.5*(j.tp1/j.entry-1)+.5*(px/j.entry-1):(px/j.entry-1), risk=1-j.stop/j.entry;
+  const sh=j.side==='short', rt=x=>sh?1-x/j.entry:x/j.entry-1;
+  const real=j.real!=null&&j.left!=null?j.real+j.left*rt(px):j.half?.5*rt(j.tp1)+.5*rt(px):rt(px), risk=-rt(j.stop);
   Object.assign(j,{status:"manual",exitAt:Date.now(),exit:px,cur:px,roi:real*100,r:risk>0?real/risk:0});
   return true;
 }
@@ -1617,7 +1652,7 @@ function renderJournal(){
     const [lab,c]=jLabel(j), showRoi=!["pending","expired","cancel"].includes(j.status);
     const act=S.cloud&&!j.local?"":j.status==="open"?`<button class="btn sm" data-act="close" data-id="${j.id}">Close</button>`:j.status==="pending"?`<button class="btn sm" data-act="close" data-id="${j.id}">Cancel</button>`:"";
     const tip=`${modeTxt(j.mode)} · score ${j.score} · R:R kế hoạch ${j.rr1.toFixed(1)}`+(j.fillAt?` · khớp ${dt(j.fillAt)}`:"")+(j.exitAt?` · đóng ${dt(j.exitAt)}`:"")+(j.status==="open"&&j.cur?` · giá hiện tại ${fp(j.cur)}`:"")+(j.tp1Why?` · TP1: ${j.tp1Why} · TP2: ${j.tp2Why}`:"")+(j.tp1Old!=null?` · TP cũ ${fp(j.tp1Old)} / ${fp(j.tp2Old)}`:"");
-    return `<tr data-tv="${tvSym(j)}" title="${tip}"><td class="sym">${j.base}${srcBadge(j)}${S.cloud&&j.local?'<span class="cg" title="Kèo cũ lưu trên máy này, chưa chuyển lên GitHub">máy này</span>':""}${arcusBadge(j)}</td><td>${dt(j.at)}</td><td>${j.tf.toUpperCase()}</td>
+    return `<tr data-tv="${tvSym(j)}" title="${tip}"><td class="sym">${j.base}${j.side==="short"?'<span class="cg" style="color:var(--dn)">SHORT</span>':""}${srcBadge(j)}${S.cloud&&j.local?'<span class="cg" title="Kèo cũ lưu trên máy này, chưa chuyển lên GitHub">máy này</span>':""}${arcusBadge(j)}</td><td>${dt(j.at)}</td><td>${j.tf.toUpperCase()}</td>
       <td>${fp(j.entry)}</td><td class="dn">${fp(j.stop)}<span class="pc dn">${pctOf(j.stop,j.entry)}</span></td><td class="up">${fp(j.tp1)}<span class="pc up">${pctOf(j.tp1,j.entry)}</span></td><td class="up">${fp(j.tp2)}<span class="pc up">${pctOf(j.tp2,j.entry)}</span>${moreTps(j.tps,j.entry,j.hit)}</td>
       <td><span class="pill ${c}">${lab}</span></td>
       <td>${showRoi?`<b class="${j.roi>=0?"up":"dn"}">${sg(j.roi)}</b>${j.status==="open"?' <small class="mut">unrealized</small>':""}`:'<span class="mut">–</span>'}</td>

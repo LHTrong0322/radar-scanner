@@ -15,6 +15,7 @@ const TG_CHAT = process.env.TELEGRAM_CHAT_ID || "";
 const CG_KEY = process.env.COINGECKO_KEY || "";
 const SITE = (process.env.SITE_URL || "").replace(/\/$/, "");
 const PICK_TFS = ["4h", "1d", "1w"];
+const SIDE = (process.env.TRADE_SIDE || "long").trim().toLowerCase() === "short" ? "short" : "long";   // long: chỉ tìm kèo mua · short: chỉ tìm kèo bán
 const UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
 
 /* ---------- 1. Nạp thuật toán từ index.html ---------- */
@@ -33,7 +34,7 @@ function loadCore() {
     grab(/function simulate\([\s\S]*?\n\}/, "simulate"),
   ].join("\n");
   const S = { tf: "4h", win: 3, os: 30, ob: 70 };
-  return new Function("S", src + "\nreturn {TFMS,SETS,STOCKS,skipCoin,bucket,compute,trendOf,pickReasons,simulate,MAX_SL,clamp};")(S);
+  return new Function("S", src + "\nreturn {TFMS,SETS,STOCKS,skipCoin,bucket,compute,trendOf,pickReasons,simulate,MAX_SL,clamp,swapTxt};")(S);
 }
 const K = loadCore();
 
@@ -245,14 +246,14 @@ async function flushTelegram() {
 const link = () => SITE ? `\n<a href="${SITE}">Mở Crypto RSI Radar</a>` : "";
 function msgNewPick(x) {
   const P = x.P;
-  return [`🟢 <b>KÈO MỚI · ${esc(x.base)} · ${x.tf.toUpperCase()}</b>`,
+  return [SIDE === "short" ? `🔴 <b>KÈO SHORT MỚI · ${esc(x.base)} · ${x.tf.toUpperCase()}</b>` : `🟢 <b>KÈO MỚI · ${esc(x.base)} · ${x.tf.toUpperCase()}</b>`,
     `Điểm ${Math.round(x.score)} · R:R ${P.rr1.toFixed(1)} / ${P.rr2.toFixed(1)}`,
     `Entry: <b>${fp(P.entry)}</b> (${esc(P.mode)})`,
     `SL: ${fp(P.stop)} (${pct(P.stop, P.entry)})`,
     `TP1: ${fp(P.tp1)} (${pct(P.tp1, P.entry)}) · ${esc(P.tp1Why)}`,
     `TP2: ${fp(P.tp2)} (${pct(P.tp2, P.entry)}) · ${esc(P.tp2Why)}`,
     ...(P.tps || []).slice(2).map((t, k) => `TP${k + 3}: ${fp(t)} (${pct(t, P.entry)}) · ${esc(P.tpWhys[k + 2])}`),
-    P.tps && P.tps.length > 2 ? `Chốt: ${P.tpf.map((f, k) => `TP${k + 1} ${Math.round(f * 100)}%`).join(" · ")} · chạm TP dời SL lên TP trước` : "",
+    P.tps && P.tps.length > 2 ? `Chốt: ${P.tpf.map((f, k) => `TP${k + 1} ${Math.round(f * 100)}%`).join(" · ")} · chạm TP dời SL ${SIDE === "short" ? "xuống" : "lên"} TP trước` : "",
     x.why.g.length ? `Lý do: ${esc(x.why.g.join(" · "))}` : "",
     x.why.w.length ? `⚠️ Lưu ý: ${esc(x.why.w.join(", "))}` : ""].filter(Boolean).join("\n") + link();
 }
@@ -263,12 +264,12 @@ function msgUpdate(j, prev) {
   if (j.status === "open" && (j.hit || 0) > (prev.hit || 0)) {
     const k = j.hit;
     return k === 1 ? `✅ <b>${h}</b> chạm TP1 ${fp(T[0])} · đã chốt ${Math.round(F[0] * 100)}%, SL dời về Entry`
-                   : `✅ <b>${h}</b> chạm TP${k}/${T.length} ${fp(T[k - 1])} · chốt thêm ${Math.round(F[k - 1] * 100)}%, SL dời lên TP${k - 1} ${fp(T[k - 2])}`;
+                   : `✅ <b>${h}</b> chạm TP${k}/${T.length} ${fp(T[k - 1])} · chốt thêm ${Math.round(F[k - 1] * 100)}%, SL dời ${j.side === "short" ? "xuống" : "lên"} TP${k - 1} ${fp(T[k - 2])}`;
   }
   if (j.status === "tp2") return `🏁 <b>${h}</b> chốt TP cuối${T.length > 2 ? ` (TP${T.length})` : ""} ${fp(T[T.length - 1])} · ROI ${roi}`;
   if (j.status === "trail") return `☑️ <b>${h}</b> chạm TP${j.hit} rồi giá quay đầu, phần còn lại chốt ở TP${j.hit - 1} · ROI ${roi}`;
   if (j.status === "tp1_be") return `☑️ <b>${h}</b> chốt TP1 rồi về hoà phần còn lại · ROI ${roi}`;
-  if (j.status === "struct") return `⚠️ <b>${h}</b> phá cấu trúc tăng (nến ${String(j.tf).toUpperCase()} đóng cửa dưới đáy gần nhất) → thoát lệnh ở ${fp(j.exit)} · ROI ${roi}`;
+  if (j.status === "struct") return `⚠️ <b>${h}</b> ${j.side === "short" ? "phá cấu trúc giảm" : "phá cấu trúc tăng"} (nến ${String(j.tf).toUpperCase()} đóng cửa ${j.side === "short" ? "trên đỉnh" : "dưới đáy"} gần nhất) → thoát lệnh ở ${fp(j.exit)} · ROI ${roi}`;
   if (j.status === "sl") return `🛑 <b>${h}</b> dính SL ${fp(j.stop)} · ROI ${roi}`;
   if (j.status === "expired") return `⌛ <b>${h}</b> lệnh chờ bị hủy (không khớp)`;
   return null;
@@ -317,7 +318,7 @@ async function main() {
       try {
         const c = a.kind === "stock" ? await stockCandles(a.sym, tf) : (await cryptoCandles(a.base, tf)).c;
         if (c.length < 60) continue;
-        const t = { src: a.kind === "stock" ? "st" : "ex", c, tf }; K.compute(t);
+        const t = { src: a.kind === "stock" ? "st" : "ex", c, tf, side: SIDE }; K.compute(t);
         if (t.ind) R[tf] = t;
       } catch (e) { why.push(`${tf}: ${e.message}`); }
     }
@@ -328,7 +329,8 @@ async function main() {
       const htf = PICK_TFS[k + 1] || null, hT = htf ? K.trendOf(R[htf]) : null;
       let sc = t.buy.score; if (hT != null) { if (hT > .3) sc += 3; else if (hT < -.3) sc -= 5; }
       sc = K.clamp(sc, 0, 100);
-      const P = t.buy.plan, it = { a, base: a.base, tf, P, score: sc, hT, htf, why: K.pickReasons(t.ind), rank: sc + Math.min(P.rr1, 5) * 5 };
+      const rs = K.pickReasons(t.ind), why = SIDE === "short" ? { g: rs.g.map(K.swapTxt), w: rs.w.map(K.swapTxt) } : rs;
+      const P = t.buy.plan, it = { a, base: a.base, tf, P, score: sc, hT, htf, why, rank: sc + Math.min(P.rr1, 5) * 5 };
       evals.set(a.base + "|" + tf, it);
       if (sc >= 65 && P.rr1 >= 2) ok.push(it); else if (sc >= 55 && P.rr1 >= 1.5) near.push(it);
     });
@@ -339,8 +341,9 @@ async function main() {
   // 4.25 chấm lại (một lần) các lệnh chờ khớp theo bảng điểm mới: không còn đạt chuẩn vào kèo thì huỷ
   const RECHECK = 4, cancelled = [], replanned = [], replanIds = [];
   for (const j of state.journal) {
-    if (j.status !== "pending" || (j.recheck || 0) >= RECHECK) continue;
+    if (j.status !== "pending" || ((j.recheck || 0) >= RECHECK && (j.side || "long") === SIDE)) continue;
     if (!assets.some(a => a.base === j.base)) continue;                // mã không quét được lượt này → để lượt sau
+    if ((j.side || "long") !== SIDE) { Object.assign(j, { status: "cancel", exitAt: Date.now(), roi: 0, r: 0, cancelWhy: `đã chuyển sang mode ${SIDE.toUpperCase()}` }); cancelled.push(`• <b>${esc(j.base)}</b> ${String(j.tf).toUpperCase()}: lệnh chờ ${(j.side || "long").toUpperCase()}, bot đã chuyển sang mode ${SIDE.toUpperCase()}`); continue; }
     j.recheck = RECHECK;
     const x = evals.get(j.base + "|" + j.tf);
     const why = !x ? "điểm kỹ thuật không còn đủ để vào kèo (hoặc kèo bị loại do SL quá xa)"
@@ -369,7 +372,7 @@ async function main() {
     const P = x.P;
     state.journal.push({
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), at: Date.now(), sym, base: x.base,
-      src: x.a.kind === "stock" ? "st" : "bn", ex: x.a.ex, tf: x.tf, mode: P.mode, entry: P.entry, stop: P.stop, tp1: P.tp1, tp2: P.tp2, tps: P.tps, tpf: P.tpf, tpWhys: P.tpWhys,
+      src: x.a.kind === "stock" ? "st" : "bn", ex: x.a.ex, tf: x.tf, side: SIDE, mode: P.mode, entry: P.entry, stop: P.stop, tp1: P.tp1, tp2: P.tp2, tps: P.tps, tpf: P.tpf, tpWhys: P.tpWhys,
       tp1Why: P.tp1Why, tp2Why: P.tp2Why, tpVer: 2, rr1: P.rr1, score: Math.round(x.score),
       status: P.mode === "Chờ hồi" ? "pending" : "open", fillAt: P.mode === "Chờ hồi" ? null : Date.now(), roi: 0, r: 0, by: "github"
     });
@@ -417,10 +420,10 @@ async function main() {
 
   // 4.5 lưu trạng thái
   const keep = state.journal.slice(-500);
-  const pub = x => ({ base: x.base, sym: x.a.kind === "stock" ? x.a.sym : x.base + "USDT", src: x.a.kind === "stock" ? "st" : "bn", ex: x.a.ex, tf: x.tf, score: Math.round(x.score),
+  const pub = x => ({ side: SIDE, base: x.base, sym: x.a.kind === "stock" ? x.a.sym : x.base + "USDT", src: x.a.kind === "stock" ? "st" : "bn", ex: x.a.ex, tf: x.tf, score: Math.round(x.score),
     rank: x.rank, entry: x.P.entry, mode: x.P.mode, stop: x.P.stop, tp1: x.P.tp1, tp2: x.P.tp2, rr1: x.P.rr1, rr2: x.P.rr2, tp1Why: x.P.tp1Why, tp2Why: x.P.tp2Why, why: x.why, htf: x.htf, hT: x.hT });
   const out = { version: 1, updatedAt: Date.now(), tookSec: Math.round((Date.now() - t0) / 1000), rankSrc, scanned: assets.length,
-    picks: picks.map(pub), near: nears.map(pub), journal: keep, errors: errors.slice(0, 40), arcusMeta: state.arcusMeta, hlMeta: state.hlMeta, arb, arbAlert: state.arbAlert, universe: state.universe };
+    picks: picks.map(pub), near: nears.map(pub), journal: keep, errors: errors.slice(0, 40), arcusMeta: state.arcusMeta, hlMeta: state.hlMeta, arb, arbAlert: state.arbAlert, universe: state.universe, side: SIDE };
   fs.mkdirSync(path.dirname(STATE_PATH), { recursive: true });
   fs.writeFileSync(STATE_PATH, JSON.stringify(out));
   if (process.env.PING === "true") outbox.push(`✅ <b>Crypto RSI Radar</b> đã kết nối Telegram.\nVừa quét ${assets.length} mã (${rankSrc}) · ${picks.length} kèo đạt chuẩn · ${active.length} lệnh đang theo dõi.\nTừ giờ bot sẽ báo khi có kèo mới, chạm TP hoặc dính SL.` + link());
