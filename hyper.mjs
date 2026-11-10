@@ -218,7 +218,7 @@ export async function hyperRun({ state, newIds, outbox, errors, esc, link }) {
         if (["expired", "cancel", "manual", "sl", "tp2", "tp1_be", "trail", "struct"].includes(j.status)) {
           await cancelCloid(m, h.cid);
           if (!A.pos.has(h.coin)) await cancelOids(O.filter(o => o.coin === h.coin && o.isTrigger).map(o => ({ asset: m.asset, oid: o.oid })));   // dọn SL/TP con
-          h.st = "cancel"; h.why = "kèo hết hạn trước khi khớp"; say(`Huỷ lệnh chờ <b>${esc(j.base)}</b> (kèo hết hạn).`);
+          h.st = "cancel"; h.why = j.cancelWhy || "kèo hết hạn trước khi khớp"; say(`Huỷ lệnh chờ <b>${esc(j.base)}</b> trên sàn (${esc(j.cancelWhy || "kèo hết hạn")}).`);
         }
         continue;
       }

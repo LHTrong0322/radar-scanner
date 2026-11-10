@@ -305,7 +305,7 @@ async function main() {
   for (const [sym, label, name, ex] of K.STOCKS) assets.push({ kind: "stock", base: label, sym, ex });
 
   // 4.2 nến 3 khung + chấm điểm
-  const ok = [], near = [];
+  const ok = [], near = [], evals = new Map();
   await pool(assets, 6, async a => {
     const R = {}, why = [];
     for (const tf of PICK_TFS) {
@@ -324,11 +324,27 @@ async function main() {
       let sc = t.buy.score; if (hT != null) { if (hT > .3) sc += 3; else if (hT < -.3) sc -= 5; }
       sc = K.clamp(sc, 0, 100);
       const P = t.buy.plan, it = { a, base: a.base, tf, P, score: sc, hT, htf, why: K.pickReasons(t.ind), rank: sc + Math.min(P.rr1, 5) * 5 };
+      evals.set(a.base + "|" + tf, it);
       if (sc >= 65 && P.rr1 >= 2) ok.push(it); else if (sc >= 55 && P.rr1 >= 1.5) near.push(it);
     });
   });
   const best = arr => { const m = new Map(); for (const x of arr) { const o = m.get(x.base); if (!o || x.rank > o.rank) m.set(x.base, x); } return [...m.values()].sort((p, q) => q.rank - p.rank); };
   const picks = best(ok), pickSet = new Set(picks.map(x => x.base)), nears = best(near).filter(x => !pickSet.has(x.base)).slice(0, 12);
+
+  // 4.25 chấm lại (một lần) các lệnh chờ khớp theo bảng điểm mới: không còn đạt chuẩn vào kèo thì huỷ
+  const RECHECK = 3, cancelled = [];
+  for (const j of state.journal) {
+    if (j.status !== "pending" || (j.recheck || 0) >= RECHECK) continue;
+    if (!assets.some(a => a.base === j.base)) continue;                // mã không quét được lượt này → để lượt sau
+    j.recheck = RECHECK;
+    const x = evals.get(j.base + "|" + j.tf);
+    const why = !x ? "điểm kỹ thuật không còn đủ để vào kèo (hoặc kèo bị loại do SL quá xa)"
+      : x.score < 65 ? `điểm chỉ còn ${Math.round(x.score)}/100 (cần ≥ 65)`
+      : x.P.rr1 < 2 ? `R:R tới TP1 chỉ còn ${x.P.rr1.toFixed(1)} (cần ≥ 2)` : null;
+    if (why) { Object.assign(j, { status: "cancel", exitAt: Date.now(), roi: 0, r: 0, cancelWhy: why }); cancelled.push(`• <b>${esc(j.base)}</b> ${String(j.tf).toUpperCase()} (Entry ${fp(j.entry)}): ${why}`); }
+    else j.score = Math.round(x.score);
+  }
+  if (cancelled.length) outbox.push(`🧹 <b>Huỷ ${cancelled.length} lệnh chờ không còn đạt điểm</b> (chấm lại theo bảng điểm mới)\n` + cancelled.join("\n") + link());
 
   // 4.3 ghi kèo mới vào nhật ký
   const isDone = st => ["tp2", "tp1_be", "trail", "struct", "sl", "expired", "manual", "cancel"].includes(st);
