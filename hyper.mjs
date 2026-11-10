@@ -217,8 +217,9 @@ export async function hyperRun({ state, newIds, outbox, errors, esc, link }) {
   const ADOPT_MS = (parseFloat(process.env.TRADE_ADOPT_HOURS || "720") || 0) * 36e5;     // kèo cũ trong 30 ngày
   let nLive = state.journal.filter(j => j.hl && live(j.hl.st)).length, free = A.free;
   for (const j of [...state.journal].reverse()) {                  // kèo mới nhất trước
-    if (j.hl || j.src === "st" || !["open", "pending"].includes(j.status)) continue;
+    if ((j.hl && j.hl.st !== "skip") || j.src === "st" || !["open", "pending"].includes(j.status)) continue;   // kèo bị bỏ qua trước đó được xét lại
     const late = !newIds.has(j.id); if (late && !(Date.now() - j.at < ADOPT_MS)) continue;
+    if (j.hl && j.hl.st === "skip" && !late) continue;
     const f = findMarket(M, j.base); if (!f) { j.hl = { st: "na" }; continue; }
     const { m, mult } = f, coin = m.name;
     // kèo cũ chưa đủ điều kiện → bỏ qua lặng lẽ, lượt sau xét lại (không spam Telegram)
