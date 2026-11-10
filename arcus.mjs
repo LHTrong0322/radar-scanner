@@ -9,7 +9,7 @@ const ENV = (process.env.ARCUS_ENV || "testnet").toLowerCase() === "mainnet" ? "
 const BASE = process.env.ARCUS_BASE || (ENV === "mainnet" ? "https://api.arcus.xyz" : "https://api.testnet.arcus.xyz");
 const ADDR = (process.env.ARCUS_ADDRESS || "").trim().toLowerCase();
 const AI = parseInt(process.env.ARCUS_ACCOUNT_INDEX || "0", 10) || 0;
-const MODE = (process.env.TRADE_MODE || "auto").toLowerCase();          // auto · manage (chỉ quản lý lệnh cũ) · off
+const MODE = (process.env.TRADE_MODE || "selftest").toLowerCase();          // auto · manage (chỉ quản lý lệnh cũ) · off
 const USD = parseFloat(process.env.TRADE_USD || "50") || 50;
 const MAX_OPEN = parseInt(process.env.TRADE_MAX_OPEN || "5", 10) || 5;
 const MAX_FUND_APR = parseFloat(process.env.TRADE_MAX_FUNDING_APR || "30");
