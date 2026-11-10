@@ -332,7 +332,7 @@ async function main() {
   const picks = best(ok), pickSet = new Set(picks.map(x => x.base)), nears = best(near).filter(x => !pickSet.has(x.base)).slice(0, 12);
 
   // 4.25 chấm lại (một lần) các lệnh chờ khớp theo bảng điểm mới: không còn đạt chuẩn vào kèo thì huỷ
-  const RECHECK = 3, cancelled = [];
+  const RECHECK = 4, cancelled = [], replanned = [], replanIds = [];
   for (const j of state.journal) {
     if (j.status !== "pending" || (j.recheck || 0) >= RECHECK) continue;
     if (!assets.some(a => a.base === j.base)) continue;                // mã không quét được lượt này → để lượt sau
@@ -342,13 +342,22 @@ async function main() {
       : x.score < 65 ? `điểm chỉ còn ${x.score.toFixed(1)}/100 (cần ≥ 65)`
       : x.P.rr1 < 2 ? `R:R tới TP1 chỉ còn ${x.P.rr1.toFixed(1)} (cần ≥ 2)` : null;
     if (why) { Object.assign(j, { status: "cancel", exitAt: Date.now(), roi: 0, r: 0, cancelWhy: why }); cancelled.push(`• <b>${esc(j.base)}</b> ${String(j.tf).toUpperCase()} (Entry ${fp(j.entry)}): ${why}`); }
-    else j.score = Math.round(x.score);
+    else {                                                               // còn đạt → dời Entry / SL / TP theo thuật toán mới
+      const P = x.P, old = `${fp(j.entry)} / SL ${fp(j.stop)} / TP1 ${fp(j.tp1)}`;
+      Object.assign(j, { rev: (j.rev || 0) + 1, at: Date.now(), mode: P.mode, entry: P.entry, stop: P.stop, tp1: P.tp1, tp2: P.tp2, tps: P.tps, tpf: P.tpf, tpWhys: P.tpWhys,
+        tp1Why: P.tp1Why, tp2Why: P.tp2Why, rr1: P.rr1, score: Math.round(x.score), status: P.mode === "Chờ hồi" ? "pending" : "open", fillAt: P.mode === "Chờ hồi" ? null : Date.now() });
+      if (j.hl && j.hl.st === "placed") j.hl.replan = true;             // lệnh chờ trên sàn: huỷ rồi đặt lại theo mức mới
+      else if (j.hl && ["skip", "na", "fail"].includes(j.hl.st)) delete j.hl;
+      replanIds.push(j.id);
+      replanned.push(`• <b>${esc(j.base)}</b> ${String(j.tf).toUpperCase()} (${Math.round(x.score)}đ): ${old} → ${P.mode === "Chờ hồi" ? "chờ" : "vào ngay"} ${fp(P.entry)} / SL ${fp(P.stop)} / ${P.tps.map((t, k) => `TP${k + 1} ${fp(t)}`).join(" / ")}`);
+    }
   }
+  if (replanned.length) outbox.push(`🔁 <b>Cập nhật ${replanned.length} lệnh chờ theo thuật toán mới</b>\n` + replanned.join("\n") + link());
   if (cancelled.length) outbox.push(`🧹 <b>Huỷ ${cancelled.length} lệnh chờ không còn đạt điểm</b> (chấm lại theo bảng điểm mới)\n` + cancelled.join("\n") + link());
 
   // 4.3 ghi kèo mới vào nhật ký
   const isDone = st => ["tp2", "tp1_be", "trail", "struct", "sl", "expired", "manual", "cancel"].includes(st);
-  const newOnes = [], newIds = new Set();
+  const newOnes = [], newIds = new Set(replanIds);
   for (const x of picks) {
     const sym = x.a.kind === "stock" ? x.a.sym : x.base + "USDT";
     if (state.journal.some(j => j.sym === sym && !isDone(j.status))) continue;

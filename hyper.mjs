@@ -214,6 +214,12 @@ export async function hyperRun({ state, newIds, outbox, errors, esc, link }) {
       if (h.st === "placed") {
         const resting = O.some(o => o.cloid === h.cid);
         if (size > 0) { h.st = "open"; h.at = Date.now(); say(`Đã khớp lệnh mua <b>${esc(j.base)}</b> (${j.tf.toUpperCase()}), SL và TP1 đã nằm sẵn trên sàn.`); continue; }
+        if (h.replan && size <= 0) {                                     // kèo đã được dời Entry/SL/TP → huỷ lệnh cũ, để bước dưới đặt lại theo mức mới
+          if (resting) await cancelCloid(m, h.cid);
+          await cancelOids(O.filter(o => o.coin === h.coin && o.isTrigger).map(o => ({ asset: m.asset, oid: o.oid })))
+            .catch(e => { if (!/never placed|already canceled|filled|not found/i.test(e.message)) throw e; });
+          delete j.hl; say(`Huỷ lệnh chờ cũ <b>${esc(j.base)}</b> để đặt lại theo Entry/SL/TP mới.`); continue;
+        }
         const ended = ["expired", "cancel", "manual", "sl", "tp2", "tp1_be", "trail", "struct"].includes(j.status);
         if (!resting && ended) { h.st = "cancel"; h.why = j.cancelWhy || "kèo hết hạn trước khi khớp"; say(`Đã huỷ lệnh chờ <b>${esc(j.base)}</b> trên sàn (${esc(h.why)}).`); continue; }
         if (!resting) { h.st = "fail"; h.why = "lệnh vào không khớp / bị huỷ"; say(`Lệnh vào <b>${esc(j.base)}</b> không khớp, bỏ kèo.`); continue; }
@@ -318,7 +324,7 @@ export async function hyperRun({ state, newIds, outbox, errors, esc, link }) {
       if (!(szN > 0) || szN * entry < MIN_NOTIONAL) { skip(`khối lượng ~${(szN * entry).toFixed(1)} USD nhỏ hơn mức tối thiểu 10 USD của sàn (SL quá xa)`); continue; }
       const half = fmtSz(szN / 2, m.szDecimals), part = parseFloat(half) * tp1 >= MIN_NOTIONAL * 1.05;
       await setLeverage(m, P.lev, false);
-      const cid = cloidOf("r" + j.id + "e");
+      const cid = cloidOf("r" + j.id + "e" + (j.rev || ""));          // rev: kèo đã được dời mức → cloid mới
       const ent = limit ? limitO(m, true, fmtPx(entry, m.szDecimals, "down"), sz, "Gtc", cid)
                         : limitO(m, true, fmtPx(mark * 1.03, m.szDecimals, "up"), sz, "Ioc", cid);
       await placeOrders([ent, trigO(m, fmtPx(stop, m.szDecimals), sz, "sl"), trigO(m, fmtPx(tp1, m.szDecimals), part ? half : sz, "tp")], "normalTpsl");
