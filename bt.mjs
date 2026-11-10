@@ -83,7 +83,7 @@ function signals(K, D, startT) {
         if (hc.length >= 60) { const h = { src: "ex", c: hc, tf: htf, side: SIDE }; K.compute(h); const hT = K.trendOf(h); if (hT != null) { if (hT > .3) sc += 3; else if (hT < -.3) sc -= 5; } }
       }
       sc = K.clamp(sc, 0, 100);
-      if (sc >= K.PICK_MIN && B.plan.rr1 >= 2) out.push({ t: bars[i].t + MS[tf], tf, sc, P: B.plan, rank: sc + Math.min(B.plan.rr1, 5) * 5 });
+      if (sc >= K.PICK_MIN && B.plan.rr1 >= 2) out.push({ t: bars[i].t + MS[tf], tf, sc, P: B.plan, parts: Object.fromEntries(B.parts.map(([n, v]) => [n, v == null ? null : +v.toFixed(3)])), rank: sc + Math.min(B.plan.rr1, 5) * 5 });
     }
   }
   return out.sort((a, b) => a.t - b.t || b.rank - a.rank);
@@ -98,7 +98,7 @@ function trades(K, D, base, startT) {
     const end = r.exitAt || (r.status === "expired" ? s.t + 12 * MS[s.tf] : Infinity);
     busy = end === Infinity ? Infinity : end + 1;
     res.push({ base, tf: s.tf, at: s.t, sc: Math.round(s.sc), mode: P.mode === "Chờ hồi" ? "limit" : "market", nTp: (P.tps || []).length, rr1: +P.rr1.toFixed(2),
-      st: r.status, r: +r.r.toFixed(3), exitAt: r.exitAt || null, hit: r.hit || 0 });
+      st: r.status, r: +r.r.toFixed(3), exitAt: r.exitAt || null, hit: r.hit || 0, parts: s.parts, eWhy: P.ref || "", sWhy: P.why || "", tWhy: P.tp1Why || "" });
   }
   return res;
 }
@@ -136,6 +136,42 @@ function md(title, R, R2) {
     `\n### 10 mã tốt nhất / tệ nhất (A)\n`, ...Object.entries(R.byAsset).filter(([, s]) => s.closed).slice(0, 10).map(([k, s]) => `- ${k}: ${s.totalR}R (${s.closed} lệnh)`),
     "…", ...Object.entries(R.byAsset).filter(([, s]) => s.closed).slice(-10).map(([k, s]) => `- ${k}: ${s.totalR}R (${s.closed} lệnh)`),
     `\nLưu ý: backtest dùng nến đã đóng, khi một nến chạm cả SL lẫn TP thì tính SL trước (thận trọng); chưa tính phí giao dịch, funding và trượt giá.`].join("\n");
+}
+
+/* ---------- hiệu quả từng phần ---------- */
+// So sánh R trung bình của lệnh có / không có một yếu tố (hoặc điểm phần đó cao / thấp). Điểm hiệu quả 0–10: 5 = trung tính,
+// mỗi +0.05R chênh lệch = +1 điểm. Chỉ là tương quan trong các lệnh đã qua ngưỡng vào kèo; ít mẫu (< 30) thì đánh dấu "ít dữ liệu".
+const FACTORS = [["Đỉnh/đáy Dow", /Dow/], ["Đỉnh/đáy swing lớn", /swing lớn/], ["Đỉnh swing cũ / kháng cự cũ bị phá", /swing cũ|kháng cự cũ|hỗ trợ cũ/], ["BOS", /BOS/],
+  ["POC anchored", /POC anchored/], ["POC 250 nến", /POC volume profile/], ["HVN", /HVN/], ["Fib sóng 2 (sóng 1)", /Fib [0-9.]+ sóng 1/], ["Fib sóng 4 (sóng 3)", /Fib [0-9.]+ sóng 3/],
+  ["Đỉnh sóng 1 (sàn sóng 4)", /đỉnh sóng 1|đáy sóng 1/], ["Mức sai Elliott", /mức sai Elliott/], ["Mục tiêu Fibonacci Elliott", /mục tiêu Fibonacci/], ["EMA 200", /EMA 200/], ["EMA 50", /EMA 50/], ["EMA 21", /EMA 21/],
+  ["Mây Ichimoku", /mây Ichimoku/], ["Break mây Ichimoku", /break (lên|xuống) mây/], ["RSI 70/30", /RSI chạm/], ["RSI 45–55", /RSI 45–55/], ["MACD (mức giá)", /MACD (còn|cắt)/],
+  ["ADX/DI mạnh", /ADX \d+ > 25|ADX \d+ đang tăng/], ["+DI vừa cắt", /DI vừa cắt/], ["ADX cạn lực (đảo chiều)", /cạn lực|mất lực/], ["RSI động lượng", /RSI \d+ \+|, RSI \d+/], ["MACD histogram tăng", /histogram/]];
+function effect(T) {
+  const C = T.filter(x => DONE.includes(x.st)); if (!C.length) return null;
+  const avg = a => a.length ? a.reduce((s, x) => s + x.r, 0) / a.length : null, base = avg(C);
+  const sc = d => d == null ? null : Math.max(0, Math.min(10, +(5 + d / .05).toFixed(1)));
+  const parts = [...new Set(C.flatMap(x => Object.keys(x.parts || {})))].map(n => {
+    const v = C.filter(x => x.parts && x.parts[n] != null).sort((a, b) => a.parts[n] - b.parts[n]), k = Math.floor(v.length / 3);
+    if (k < 5) return { n, d: null, nn: v.length };
+    const lo = avg(v.slice(0, k)), hi = avg(v.slice(-k)); return { n, d: hi - lo, hi, lo, nn: v.length };
+  });
+  const fac = [];
+  for (const [name, re] of FACTORS) for (const [loc, key] of [["Entry", "eWhy"], ["SL", "sWhy"], ["TP1", "tWhy"]]) {
+    const w = C.filter(x => re.test(x[key])), wo = C.filter(x => !re.test(x[key]));
+    if (w.length < 8 || wo.length < 8) continue;
+    fac.push({ name, loc, n: w.length, rw: avg(w), rwo: avg(wo), d: avg(w) - avg(wo) });
+  }
+  return { base, parts, fac, sc };
+}
+function effectMd(E) {
+  if (!E) return "";
+  const f = x => (x >= 0 ? "+" : "") + x.toFixed(3);
+  const P = E.parts.map(p => `| ${p.n} | ${p.nn} | ${p.d == null ? "–" : f(p.hi)} | ${p.d == null ? "–" : f(p.lo)} | ${p.d == null ? "–" : f(p.d)} | **${p.d == null ? "–" : E.sc(p.d)}**${p.nn < 30 ? " (ít dữ liệu)" : ""} |`);
+  const F = [...E.fac].sort((a, b) => b.d - a.d).map(x => `| ${x.name} | ${x.loc} | ${x.n} | ${f(x.rw)} | ${f(x.rwo)} | ${f(x.d)} | **${E.sc(x.d)}**${x.n < 30 ? " (ít dữ liệu)" : ""} |`);
+  return [`\n## Hiệu quả từng phần (thuật toán hiện tại)\n`, `R trung bình mỗi lệnh: ${f(E.base)}. Điểm hiệu quả 0–10: 5 = trung tính, trên 5 = giúp tăng lợi nhuận, dưới 5 = kéo lợi nhuận xuống (mỗi 0.05R chênh lệch = 1 điểm).\n`,
+    `### Các phần của điểm /100 (so 1/3 lệnh có điểm phần đó cao nhất với 1/3 thấp nhất)\n`, "| Phần | Số lệnh | R/lệnh nhóm cao | R/lệnh nhóm thấp | Chênh lệch | Điểm hiệu quả |", "|---|---|---|---|---|---|", ...P,
+    `\n### Các yếu tố vùng giá (lệnh CÓ yếu tố ở vị trí đó so với KHÔNG có)\n`, "| Yếu tố | Vị trí | Số lệnh có | R/lệnh khi có | R/lệnh khi không | Chênh lệch | Điểm hiệu quả |", "|---|---|---|---|---|---|---|", ...F,
+    `\nLưu ý: đây là tương quan trong các lệnh đã đạt chuẩn vào kèo, không phải quan hệ nhân quả; yếu tố hay đi cùng nhau có thể "mượn" hiệu quả của nhau. Dùng để chọn thí nghiệm, sau đó kiểm chứng bằng so sánh phiên bản.`].join("\n");
 }
 
 /* ---------- chạy ---------- */
@@ -181,7 +217,7 @@ const cmp = V.length ? ["\n## So sánh các phiên bản\n", "| Phiên bản | L
   V.filter(v => v.desc).map(v => `- **${v.name}**: ${v.desc}`).join("\n") + (expSkip.length ? `\n\nThí nghiệm bị bỏ qua: ${expSkip.join("; ")}` : "") + "\n" : "";
 const name = `${new Date().toISOString().slice(0, 10)}-${SIDE}${LABEL ? "-" + LABEL.replace(/[^a-z0-9-]/gi, "") : ""}`;
 fs.mkdirSync(OUT, { recursive: true });
-const text = cmp + md(`Backtest ${SIDE.toUpperCase()}${LABEL ? " · " + LABEL : ""}`, RA, RB) + (miss.length ? `\n\nKhông lấy được dữ liệu: ${miss.join(", ")}` : "");
+const text = cmp + effectMd(effect(A)) + "\n" + md(`Backtest ${SIDE.toUpperCase()}${LABEL ? " · " + LABEL : ""}`, RA, RB) + (miss.length ? `\n\nKhông lấy được dữ liệu: ${miss.join(", ")}` : "");
 fs.writeFileSync(path.join(OUT, name + ".md"), text);
 fs.writeFileSync(path.join(OUT, name + ".json"), JSON.stringify({ at: Date.now(), days: DAYS, side: SIDE, label: LABEL, assets: uni.length, miss, A: RA, B: RB, variants: V.map(v => ({ name: v.name, R: report(v.T) })), tradesA: A, tradesB: K2 ? B : undefined }));
 console.log(text);

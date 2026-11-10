@@ -1,0 +1,10 @@
+{
+ "name": "21-bo-momentum",
+ "desc": "Bỏ phần Momentum khỏi điểm /100 (trọng số = 0) để đo đóng góp của phần này",
+ "patch": [
+  {
+   "find": "const parts=[[\"Trend\",T,30],[\"Momentum\",M,15],[\"Elliott\",W,15],[\"Entry\",En,20],[\"R:R\",RR,20],[\"Divergence\",D,10],[\"SL\",SLq,5]];",
+   "replace": "const parts=[[\"Trend\",T,30],[\"Momentum\",M,0],[\"Elliott\",W,15],[\"Entry\",En,20],[\"R:R\",RR,20],[\"Divergence\",D,10],[\"SL\",SLq,5]];"
+  }
+ ]
+}
