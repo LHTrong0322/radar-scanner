@@ -179,6 +179,8 @@ export async function arcusRun({ state, newIds, outbox, errors, esc, link }) {
   if (MODE === "selftest") {
     state.arcusMeta = state.arcusMeta || {};
     if (state.arcusMeta.selftest && state.arcusMeta.selftest.key === PUB.slice(0, 8) && state.arcusMeta.selftest.ok) return;   // đã test thành công với key này
+    const st0 = state.arcusMeta.selftest;                       // test lỗi gần đây với cùng key → chờ 12 giờ mới thử lại, tránh spam Telegram
+    if (st0 && st0.key === PUB.slice(0, 8) && !st0.ok && Date.now() - st0.at < 12 * 36e5 && st0.env === ENV) return;
     const m = M.get("BTC") || M.get("ETH"), steps = [];
     try {
       if (!m) throw new Error("không thấy thị trường BTC/ETH");
