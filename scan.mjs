@@ -49,6 +49,17 @@ async function getJ(url, opt = {}, ms = 15000) {
 }
 async function pool(items, n, fn) { let i = 0; await Promise.all(Array.from({ length: n }, async () => { while (i < items.length) await fn(items[i++]); })); }
 const num = x => +x;
+// Hyperliquid: nến perp (sàn chính + sàn HIP-3 "xyz:"), coin dạng kPEPE = giá × 1000
+const HL_MS = { "15m": 9e5, "1h": 36e5, "4h": 144e5, "1d": 864e5, "1w": 6048e5 };
+async function hlCandles(coin, tf, n = 500, st, div = 1) {
+  if (!HL_MS[tf]) throw new Error("khung không hỗ trợ");
+  const end = Date.now(), start = st || end - HL_MS[tf] * Math.min(n, 4900) * 1.05;
+  const r = await fetch("https://api.hyperliquid.xyz/info", { method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ type: "candleSnapshot", req: { coin, interval: tf, startTime: Math.floor(start), endTime: end } }) });
+  if (!r.ok) throw new Error("Hyperliquid HTTP " + r.status);
+  const a = await r.json(); if (!Array.isArray(a) || !a.length) throw new Error("Hyperliquid không có " + coin);
+  return a.map(k => ({ t: +k.t, o: +k.o / div, h: +k.h / div, l: +k.l / div, c: +k.c / div, v: +k.v * div }));
+}
 const CANDLES = [
   ["binance", async (b, tf, n, st) => {
     let last;
@@ -59,6 +70,9 @@ const CANDLES = [
       } catch (e) { last = e; }
     }
     throw last;
+  }],
+  ["hyperliquid", async (b, tf, n, st) => {
+    try { return await hlCandles(b, tf, n, st); } catch (e) { return await hlCandles("k" + b, tf, n, st, 1000); }
   }],
   ["mexc", async (b, tf, n) => {
     const iv = { "1h": "60m", "4h": "4h", "1d": "1d", "1w": "1W" }[tf];
@@ -198,6 +212,8 @@ async function stockCandles(sym, tf) {
     catch (e) { errs.push(e.message); }
   }
   try { return await xStock(sym, tf); } catch (e) { errs.push(e.message); }
+  // dự phòng cuối: perp cổ phiếu trên Hyperliquid (trade.xyz) giao dịch 24/7
+  try { const c = await hlCandles("xyz:" + sym, tf, 500); if (c.length >= 30) return c.slice(-500); } catch (e) { errs.push("Hyperliquid " + e.message); }
   throw new Error(errs.join("; "));
 }
 

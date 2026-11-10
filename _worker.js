@@ -54,7 +54,21 @@ async function firstOk(list, fn) {
 
 /* ---------- nến crypto ---------- */
 const num = x => +x;
+// Hyperliquid: nến perp (sàn chính + sàn HIP-3 "xyz:"), coin dạng kPEPE = giá × 1000
+const HL_MS = { "15m": 9e5, "1h": 36e5, "4h": 144e5, "1d": 864e5, "1w": 6048e5 };
+async function hlCandles(coin, tf, n = 500, st, div = 1) {
+  if (!HL_MS[tf]) throw new Error("khung không hỗ trợ");
+  const end = Date.now(), start = st || end - HL_MS[tf] * Math.min(n, 4900) * 1.05;
+  const r = await fetch("https://api.hyperliquid.xyz/info", { method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ type: "candleSnapshot", req: { coin, interval: tf, startTime: Math.floor(start), endTime: end } }) });
+  if (!r.ok) throw new Error("Hyperliquid HTTP " + r.status);
+  const a = await r.json(); if (!Array.isArray(a) || !a.length) throw new Error("Hyperliquid không có " + coin);
+  return a.map(k => ({ t: +k.t, o: +k.o / div, h: +k.h / div, l: +k.l / div, c: +k.c / div, v: +k.v * div }));
+}
 const CANDLES = [
+  ["hyperliquid", async (b, tf, n) => {
+    try { return await hlCandles(b, tf, n); } catch (e) { return await hlCandles("k" + b, tf, n, null, 1000); }
+  }],
   ["bybit", async (b, tf, n) => {
     const iv = { "15m": "15", "1h": "60", "4h": "240", "1d": "D", "1w": "W" }[tf];
     const j = await getJ(`https://api.bybit.com/v5/market/kline?category=spot&symbol=${b}USDT&interval=${iv}&limit=${Math.min(n, 1000)}`);
