@@ -1,0 +1,34 @@
+name: Xem thử SHORT (không vào lệnh)
+
+# Chạy tay để xem bot sẽ chọn kèo SHORT nào với dữ liệu hiện tại.
+# KHÔNG đặt lệnh, KHÔNG gửi Telegram, KHÔNG ghi đè dữ liệu của bot 24/7.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; fi
+      - name: Quét chế độ SHORT
+        run: |
+          cp state.json /tmp/preview.json
+          node scan.mjs
+          node -e '
+            const s=require("/tmp/preview.json");
+            console.log(`\n===== KÈO SHORT (${s.picks.length} đạt chuẩn) =====`);
+            for(const p of s.picks) console.log(`${p.base} ${p.tf} · điểm ${p.score} · ${p.mode} · Entry ${p.entry} · SL ${p.stop} · TP1 ${p.tp1} · R:R ${(+p.rr1).toFixed(2)}`);
+            console.log(`\n===== GẦN ĐẠT (${s.near.length}) =====`);
+            for(const p of s.near) console.log(`${p.base} ${p.tf} · điểm ${p.score} · Entry ${p.entry} · SL ${p.stop} · TP1 ${p.tp1}`);'
+        env:
+          TRADE_SIDE: short
+          STATE_PATH: /tmp/preview.json
+          COINGECKO_KEY: ${{ secrets.COINGECKO_KEY }}
