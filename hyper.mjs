@@ -85,9 +85,10 @@ async function loadMarkets() {
     if (u.isDelisted) return;
     M.set(u.name, { ...u, asset: off + i, dex, short: String(u.name).split(":").pop().toUpperCase(), ctx: (ctxs && ctxs[i]) || {} });
   });
+  DEXES = [""];
   const [meta, ctxs] = await info({ type: "metaAndAssetCtxs" }); add(meta, ctxs, "", 0);
   try {
-    const dx = (await info({ type: "perpDexs" })) || [];
+    const dx = await info({ type: "perpDexs" }); if (!Array.isArray(dx)) throw new Error("dữ liệu lạ");
     await Promise.all(dx.slice(1).map(async (d, i) => {
       if (!d || !d.name) return;
       try { const [m2, c2] = await info({ type: "metaAndAssetCtxs", dex: d.name }); add(m2, c2, d.name, 110000 + i * 10000); DEXES.push(d.name); }
@@ -100,7 +101,8 @@ async function loadMarkets() {
 const ALIAS = { XAUT: ["GOLD", "XAU", "PAXG"], PAXG: ["GOLD", "XAU", "PAXG"], XAU: ["GOLD", "XAU"], SPY: ["SPY", "SPX", "SP500", "US500"], SPY500: ["SPY", "SPX", "SP500", "US500"],
   QQQ: ["QQQ", "NDX", "NAS100", "US100"], GOOGL: ["GOOGL", "GOOG"], BRKB: ["BRK.B", "BRKB"] };
 function findMarket(M, j) {
-  const base = (j.src === "st" ? j.sym : j.base).toUpperCase(), ref = j.cur || j.entry;
+  const base = String((j.src === "st" ? j.sym || j.base : j.base) || "").toUpperCase(), ref = j.cur || j.entry;
+  if (!base) return null;
   const names = [...new Set([base, ...(ALIAS[base] || [])])];
   const all = [...M.values()];
   for (const n of names) {
@@ -253,7 +255,8 @@ export async function hyperRun({ state, newIds, outbox, errors, esc, link }) {
     if ((j.hl && !["skip", "na"].includes(j.hl.st)) || !["open", "pending"].includes(j.status)) continue;   // kèo bị bỏ qua trước đó được xét lại
     const late = !newIds.has(j.id); if (late && !(Date.now() - j.at < ADOPT_MS)) continue;
     if (j.hl && j.hl.st === "skip" && !late) continue;
-    const f = findMarket(M, j); if (!f) { if (!j.hl) j.hl = { st: "na" }; continue; }
+    let f = null; try { f = findMarket(M, j); } catch (e) { console.log(`${TAG}: lỗi tìm mã ${j.base} (${e.message})`); }
+    if (!f) { if (!j.hl) j.hl = { st: "na" }; continue; }
     const { m, mult } = f, coin = m.name;
     // kèo cũ chưa đủ điều kiện → bỏ qua lặng lẽ, lượt sau xét lại (không spam Telegram)
     const skip = why => { if (late) { console.log(`${TAG}: chưa vào ${j.base} (${why})`); return; } j.hl = { st: "skip", why, coin, at: Date.now() }; say(`Bỏ qua <b>${esc(j.base)}</b>: ${why}.`); };
