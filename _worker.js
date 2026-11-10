@@ -355,6 +355,34 @@ async function metricList() {
   if (!ok) throw new Error("Metric không phản hồi");
   return J({ at: Date.now(), stocks: out.map(({ pool, pos, ...x }) => ({ ...x, live: x.ask > 0, price: x.ask > 0 ? x.ask : x.ref })).filter(x => x.price > 0) });
 }
+// Backpack: cổ phiếu token hoá (spot) · q = "TSLA:401,NVDA:180" (mã:giá gốc) → giá mua/bán từ sổ lệnh
+async function backpackList(url) {
+  const want = String(url.searchParams.get("q") || "").split(",").map(x => x.split(":")).filter(x => x[0] && +x[1] > 0).slice(0, 300).map(([sym, o]) => ({ S: mAl(sym), sym, oracle: +o }));
+  const B = "https://api.backpack.exchange/api/v1", QU = ["USDT", "USDC", "USD1"];
+  const [mk, tk] = await Promise.all([fetch(B + "/markets").then(r => r.ok ? r.json() : null), fetch(B + "/tickers").then(r => r.ok ? r.json() : null)]);
+  if (!Array.isArray(mk)) throw new Error("Backpack không phản hồi");
+  const last = new Map((Array.isArray(tk) ? tk : []).map(t => [t.symbol, parseFloat(t.lastPrice)]));
+  const cands = [];
+  for (const w of want) for (const m of mk) {
+    if (m.marketType && String(m.marketType).toUpperCase() !== "SPOT") continue;
+    if (!QU.includes(String(m.quoteSymbol || "").toUpperCase())) continue;
+    const key = mAl(m.baseSymbol); if (!(key.includes(w.S) && key.length - w.S.length <= 4)) continue;
+    const lp = last.get(m.symbol); if (!(lp > 0) || Math.abs(lp / w.oracle - 1) > .1) continue;
+    cands.push({ w, m, key });
+  }
+  const out = [];
+  await Promise.all(cands.slice(0, 60).map(async ({ w, m, key }) => {
+    try {
+      const d = await fetch(`${B}/depth?symbol=${encodeURIComponent(m.symbol)}`).then(r => r.json());
+      const asks = (d.asks || []).map(x => [+x[0], +x[1]]).filter(x => x[0] > 0).sort((a, b) => a[0] - b[0]);
+      const bids = (d.bids || []).map(x => [+x[0], +x[1]]).filter(x => x[0] > 0).sort((a, b) => b[0] - a[0]);
+      if (!asks.length) return;
+      const liq = asks.filter(a => a[0] <= asks[0][0] * 1.01).reduce((s, a) => s + a[0] * a[1], 0);
+      out.push({ venue: "Backpack", for: w.sym, sym: m.symbol.replace("_", "/"), key, ask: asks[0][0], bid: bids.length ? bids[0][0] : null, liq: Math.round(liq), live: true });
+    } catch (e) { }
+  }));
+  return J({ at: Date.now(), quotes: out });
+}
 // trade.xyz (sàn HIP-3 "xyz" trên Hyperliquid): giá perp, giá gốc (oracle), funding · dùng cho bảng delta-neutral
 async function xyzMarkets(url) {
   const dex = (url.searchParams.get("dex") || "xyz").replace(/[^a-z0-9_-]/gi, "").slice(0, 20);
@@ -376,6 +404,7 @@ export default {
         case "/api/state": return await withCache(request, ctx, 60, () => cloudState(env));
         case "/api/xyz": return await withCache(request, ctx, 30, () => xyzMarkets(url));
         case "/api/metric": return await withCache(request, ctx, 120, () => metricList());
+        case "/api/backpack": return await withCache(request, ctx, 30, () => backpackList(url));
         case "/api/sources": return J({
           candles: CANDLES.map(c => c[0]),
           rank: { CoinGecko: true, CoinMarketCap: !!env.CMC_API_KEY, CryptoRank: !!env.CRYPTORANK_API_KEY, CoinPaprika: true },
