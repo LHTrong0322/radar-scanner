@@ -381,7 +381,7 @@ async function main() {
     newIds.add(state.journal.at(-1).id);
     newOnes.push(x);
   }
-  if (newOnes.length > 6) outbox.push(`🟢 <b>${newOnes.length} kèo mới</b>: ` + newOnes.map(x => `${esc(x.base)} ${x.tf.toUpperCase()} (${Math.round(x.score)}đ, ${x.P.rr1.toFixed(1)}R)`).join(", ") + link());
+  if (newOnes.length > 6) outbox.push(`${SIDE === "short" ? "🔴" : "🟢"} <b>${newOnes.length} kèo ${SIDE === "short" ? "SHORT " : ""}mới</b>: ` + newOnes.map(x => `${esc(x.base)} ${x.tf.toUpperCase()} (${Math.round(x.score)}đ, ${x.P.rr1.toFixed(1)}R)`).join(", ") + link());
   else newOnes.forEach(x => outbox.push(msgNewPick(x)));
 
   // 4.4 chấm các lệnh đang mở / chờ khớp theo nến 1H
