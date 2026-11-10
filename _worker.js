@@ -326,7 +326,8 @@ async function metricList() {
         if (!r.ok) throw new Error("HTTP " + r.status);
         const j = await r.json();
         for (const p of j.data || []) {
-          const t0 = p.token0 || {}, t1 = p.token1 || {}; let st, pos;
+          const tok = i => { const o = typeof p["token" + i] === "object" && p["token" + i] ? p["token" + i] : {}; return { symbol: o.symbol || p[`token${i}Symbol`], fiatPrice: o.fiatPrice ?? p[`token${i}FiatPrice`] }; };
+          const t0 = tok(0), t1 = tok(1); let st, pos;
           if (mStable(t1) && !mStable(t0) && !M_MAJOR.has(mAl(t0.symbol))) { st = t0; pos = 0; }
           else if (mStable(t0) && !mStable(t1) && !M_MAJOR.has(mAl(t1.symbol))) { st = t1; pos = 1; } else continue;
           const tier = (p.classificationSummary && p.classificationSummary.tierQualification) || "unclassified"; if (tier === "black") continue;

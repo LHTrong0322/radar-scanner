@@ -35,11 +35,11 @@ export async function metricStocks(fetchFn = fetch) {
         const r = await fetchFn(`https://api.metric.xyz/public/v1/evm/${cid}/metadata?count=500&offset=${offset}&include24h=true&minTvlFiat=0`, { headers: { Accept: "application/json" } });
         if (!r.ok) throw new Error("HTTP " + r.status);
         const j = await r.json();
-        if (page === 0) metricDebug[cname] = { keys: Object.keys(j || {}).slice(0, 12), total: j.total, n: (j.data || []).length,
-          sample: (j.data || []).slice(0, 40).map(p => p.pair || `${p.token0 && p.token0.symbol}/${p.token1 && p.token1.symbol}`),
-          poolKeys: j.data && j.data[0] ? Object.keys(j.data[0]).slice(0, 40) : [] };
+        if (page === 0) metricDebug[cname] = { total: j.total };
         for (const p of j.data || []) {
-          const t0 = p.token0 || {}, t1 = p.token1 || {};
+          const tok = i => { const o = typeof p["token" + i] === "object" && p["token" + i] ? p["token" + i] : {};    // API trả symbol/giá ở dạng phẳng: token0Symbol, token0FiatPrice
+            return { symbol: o.symbol || p[`token${i}Symbol`], fiatPrice: o.fiatPrice ?? p[`token${i}FiatPrice`], name: o.name || p[`token${i}Name`] }; };
+          const t0 = tok(0), t1 = tok(1);
           let st, pos;
           if (isStable(t1) && !isStable(t0) && !MAJOR.has(alnum(t0.symbol))) { st = t0; pos = 0; }
           else if (isStable(t0) && !isStable(t1) && !MAJOR.has(alnum(t1.symbol))) { st = t1; pos = 1; }
