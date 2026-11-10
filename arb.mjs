@@ -7,7 +7,7 @@ const MIN_PREM = parseFloat(process.env.ARB_MIN_PREMIUM || "0.5");     // % prem
 const MIN_VOL = parseFloat(process.env.ARB_MIN_VOLUME || "50000");      // volume 24h tối thiểu (USD)
 const FEE_RT = parseFloat(process.env.ARB_FEES_PCT || "0.3");           // ước tính tổng phí vào + ra cả 2 chân (%)
 const MIN_LIQ = parseFloat(process.env.ARB_MIN_METRIC_LIQ || "2000");   // thanh khoản token cổ phiếu tối thiểu trong pool Metric (USD)
-import { metricStocks, matchMetric } from "./metric.mjs";
+import { metricStocks, matchMetric, metricDebug } from "./metric.mjs";
 import { binanceStocks, backpackStocks, nameMatch } from "./venues.mjs";
 
 async function info(body) {
@@ -53,7 +53,7 @@ export async function arbScan() {
   rows.sort((a, b) => b.prem - a.prem);
   return { at: Date.now(), dex: DEX, minPrem: MIN_PREM, fees: FEE_RT, venues: VENUES,
     metricOk: !!mlist, binanceOk: !!bnList, backpackOk: !!bpList, anyOk: !!(mlist || bnList || bpList),
-    metricCount: mlist ? mlist.length : 0, binanceCount: bnList ? bnList.length : 0, backpackCount: bpList ? bpList.length : 0,
+    metricCount: mlist ? mlist.length : 0, metricDebug, binanceCount: bnList ? bnList.length : 0, backpackCount: bpList ? bpList.length : 0,
     metricSyms: mlist ? [...new Set(mlist.map(x => `${x.sym}@${x.chain}${x.live ? "" : "*"}`))].slice(0, 200) : [],
     binanceSyms: bnList ? bnList.map(x => x.sym).slice(0, 200) : [], backpackSyms: bpList ? bpList.map(x => x.sym) : [], rows };
 }

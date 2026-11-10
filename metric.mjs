@@ -24,6 +24,7 @@ async function quotes(cid, items, fetchFn) {
   }
 }
 
+export const metricDebug = {};
 export async function metricStocks(fetchFn = fetch) {
   const out = []; let okChains = 0;
   await Promise.all(CHAINS.map(async ([cid, cname]) => {
@@ -34,6 +35,9 @@ export async function metricStocks(fetchFn = fetch) {
         const r = await fetchFn(`https://api.metric.xyz/public/v1/evm/${cid}/metadata?count=500&offset=${offset}&include24h=true&minTvlFiat=0`, { headers: { Accept: "application/json" } });
         if (!r.ok) throw new Error("HTTP " + r.status);
         const j = await r.json();
+        if (page === 0) metricDebug[cname] = { keys: Object.keys(j || {}).slice(0, 12), total: j.total, n: (j.data || []).length,
+          sample: (j.data || []).slice(0, 40).map(p => p.pair || `${p.token0 && p.token0.symbol}/${p.token1 && p.token1.symbol}`),
+          poolKeys: j.data && j.data[0] ? Object.keys(j.data[0]).slice(0, 40) : [] };
         for (const p of j.data || []) {
           const t0 = p.token0 || {}, t1 = p.token1 || {};
           let st, pos;
