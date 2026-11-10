@@ -29,6 +29,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Cài thư viện ký lệnh sàn
+        run: if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; fi
       - name: Quét kèo và chấm lệnh
         run: if [ -f scanner/scan.mjs ]; then node scanner/scan.mjs; else node scan.mjs; fi
         env:
@@ -37,7 +39,11 @@ jobs:
           COINGECKO_KEY: ${{ secrets.COINGECKO_KEY }}
           SITE_URL: ${{ vars.SITE_URL }}
           PING: ${{ inputs.ping }}
-          # Tự đặt lệnh trên Arcus (bỏ trống secrets thì bot chỉ báo kèo như cũ)
+          # Tự đặt lệnh trên Hyperliquid (bỏ trống secrets thì bot chỉ báo kèo như cũ)
+          HL_ADDRESS: ${{ secrets.HL_ADDRESS }}
+          HL_AGENT_KEY: ${{ secrets.HL_AGENT_KEY }}
+          HL_ENV: ${{ vars.HL_ENV || 'mainnet' }}
+          # Arcus (chỉ dùng khi không cài Hyperliquid)
           ARCUS_ADDRESS: ${{ secrets.ARCUS_ADDRESS }}
           ARCUS_PRIVATE_KEY: ${{ secrets.ARCUS_PRIVATE_KEY }}
           ARCUS_API_KEY: ${{ secrets.ARCUS_API_KEY }}

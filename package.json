@@ -1,0 +1,10 @@
+{
+  "name": "radar-scanner",
+  "private": true,
+  "type": "module",
+  "description": "Crypto RSI Radar · bot quét kèo 24/7 và tự đặt lệnh",
+  "dependencies": {
+    "@msgpack/msgpack": "3.1.3",
+    "ethers": "6.17.0"
+  }
+}

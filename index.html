@@ -1413,8 +1413,8 @@ async function journalUpdate(){
   S.jBusy=false; jSave(); renderJournal();
 }
 const ARC={placed:["chờ khớp",""],open:["đang mở","up"],be:["SL về Entry","up"],closed:["đã đóng",""],skip:["bỏ qua",""],fail:["lỗi","dn"],cancel:["đã huỷ",""]};
-const arcusBadge=j=>{const a=j.arcus; if(!a||!ARC[a.st]) return ""; const [t,c]=ARC[a.st];
-  return `<span class="cg ${c==="up"?"ck":""}" title="Lệnh thật trên sàn Arcus${a.mk?` (${a.mk})`:""}: ${t}${a.why?` · ${a.why}`:""}" style="${c==="dn"?"color:var(--dn)":""}">Arcus · ${t}</span>`};
+const arcusBadge=j=>[["hl","Hyperliquid","coin"],["arcus","Arcus","mk"]].map(([k,name,f])=>{const a=j[k]; if(!a||!ARC[a.st]) return ""; const [t,c]=ARC[a.st];
+  return `<span class="cg ${c==="up"?"ck":""}" title="Lệnh thật trên sàn ${name}${a[f]?` (${a[f]})`:""}: ${t}${a.why?` · ${a.why}`:""}" style="${c==="dn"?"color:var(--dn)":""}">${name} · ${t}</span>`}).join("");
 const JST={pending:["Pending",""],open:["Open","up"],tp1_be:["TP1 hit · BE phần còn lại","up"],tp2:["TP2 hit","up"],sl:["SL hit","dn"],expired:["Cancelled · not filled",""],manual:["Manual close","up"],cancel:["Manual cancel",""]};
 const jLabel=j=>j.status==="open"&&j.half?["Partial 50% ở TP1 · SL → BE","up"]:j.status==="manual"?[j.roi>=0?"Manual take profit":"Manual cut loss",j.roi>=0?"up":"dn"]:(JST[j.status]||[j.status,""]);
 function jPrice(j){const r=rowBySym(j.sym)||S.rows.get("cg:"+j.base); return r&&r.price?r.price:(j.cur||null)}
