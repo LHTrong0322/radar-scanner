@@ -216,7 +216,7 @@ export async function hyperRun({ state, newIds, outbox, errors, esc, link }) {
   const taken = new Set(state.journal.filter(j => j.hl && live(j.hl.st)).map(j => j.hl.coin));
   const ADOPT_MS = (parseFloat(process.env.TRADE_ADOPT_HOURS || "48") || 0) * 36e5;
   let nLive = state.journal.filter(j => j.hl && live(j.hl.st)).length, free = A.free;
-  for (const j of state.journal) {
+  for (const j of [...state.journal].reverse()) {                  // kèo mới nhất trước
     if (j.hl || j.src === "st" || !["open", "pending"].includes(j.status)) continue;
     const late = !newIds.has(j.id); if (late && !(Date.now() - j.at < ADOPT_MS)) continue;
     const f = findMarket(M, j.base); if (!f) { j.hl = { st: "na" }; continue; }
