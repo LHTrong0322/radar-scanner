@@ -77,29 +77,57 @@ function wire(x) { let s = x.toFixed(8); s = s.replace(/\.?0+$/, ""); return s =
 const cloidOf = s => "0x" + crypto.createHash("sha256").update(s).digest("hex").slice(0, 32);
 
 /* ---------- dữ liệu sàn ---------- */
+// sàn chính + các sàn HIP-3 (vàng, cổ phiếu… tên dạng "xyz:GOLD"); mã tài sản HIP-3 = 110000 + thứ tự sàn × 10000 + vị trí
+let DEXES = [""];
 async function loadMarkets() {
-  const [meta, ctxs] = await info({ type: "metaAndAssetCtxs" });
-  const M = new Map();
-  meta.universe.forEach((u, i) => { if (!u.isDelisted) M.set(u.name, { ...u, asset: i, ctx: ctxs[i] || {} }); });
+  const M = new Map(), add = (meta, ctxs, dex, off) => (meta.universe || []).forEach((u, i) => {
+    if (u.isDelisted) return;
+    M.set(u.name, { ...u, asset: off + i, dex, short: String(u.name).split(":").pop().toUpperCase(), ctx: (ctxs && ctxs[i]) || {} });
+  });
+  const [meta, ctxs] = await info({ type: "metaAndAssetCtxs" }); add(meta, ctxs, "", 0);
+  try {
+    const dx = (await info({ type: "perpDexs" })) || [];
+    await Promise.all(dx.slice(1).map(async (d, i) => {
+      if (!d || !d.name) return;
+      try { const [m2, c2] = await info({ type: "metaAndAssetCtxs", dex: d.name }); add(m2, c2, d.name, 110000 + i * 10000); DEXES.push(d.name); }
+      catch (e) { console.log(`${TAG}: không đọc được sàn ${d.name} (${e.message})`); }
+    }));
+  } catch (e) { console.log(`${TAG}: không đọc được danh sách sàn HIP-3 (${e.message})`); }
   return M;
 }
-function findMarket(M, base) {                       // BTC → BTC · PEPE → kPEPE (giá × 1000)
-  base = base.toUpperCase();
-  if (M.has(base)) return { m: M.get(base), mult: 1 };
-  if (M.has("k" + base)) return { m: M.get("k" + base), mult: 1000 };
+// tên khác nhau giữa radar và Hyperliquid
+const ALIAS = { XAUT: ["GOLD", "XAU", "PAXG"], PAXG: ["GOLD", "XAU", "PAXG"], XAU: ["GOLD", "XAU"], SPY: ["SPY", "SPX", "SP500", "US500"], SPY500: ["SPY", "SPX", "SP500", "US500"],
+  QQQ: ["QQQ", "NDX", "NAS100", "US100"], GOOGL: ["GOOGL", "GOOG"], BRKB: ["BRK.B", "BRKB"] };
+function findMarket(M, j) {
+  const base = (j.src === "st" ? j.sym : j.base).toUpperCase(), ref = j.cur || j.entry;
+  const names = [...new Set([base, ...(ALIAS[base] || [])])];
+  const all = [...M.values()];
+  for (const n of names) {
+    // ưu tiên sàn chính, sau đó sàn HIP-3 có volume lớn nhất
+    const c = all.filter(m => m.short === n || m.short === "K" + n).sort((a, b) => (a.dex ? 1 : 0) - (b.dex ? 1 : 0) || parseFloat(b.ctx.dayNtlVlm || 0) - parseFloat(a.ctx.dayNtlVlm || 0));
+    for (const m of c) {
+      const mk = markOf(m); if (!(mk > 0) || !(ref > 0)) continue;
+      const r = mk / ref, mult = [1, 10, 100, 1000].find(x => r > x * .9 && r < x * 1.1);   // kiểm tra giá khớp (vd. kPEPE ×1000, SPX ≈ SPY ×10)
+      if (mult) return { m, mult };
+    }
+  }
   return null;
 }
 const markOf = m => parseFloat(m.ctx.markPx || m.ctx.oraclePx || m.ctx.midPx || 0);
 async function account() {
-  const [s, sp] = await Promise.all([info({ type: "clearinghouseState", user: USER }), info({ type: "spotClearinghouseState", user: USER }).catch(() => null)]);
+  const [s, sp, ...more] = await Promise.all([info({ type: "clearinghouseState", user: USER }), info({ type: "spotClearinghouseState", user: USER }).catch(() => null),
+    ...DEXES.slice(1).map(d => info({ type: "clearinghouseState", user: USER, dex: d }).catch(() => null))]);
   const pos = new Map();
-  for (const p of s.assetPositions || []) { const x = p.position || p; if (parseFloat(x.szi)) pos.set(x.coin, x); }
+  for (const st of [s, ...more]) for (const p of (st && st.assetPositions) || []) { const x = p.position || p; if (parseFloat(x.szi)) pos.set(x.coin, x); }
   const u = ((sp && sp.balances) || []).find(b => b.coin === "USDC");
   const spot = u ? Math.max(0, parseFloat(u.total || 0) - parseFloat(u.hold || 0)) : 0;
   const perp = parseFloat(s.withdrawable || 0);
   return { pos, perp, spot, free: perp + spot };      // tài khoản hợp nhất (unified) dùng được cả USDC bên Spot
 }
-async function orders() { return (await info({ type: "frontendOpenOrders", user: USER })) || []; }
+async function orders() {
+  const r = await Promise.all(DEXES.map(d => info(d ? { type: "frontendOpenOrders", user: USER, dex: d } : { type: "frontendOpenOrders", user: USER }).catch(e => { if (!d) throw e; return []; })));
+  return r.flat().filter(Boolean);
+}
 const trig = (O, coin, kind) => O.filter(o => o.coin === coin && o.isTrigger && (kind === "sl" ? /stop/i.test(o.orderType) : /take/i.test(o.orderType)));
 
 /* ---------- lệnh ---------- */
@@ -130,7 +158,7 @@ export async function hyperRun({ state, newIds, outbox, errors, esc, link }) {
   try { await libs(); } catch (e) { errors.push(`${TAG}: ${e.message}`); return; }
   const say = s => outbox.push(`🤖 <b>${TAG}</b> · ${s}`);
   let M, A, O;
-  try { [M, A, O] = await Promise.all([loadMarkets(), account(), orders()]); }
+  try { M = await loadMarkets(); [A, O] = await Promise.all([account(), orders()]); }
   catch (e) { errors.push(`${TAG}: không đọc được tài khoản (${e.message})`); return; }
 
   // 0) tự kiểm tra: đặt lệnh chờ mua BTC thấp hơn giá 30% (không thể khớp) kèm SL/TP, rồi huỷ ngay
@@ -217,10 +245,10 @@ export async function hyperRun({ state, newIds, outbox, errors, esc, link }) {
   const ADOPT_MS = (parseFloat(process.env.TRADE_ADOPT_HOURS || "720") || 0) * 36e5;     // kèo cũ trong 30 ngày
   let nLive = state.journal.filter(j => j.hl && live(j.hl.st)).length, free = A.free;
   for (const j of [...state.journal].reverse()) {                  // kèo mới nhất trước
-    if ((j.hl && j.hl.st !== "skip") || j.src === "st" || !["open", "pending"].includes(j.status)) continue;   // kèo bị bỏ qua trước đó được xét lại
+    if ((j.hl && !["skip", "na"].includes(j.hl.st)) || !["open", "pending"].includes(j.status)) continue;   // kèo bị bỏ qua trước đó được xét lại
     const late = !newIds.has(j.id); if (late && !(Date.now() - j.at < ADOPT_MS)) continue;
     if (j.hl && j.hl.st === "skip" && !late) continue;
-    const f = findMarket(M, j.base); if (!f) { j.hl = { st: "na" }; continue; }
+    const f = findMarket(M, j); if (!f) { if (!j.hl) j.hl = { st: "na" }; continue; }
     const { m, mult } = f, coin = m.name;
     // kèo cũ chưa đủ điều kiện → bỏ qua lặng lẽ, lượt sau xét lại (không spam Telegram)
     const skip = why => { if (late) { console.log(`${TAG}: chưa vào ${j.base} (${why})`); return; } j.hl = { st: "skip", why, coin, at: Date.now() }; say(`Bỏ qua <b>${esc(j.base)}</b>: ${why}.`); };
@@ -249,7 +277,7 @@ export async function hyperRun({ state, newIds, outbox, errors, esc, link }) {
       j.hl = { st: "placed", coin, mult, cid, part, at: Date.now(), kind: limit ? "limit" : "market" };
       nLive++; free -= P.margin; taken.add(coin);
       const vol = szN * entry;
-      say(`${limit ? "Đặt lệnh chờ mua" : "Mua"}${late ? " (vào muộn kèo cũ)" : ""} <b>${esc(j.base)}</b> (${j.tf.toUpperCase()}) · Entry ${limit ? j.entry : "market"} · SL ${j.stop} (-${(P.sl * 100).toFixed(1)}%) · TP1 ${j.tp1}${part ? " (50%)" : " (đóng hết, lệnh quá nhỏ để chia đôi)"} · TP2 ${j.tp2}\n` +
+      say(`${limit ? "Đặt lệnh chờ mua" : "Mua"}${late ? " (vào muộn kèo cũ)" : ""} <b>${esc(j.base)}</b>${m.short !== (j.src === "st" ? j.sym : j.base).toUpperCase() || m.dex ? ` (trên sàn: ${esc(m.name)})` : ""} (${j.tf.toUpperCase()}) · Entry ${limit ? j.entry : "market"} · SL ${j.stop} (-${(P.sl * 100).toFixed(1)}%) · TP1 ${j.tp1}${part ? " (50%)" : " (đóng hết, lệnh quá nhỏ để chia đôi)"} · TP2 ${j.tp2}\n` +
         (RISK > 0 ? `Rủi ro 1R = ${RISK} USDC · khối lượng ~${vol.toFixed(0)} USDC · đòn bẩy ${P.lev}x isolated · ký quỹ ~${P.margin.toFixed(1)} USDC · giá thanh lý ~${(P.liq / mult).toPrecision(5)} (SL dùng ${(P.share * 100).toFixed(0)}% khoảng cách)` : `~${vol.toFixed(0)} USDC, đòn bẩy 1x`) + link());
     } catch (e) { j.hl = { st: "fail", why: e.message.slice(0, 140), coin, at: Date.now() }; errors.push(`${TAG} ${j.base}: ${e.message}`); say(`Lỗi khi vào lệnh <b>${esc(j.base)}</b>: ${esc(e.message.slice(0, 160))}`); }
   }
