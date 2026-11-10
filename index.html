@@ -378,19 +378,20 @@ details.how p{color:var(--muted);font-size:12.5px;line-height:1.6;max-width:90ch
       <div class="controls" style="margin-bottom:12px">
         <label class="f" for="arbMin">Premium tối thiểu <input id="arbMin" type="number" step="0.1" min="0" value="0.5" style="width:70px"> %</label>
         <label class="f" for="arbFee">Phí 2 chân (vào + ra) <input id="arbFee" type="number" step="0.05" min="0" value="0.3" style="width:70px"> %</label>
+        <label class="f" for="arbLiq">Thanh khoản Metric ≥ <input id="arbLiq" type="number" step="500" min="0" value="2000" style="width:80px"> $</label>
         <span class="spacer"></span>
         <a class="btn" href="https://trade.xyz" target="_blank" rel="noopener">Mở trade.xyz</a>
         <a class="btn" href="https://metric.xyz" target="_blank" rel="noopener">Mở Metric</a>
       </div>
       <div class="tablebox">
         <table class="picks" id="arbTable">
-          <thead><tr><th>Mã</th><th>Perp trade.xyz</th><th>Giá gốc (oracle)</th><th>Premium</th><th>Funding / năm</th><th>Vol 24h</th><th>OI</th><th>Ước tính 7 ngày</th><th>Gợi ý</th></tr></thead>
+          <thead><tr><th>Mã</th><th>Short perp trade.xyz</th><th>Mua trên Metric</th><th>Chênh lệch</th><th>Funding / năm</th><th>Vol 24h perp</th><th>Thanh khoản Metric</th><th>Ước tính 7 ngày</th><th>Gợi ý</th></tr></thead>
           <tbody id="arbBody"></tbody>
         </table>
       </div>
       <details class="how"><summary>Chiến lược hoạt động thế nào</summary>
-        <p>Khi perp cổ phiếu trên trade.xyz giao dịch cao hơn giá gốc (premium), bạn <b>short perp trên trade.xyz</b> và <b>mua đúng lượng token cổ phiếu đó trên Metric</b> (Metric neo giá theo oracle Chainlink nên gần giá gốc). Hai chân triệt tiêu nhau, giá cổ phiếu lên hay xuống không ảnh hưởng (delta-neutral). Lợi nhuận đến từ: premium co về 0, và funding dương (bên long trả cho bên short mỗi giờ). Đồng thời tạo volume trên Hyperliquid, trade.xyz và Metric để farm airdrop. <b>Ước tính 7 ngày</b> = premium − phí 2 chân + funding 7 ngày, chỉ mang tính tham khảo.</p>
-        <p><b>Rủi ro:</b> premium có thể nở rộng thêm trước khi co lại; funding có thể đảo chiều âm; ngoài giờ sàn Mỹ và cuối tuần giá oracle ít cập nhật, mở cửa có thể gap; chân short dùng đòn bẩy nên đặt isolated thấp (≤ 3x) và để dư ký quỹ để không bị thanh lý khi cổ phiếu tăng mạnh; Metric có thể không có đủ mã hoặc thanh khoản mỏng, hãy kiểm tra giá thực tế trên Metric trước khi vào; airdrop không được đảm bảo. Bảng chỉ quét và báo cơ hội, không tự đặt lệnh.</p>
+        <p>Khi perp cổ phiếu trên trade.xyz giao dịch cao hơn giá gốc (premium), bạn <b>short perp trên trade.xyz</b> và <b>mua đúng lượng token cổ phiếu đó trên Metric</b> (Metric neo giá theo oracle Chainlink nên gần giá gốc). Hai chân triệt tiêu nhau, giá cổ phiếu lên hay xuống không ảnh hưởng (delta-neutral). Lợi nhuận đến từ: premium co về 0, và funding dương (bên long trả cho bên short mỗi giờ). Đồng thời tạo volume trên Hyperliquid, trade.xyz và Metric để farm airdrop. <b>Chênh lệch</b> tính giữa giá short trên trade.xyz và giá mua thật trên Metric. Bảng chỉ giữ những mã <b>có pool trên Metric</b> (Ethereum, BNB Chain, Robinhood Chain) với thanh khoản đủ lớn và giá khớp giá gốc; mã nào Metric không có thì bị loại. <b>Ước tính 7 ngày</b> = chênh lệch − phí 2 chân + funding 7 ngày, chỉ mang tính tham khảo.</p>
+        <p><b>Rủi ro:</b> premium có thể nở rộng thêm trước khi co lại; funding có thể đảo chiều âm; ngoài giờ sàn Mỹ và cuối tuần giá oracle ít cập nhật, mở cửa có thể gap; chân short dùng đòn bẩy nên đặt isolated thấp (≤ 3x) và để dư ký quỹ để không bị thanh lý khi cổ phiếu tăng mạnh; Metric có thể không có đủ mã hoặc thanh khoản mỏng, hãy kiểm tra lại giá trên app Metric trước khi vào; airdrop không được đảm bảo. Bảng chỉ quét và báo cơ hội, không tự đặt lệnh.</p>
       </details>
     </section>
 
@@ -1723,38 +1724,45 @@ function renderWickless(){
 loadWickless(); setInterval(loadWickless,5*60*1000); setInterval(renderWickless,15000);
 
 /* ---------- Delta-neutral trade.xyz × Metric ---------- */
-const ARB={rows:[],at:0,src:""};
+const ARB={rows:[],at:0,src:"",metric:null,mAt:0};
+const matchMetric=(sym,oracle,minLiq)=>(ARB.metric||[]).filter(x=>x.base===sym.toUpperCase()&&x.liq>=minLiq&&(!(oracle>0)||Math.abs(x.price/oracle-1)<.1)).sort((a,b)=>b.liq-a.liq)[0]||null;
 async function loadArb(){
   let raw=null,src="";
   try{ const r=await fetch("https://api.hyperliquid.xyz/info",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"metaAndAssetCtxs",dex:"xyz"})}); if(r.ok){raw=await r.json();src="Hyperliquid trực tiếp"} }catch(e){}
   if(!raw){ try{ const r=await fetch("/api/xyz",{cache:"no-store"}); if(r.ok){raw=await r.json();src="Hyperliquid qua máy chủ"} }catch(e){} }
+  if(Date.now()-ARB.mAt>110e3){ try{ const r=await fetch("/api/metric",{cache:"no-store"}); if(r.ok){const j=await r.json(); if(j&&Array.isArray(j.stocks)){ARB.metric=j.stocks;ARB.mAt=Date.now()}} }catch(e){} }
   if(raw&&Array.isArray(raw)&&raw[0]&&raw[0].universe){
     const [meta,ctxs]=raw; ARB.rows=meta.universe.map((u,i)=>{const c=ctxs[i]||{},mark=+c.markPx,or=+c.oraclePx;
       if(u.isDelisted||!(mark>0&&or>0)) return null;
       return {coin:u.name,sym:String(u.name).split(":").pop(),mark,oracle:or,prem:(mark/or-1)*100,fund:(+c.funding||0)*8760*100,vol:+c.dayNtlVlm||0,oi:(+c.openInterest||0)*mark}}).filter(Boolean);
     ARB.at=Date.now(); ARB.src=src;
-  } else if(S.cloud&&S.cloud.arb&&S.cloud.arb.rows){ ARB.rows=S.cloud.arb.rows; ARB.at=S.cloud.arb.at; ARB.src="bot GitHub" }
+  } else if(S.cloud&&S.cloud.arb&&S.cloud.arb.rows){ ARB.rows=S.cloud.arb.rows; ARB.at=S.cloud.arb.at; ARB.src="bot GitHub"; ARB.fromBot=!!S.cloud.arb.metricOk }
   renderArb();
 }
 const compact=v=>v>=1e9?(v/1e9).toFixed(2)+"B":v>=1e6?(v/1e6).toFixed(2)+"M":v>=1e3?(v/1e3).toFixed(1)+"K":Math.round(v)+"";
 function renderArb(){
   const min=parseFloat($("arbMin").value)||0, fee=parseFloat($("arbFee").value)||0;
   if(!ARB.at){$("arbNote").textContent="chưa lấy được dữ liệu trade.xyz";$("arbBody").innerHTML=`<tr><td colspan="9" class="mut full">Đang tải dữ liệu trade.xyz…</td></tr>`;return}
-  const rows=ARB.rows.map(r=>({...r,edge:r.prem-fee+r.fund/365*7})).sort((a,b)=>b.prem-a.prem);
-  const n=rows.filter(r=>r.prem>=min&&r.fund>=0).length;
-  $("arbNote").textContent=`${n} cơ hội · ${rows.length} mã · ${ARB.src} · ${new Date(ARB.at).toLocaleTimeString("vi-VN")}`;
+  const minLiq=parseFloat($("arbLiq").value)||0, haveM=!!ARB.metric||ARB.fromBot;
+  // chỉ giữ mã có trên Metric (đủ thanh khoản, giá khớp); chênh lệch tính theo giá mua thật trên Metric
+  const rows=ARB.rows.map(r=>{const mt=ARB.metric?matchMetric(r.sym,r.oracle,minLiq):(r.metric&&r.metric.liq>=minLiq?r.metric:null);
+      if(haveM&&!mt) return null; const prem=mt?(r.mark/mt.price-1)*100:r.prem; return {...r,mt,prem,edge:prem-fee+r.fund/365*7}})
+    .filter(Boolean).sort((a,b)=>b.prem-a.prem);
+  const n=rows.filter(r=>r.prem>=min&&r.fund>=0&&r.mt).length;
+  $("arbNote").textContent=`${n} cơ hội · ${rows.length} mã có trên Metric · ${ARB.src} · ${new Date(ARB.at).toLocaleTimeString("vi-VN")}`+(haveM?"":" · ⚠ chưa kiểm tra được Metric");
   const sg=(v,d=2)=>(v>=0?"+":"")+v.toFixed(d);
   $("arbBody").innerHTML=rows.map(r=>{
-    const ok=r.prem>=min&&r.fund>=0, weak=r.prem>=min&&r.fund<0;
-    const tip=ok?`<span class="pill up">Short perp + mua trên Metric</span>`:weak?`<span class="pill" title="Premium đạt nhưng funding âm: short phải trả funding">Premium tốt, funding âm</span>`:r.prem<0?`<span class="mut">Perp rẻ hơn giá gốc</span>`:`<span class="mut">Premium thấp</span>`;
-    return `<tr class="${ok?"":"dim"}"><td class="sym">${r.sym}</td><td>${fp(r.mark)}</td><td>${fp(r.oracle)}</td>
+    const ok=r.prem>=min&&r.fund>=0&&!!r.mt, weak=r.prem>=min&&r.fund<0;
+    const tip=ok?`<span class="pill up">Short perp + mua trên Metric</span>`:weak?`<span class="pill" title="Premium đạt nhưng funding âm: short phải trả funding">Premium tốt, funding âm</span>`:r.prem<0?`<span class="mut">Perp rẻ hơn giá ${r.mt?"Metric":"gốc"}</span>`:!r.mt&&r.prem>=min?`<span class="mut">Chưa xác minh trên Metric</span>`:`<span class="mut">Chênh lệch thấp</span>`;
+    const m=r.mt?`${fp(r.mt.price)} <small class="mut">${r.mt.sym} · ${r.mt.chain}</small>`:`<span class="mut">?</span>`;
+    return `<tr class="${ok?"":"dim"}"><td class="sym">${r.sym}</td><td>${fp(r.mark)}</td><td>${m}</td>
       <td><b class="${r.prem>=min?"up":r.prem<0?"dn":"mut"}">${sg(r.prem,3)}%</b></td><td class="${r.fund>=0?"up":"dn"}">${sg(r.fund,1)}%</td>
-      <td>${compact(r.vol)}</td><td>${compact(r.oi)}</td><td class="${r.edge>=0?"up":"dn"}">${sg(r.edge)}%</td><td>${tip}</td></tr>`}).join("")||`<tr><td colspan="9" class="mut full">Không có dữ liệu</td></tr>`;
+      <td>${compact(r.vol)}</td><td>${r.mt?compact(r.mt.liq):"–"}</td><td class="${r.edge>=0?"up":"dn"}">${sg(r.edge)}%</td><td>${tip}</td></tr>`}).join("")||`<tr><td colspan="9" class="mut full">${haveM?"Hiện không có mã nào trên trade.xyz đồng thời có trên Metric với thanh khoản đủ lớn":"Không có dữ liệu"}</td></tr>`;
 }
 {let o={};try{o=JSON.parse(localStorage.getItem("rsiRadarArb")||"{}")}catch(e){}
- if(o.min!=null)$("arbMin").value=o.min; if(o.fee!=null)$("arbFee").value=o.fee;
- const sv=()=>{try{localStorage.setItem("rsiRadarArb",JSON.stringify({min:$("arbMin").value,fee:$("arbFee").value}))}catch(e){} renderArb()};
- $("arbMin").addEventListener("input",sv); $("arbFee").addEventListener("input",sv);}
+ if(o.min!=null)$("arbMin").value=o.min; if(o.fee!=null)$("arbFee").value=o.fee; if(o.liq!=null)$("arbLiq").value=o.liq;
+ const sv=()=>{try{localStorage.setItem("rsiRadarArb",JSON.stringify({min:$("arbMin").value,fee:$("arbFee").value,liq:$("arbLiq").value}))}catch(e){} renderArb()};
+ $("arbMin").addEventListener("input",sv); $("arbFee").addEventListener("input",sv); $("arbLiq").addEventListener("input",sv);}
 loadArb(); setInterval(loadArb,60*1000);
 
 /* ---------- Lạm phát token hằng năm ---------- */

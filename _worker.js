@@ -308,6 +308,28 @@ async function cloudState(env) {
   return new Response(await r.text(), { headers: { ...HDR, "cache-control": "no-store" } });
 }
 
+// Metric (metric.xyz): token cổ phiếu có pool trên Ethereum · BNB Chain · Robinhood Chain (gọn lại cho trang web)
+const M_STABLE = new Set(["USDC", "USDT", "USDG", "USD1", "DAI", "FDUSD", "USDE", "PYUSD", "RLUSD", "USDS", "WETH", "ETH", "WBNB", "BNB", "WBTC", "BTCB", "CBBTC"]);
+const mBase = sym => String(sym || "").trim().replace(/^(w|b|r|x|s)(?=[A-Z]{1,6}(x|on|X|ON)?$)/, "").replace(/(x|on|\.R|\.r)$/, "").toUpperCase();
+async function metricList() {
+  const out = []; let offset = 0;
+  for (let page = 0; page < 10; page++) {
+    const r = await fetch(`https://api.metric.xyz/public/v1/evm/metadata?count=500&offset=${offset}&include24h=true&minTvlFiat=100`, { headers: { Accept: "application/json" } });
+    if (!r.ok) throw new Error("Metric HTTP " + r.status);
+    const j = await r.json();
+    for (const p of j.data || []) {
+      const t0 = p.token0 || {}, t1 = p.token1 || {}, s0 = String(t0.symbol || "").toUpperCase(), s1 = String(t1.symbol || "").toUpperCase();
+      let st, k; if (M_STABLE.has(s1) && !M_STABLE.has(s0)) { st = t0; k = "token0"; } else if (M_STABLE.has(s0) && !M_STABLE.has(s1)) { st = t1; k = "token1"; } else continue;
+      const tier = (p.classificationSummary && p.classificationSummary.tierQualification) || "unclassified";
+      if (tier === "black" || (p.priceProviderStatus && p.priceProviderStatus !== "healthy")) continue;
+      const price = parseFloat(st.fiatPrice || 0); if (!(price > 0)) continue;
+      const liq = parseFloat((p.analytics24h && p.analytics24h[k] && p.analytics24h[k].liquidityFiat) || p.tvlFiat || 0);
+      out.push({ base: mBase(st.symbol), sym: st.symbol, chain: p.chain, price, liq: Math.round(liq), tier });
+    }
+    if (j.nextOffset == null) break; offset = j.nextOffset;
+  }
+  return J({ at: Date.now(), stocks: out });
+}
 // trade.xyz (sàn HIP-3 "xyz" trên Hyperliquid): giá perp, giá gốc (oracle), funding · dùng cho bảng delta-neutral
 async function xyzMarkets(url) {
   const dex = (url.searchParams.get("dex") || "xyz").replace(/[^a-z0-9_-]/gi, "").slice(0, 20);
@@ -328,6 +350,7 @@ export default {
         case "/api/inflation": return await withCache(request, ctx, 1800, () => inflation(env));
         case "/api/state": return await withCache(request, ctx, 60, () => cloudState(env));
         case "/api/xyz": return await withCache(request, ctx, 30, () => xyzMarkets(url));
+        case "/api/metric": return await withCache(request, ctx, 120, () => metricList());
         case "/api/sources": return J({
           candles: CANDLES.map(c => c[0]),
           rank: { CoinGecko: true, CoinMarketCap: !!env.CMC_API_KEY, CryptoRank: !!env.CRYPTORANK_API_KEY, CoinPaprika: true },
