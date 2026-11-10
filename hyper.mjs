@@ -91,10 +91,13 @@ function findMarket(M, base) {                       // BTC → BTC · PEPE → 
 }
 const markOf = m => parseFloat(m.ctx.markPx || m.ctx.oraclePx || m.ctx.midPx || 0);
 async function account() {
-  const s = await info({ type: "clearinghouseState", user: USER });
+  const [s, sp] = await Promise.all([info({ type: "clearinghouseState", user: USER }), info({ type: "spotClearinghouseState", user: USER }).catch(() => null)]);
   const pos = new Map();
   for (const p of s.assetPositions || []) { const x = p.position || p; if (parseFloat(x.szi)) pos.set(x.coin, x); }
-  return { pos, free: parseFloat(s.withdrawable || 0) };
+  const u = ((sp && sp.balances) || []).find(b => b.coin === "USDC");
+  const spot = u ? Math.max(0, parseFloat(u.total || 0) - parseFloat(u.hold || 0)) : 0;
+  const perp = parseFloat(s.withdrawable || 0);
+  return { pos, perp, spot, free: perp + spot };      // tài khoản hợp nhất (unified) dùng được cả USDC bên Spot
 }
 async function orders() { return (await info({ type: "frontendOpenOrders", user: USER })) || []; }
 const trig = (O, coin, kind) => O.filter(o => o.coin === coin && o.isTrigger && (kind === "sl" ? /stop/i.test(o.orderType) : /take/i.test(o.orderType)));
@@ -134,13 +137,14 @@ export async function hyperRun({ state, newIds, outbox, errors, esc, link }) {
   if (MODE === "selftest") {
     state.hlMeta = state.hlMeta || {};
     const key = WALLET.address.slice(2, 10).toLowerCase(), st0 = state.hlMeta.selftest;
-    if (st0 && st0.key === key && st0.env === ENV && (st0.ok || Date.now() - st0.at < 12 * 36e5)) return;
+    const force = process.env.PING === "true";                // bấm Run workflow (có tick) → kiểm tra lại ngay
+    if (!force && st0 && st0.key === key && st0.env === ENV && (st0.ok || Date.now() - st0.at < (st0.fund ? 1 : 12) * 36e5)) return;
     const steps = [];
     try {
       const m = M.get("BTC"); if (!m) throw new Error("không thấy BTC");
       const mark = markOf(m); if (!(mark > 0)) throw new Error("không đọc được giá BTC");
-      steps.push(`đọc tài khoản OK (ký quỹ khả dụng ~${A.free.toFixed(2)} USDC)`);
-      if (A.free < 3) throw new Error("tài khoản Perps chưa có USDC. Hãy chuyển USDC sang ví Perps trên app Hyperliquid");
+      steps.push(`đọc tài khoản OK (USDC bên Perps ~${A.perp.toFixed(2)}, bên Spot ~${A.spot.toFixed(2)})`);
+      if (A.free < 3) { const e = new Error("chưa thấy USDC trên Hyperliquid (cả Perps và Spot đều ~0). Kiểm tra HL_ADDRESS có đúng là ví chính đang chứa tiền không (không phải địa chỉ API wallet)"); e.fund = 1; throw e; }
       if (!A.pos.has("BTC")) { await setLeverage(m, Math.min(5, m.maxLeverage), false); steps.push("đặt đòn bẩy isolated OK"); }
       const px = fmtPx(mark * .7, m.szDecimals, "down"), sz = wire(Math.ceil(12 / parseFloat(px) * 10 ** m.szDecimals) / 10 ** m.szDecimals);
       const cid = cloidOf("selftest" + Date.now());
@@ -159,7 +163,8 @@ export async function hyperRun({ state, newIds, outbox, errors, esc, link }) {
       state.hlMeta.selftest = { ok: true, at: Date.now(), key, env: ENV };
       say(`✅ <b>Tự kiểm tra thành công</b>\n• ${steps.join("\n• ")}\n\nBot sẵn sàng. Đổi biến <code>TRADE_MODE</code> thành <code>auto</code> để bắt đầu tự vào lệnh.`);
     } catch (e) {
-      state.hlMeta.selftest = { ok: false, at: Date.now(), key, env: ENV, why: e.message.slice(0, 200) };
+      if (!e.fund && A.perp < 3 && A.spot >= 3 && /margin|insufficient|balance/i.test(e.message)) e.message += ". USDC đang nằm bên Spot: vào app Hyperliquid bấm Transfer → chuyển sang Perps";
+      state.hlMeta.selftest = { ok: false, at: Date.now(), key, env: ENV, why: e.message.slice(0, 200), fund: e.fund || (A.perp < 3 ? 1 : 0) };
       say(`❌ <b>Tự kiểm tra lỗi</b>\n• ${steps.join("\n• ")}${steps.length ? "\n• " : ""}lỗi: ${esc(e.message.slice(0, 300))}`);
       errors.push(`${TAG} selftest: ${e.message}`);
     }
