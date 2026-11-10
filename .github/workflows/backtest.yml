@@ -1,0 +1,69 @@
+name: Backtest thuật toán
+
+# Chạy lại thuật toán hiện tại (index.html) trên dữ liệu 1–2 năm qua để đo hiệu quả theo R.
+# - Tự chạy mỗi Chủ nhật 17:07 (giờ VN), trước buổi review tuần
+# - Bấm tay: chọn số ngày, LONG/SHORT; muốn so sánh một ý tưởng thì đẩy thay đổi lên một nhánh khác rồi nhập tên nhánh vào "compare_ref"
+# Không đặt lệnh, không gửi Telegram. Kết quả lưu ở thư mục backtests/.
+on:
+  schedule:
+    - cron: "7 10 * * 0"
+  workflow_dispatch:
+    inputs:
+      days:
+        description: "Số ngày quá khứ (365 = 1 năm, 730 = 2 năm)"
+        default: "730"
+      side:
+        description: "long hoặc short"
+        default: "long"
+      compare_ref:
+        description: "(tuỳ chọn) tên nhánh chứa phiên bản thử nghiệm để so với main"
+        default: ""
+      label:
+        description: "(tuỳ chọn) tên ngắn cho lần chạy, ví dụ sl-0.7atr"
+        default: ""
+
+permissions:
+  contents: write
+
+concurrency:
+  group: backtest
+  cancel-in-progress: false
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Chạy backtest
+        env:
+          DAYS: ${{ github.event.inputs.days || '730' }}
+          SIDE: ${{ github.event.inputs.side || 'long' }}
+          REF: ${{ github.event.inputs.compare_ref || '' }}
+          LABEL: ${{ github.event.inputs.label || '' }}
+        run: |
+          EXTRA=""
+          if [ -n "$REF" ]; then
+            git fetch origin "$REF"
+            git show "origin/$REF:index.html" > /tmp/variant.html
+            EXTRA="--html2 /tmp/variant.html"
+            [ -z "$LABEL" ] && LABEL="$REF"
+          fi
+          node bt.mjs --days "$DAYS" --side "$SIDE" --label "$LABEL" $EXTRA
+      - name: Lưu kết quả
+        run: |
+          git config user.name "radar-backtest"
+          git config user.email "radar-backtest@users.noreply.github.com"
+          git add backtests
+          git commit -m "backtest $(date -u +%Y-%m-%d)" || exit 0
+          for i in 1 2 3 4 5; do
+            git pull --rebase -X theirs origin main && git push origin HEAD:main && exit 0
+            sleep $((i * 5))
+          done
+          exit 1
