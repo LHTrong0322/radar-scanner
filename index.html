@@ -385,12 +385,12 @@ details.how p{color:var(--muted);font-size:12.5px;line-height:1.6;max-width:90ch
       </div>
       <div class="tablebox">
         <table class="picks" id="arbTable">
-          <thead><tr><th>Mã</th><th>Short perp trade.xyz</th><th>Mua trên Metric</th><th>Chênh lệch</th><th>Funding / năm</th><th>Vol 24h perp</th><th>Thanh khoản Metric</th><th>Ước tính 7 ngày</th><th>Gợi ý</th></tr></thead>
+          <thead><tr><th>Mã</th><th>Short perp trade.xyz</th><th>Giá mua trên Metric</th><th>Chênh lệch</th><th>Funding / năm</th><th>Vol 24h perp</th><th>Thanh khoản Metric</th><th>Ước tính 7 ngày</th><th>Gợi ý</th></tr></thead>
           <tbody id="arbBody"></tbody>
         </table>
       </div>
       <details class="how"><summary>Chiến lược hoạt động thế nào</summary>
-        <p>Khi perp cổ phiếu trên trade.xyz giao dịch cao hơn giá gốc (premium), bạn <b>short perp trên trade.xyz</b> và <b>mua đúng lượng token cổ phiếu đó trên Metric</b> (Metric neo giá theo oracle Chainlink nên gần giá gốc). Hai chân triệt tiêu nhau, giá cổ phiếu lên hay xuống không ảnh hưởng (delta-neutral). Lợi nhuận đến từ: premium co về 0, và funding dương (bên long trả cho bên short mỗi giờ). Đồng thời tạo volume trên Hyperliquid, trade.xyz và Metric để farm airdrop. <b>Chênh lệch</b> tính giữa giá short trên trade.xyz và giá mua thật trên Metric. Bảng chỉ giữ những mã <b>có pool trên Metric</b> (Ethereum, BNB Chain, Robinhood Chain) với thanh khoản đủ lớn và giá khớp giá gốc; mã nào Metric không có thì bị loại. <b>Ước tính 7 ngày</b> = chênh lệch − phí 2 chân + funding 7 ngày, chỉ mang tính tham khảo.</p>
+        <p>Khi perp cổ phiếu trên trade.xyz giao dịch cao hơn giá gốc (premium), bạn <b>short perp trên trade.xyz</b> và <b>mua đúng lượng token cổ phiếu đó trên Metric</b> (Metric neo giá theo oracle Chainlink nên gần giá gốc). Hai chân triệt tiêu nhau, giá cổ phiếu lên hay xuống không ảnh hưởng (delta-neutral). Lợi nhuận đến từ: premium co về 0, và funding dương (bên long trả cho bên short mỗi giờ). Đồng thời tạo volume trên Hyperliquid, trade.xyz và Metric để farm airdrop. <b>Chênh lệch</b> tính giữa giá short trên trade.xyz và <b>giá mua trực tiếp (ask) từ pool Metric</b>, không dùng giá oracle; pool không có báo giá khoẻ thì bị loại. Bảng chỉ giữ những mã <b>có pool trên Metric</b> (Ethereum, BNB Chain, Robinhood Chain) với thanh khoản đủ lớn và giá khớp giá gốc; mã nào Metric không có thì bị loại. <b>Ước tính 7 ngày</b> = chênh lệch − phí 2 chân + funding 7 ngày, chỉ mang tính tham khảo.</p>
         <p><b>Rủi ro:</b> premium có thể nở rộng thêm trước khi co lại; funding có thể đảo chiều âm; ngoài giờ sàn Mỹ và cuối tuần giá oracle ít cập nhật, mở cửa có thể gap; chân short dùng đòn bẩy nên đặt isolated thấp (≤ 3x) và để dư ký quỹ để không bị thanh lý khi cổ phiếu tăng mạnh; Metric có thể không có đủ mã hoặc thanh khoản mỏng, hãy kiểm tra lại giá trên app Metric trước khi vào; airdrop không được đảm bảo. Bảng chỉ quét và báo cơ hội, không tự đặt lệnh.</p>
       </details>
     </section>
@@ -1754,7 +1754,7 @@ function renderArb(){
   $("arbBody").innerHTML=rows.map(r=>{
     const ok=r.prem>=min&&r.fund>=0&&!!r.mt, weak=r.prem>=min&&r.fund<0;
     const tip=ok?`<span class="pill up">Short perp + mua trên Metric</span>`:weak?`<span class="pill" title="Premium đạt nhưng funding âm: short phải trả funding">Premium tốt, funding âm</span>`:r.prem<0?`<span class="mut">Perp rẻ hơn giá ${r.mt?"Metric":"gốc"}</span>`:!r.mt&&r.prem>=min?`<span class="mut">Chưa xác minh trên Metric</span>`:`<span class="mut">Chênh lệch thấp</span>`;
-    const m=r.mt?`${fp(r.mt.price)} <small class="mut">${r.mt.sym} · ${r.mt.chain}</small>`:`<span class="mut">?</span>`;
+    const m=r.mt?`<span title="Giá trực tiếp từ pool Metric · mua (ask) ${fp(r.mt.price)}${r.mt.bid?` · bán (bid) ${fp(r.mt.bid)}`:""}${r.mt.ref?` · giá tham chiếu ${fp(r.mt.ref)}`:""}">${fp(r.mt.price)}</span> <small class="mut">${r.mt.sym} · ${r.mt.chain}</small>`:`<span class="mut">?</span>`;
     return `<tr class="${ok?"":"dim"}"><td class="sym">${r.sym}</td><td>${fp(r.mark)}</td><td>${m}</td>
       <td><b class="${r.prem>=min?"up":r.prem<0?"dn":"mut"}">${sg(r.prem,3)}%</b></td><td class="${r.fund>=0?"up":"dn"}">${sg(r.fund,1)}%</td>
       <td>${compact(r.vol)}</td><td>${r.mt?compact(r.mt.liq):"–"}</td><td class="${r.edge>=0?"up":"dn"}">${sg(r.edge)}%</td><td>${tip}</td></tr>`}).join("")||`<tr><td colspan="9" class="mut full">${haveM?"Hiện không có mã nào trên trade.xyz đồng thời có trên Metric với thanh khoản đủ lớn":"Không có dữ liệu"}</td></tr>`;

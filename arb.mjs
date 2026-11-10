@@ -51,7 +51,7 @@ export async function arbRun({ state, outbox, errors, esc, link }) {
   for (const k of Object.keys(seen)) if (now - seen[k].at > 3 * 864e5) delete seen[k];
   state.arbAlert = seen;
   if (hits.length) outbox.push(`💱 <b>Delta-neutral trade.xyz × Metric</b>\n` + hits.slice(0, 8).map(r =>
-    `• <b>${esc(r.sym)}</b>: short perp ${r.mark} · mua <b>${esc(r.metric.sym)}</b> trên Metric (${esc(r.metric.chain)}) ${r.metric.price} → chênh <b>+${r.prem}%</b> · funding ${r.fund >= 0 ? "+" : ""}${r.fund}%/năm (short nhận) · ước tính 7 ngày ${r.edge7 >= 0 ? "+" : ""}${r.edge7}%`
+    `• <b>${esc(r.sym)}</b>: short perp ${r.mark} · mua <b>${esc(r.metric.sym)}</b> trên Metric (${esc(r.metric.chain)}) giá ask ${+r.metric.price.toPrecision(6)} → chênh <b>+${r.prem}%</b> · funding ${r.fund >= 0 ? "+" : ""}${r.fund}%/năm (short nhận) · ước tính 7 ngày ${r.edge7 >= 0 ? "+" : ""}${r.edge7}%`
   ).join("\n") + `\n→ Short perp trên trade.xyz, mua token tương ứng trên Metric. Kiểm tra lại giá trên app Metric trước khi vào.` + link());
   return A;
 }
