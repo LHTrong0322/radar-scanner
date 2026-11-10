@@ -210,10 +210,12 @@ async function runOne(b) {
 let qi = 0; await Promise.all(Array.from({ length: 4 }, async () => { while (qi < uni.length) await runOne(uni[qi++]); }));
 const RA = report(A), RB = K2 ? report(B) : null;
 // bảng so sánh nhiều phiên bản
-const cmpRow = (name, R) => { const s = R.all, tf = k => R.byTF[k] ? R.byTF[k].totalR : 0;
-  return `| ${name} | ${s.closed} | ${s.winRate ?? "–"}% | ${s.totalR} | ${s.expectancy ?? "–"} | ${s.profitFactor ?? "–"} | ${s.maxDD_R} | ${tf("4h")} | ${tf("1d")} | ${tf("1w")} | ${s.limitFillRate ?? "–"}% |`; };
-const cmp = V.length ? ["\n## So sánh các phiên bản\n", "| Phiên bản | Lệnh đóng | Win rate | Tổng R | R/lệnh | PF | Max DD | R 4H | R 1D | R 1W | Lệnh chờ khớp |", "|---|---|---|---|---|---|---|---|---|---|---|",
-  cmpRow("**main (hiện tại)**", RA), ...V.map(v => cmpRow(v.name, report(v.T)))].join("\n") + "\n" +
+const MID = Date.now() - DAYS * 864e5 / 2;                 // chia đôi kỳ backtest: nửa đầu / nửa sau (kiểm tra độ ổn định, tránh "học thuộc" dữ liệu)
+const half = (T, first) => stats(T.filter(x => first ? x.at < MID : x.at >= MID));
+const cmpRow = (name, R, T) => { const s = R.all, tf = k => R.byTF[k] ? R.byTF[k].totalR : 0, h1 = half(T, true), h2 = half(T, false);
+  return `| ${name} | ${s.closed} | ${s.winRate ?? "–"}% | ${s.totalR} | ${s.expectancy ?? "–"} | ${s.profitFactor ?? "–"} | ${s.maxDD_R} | ${h1.totalR} (${h1.expectancy ?? "–"}/lệnh) | ${h2.totalR} (${h2.expectancy ?? "–"}/lệnh) | ${tf("4h")} | ${tf("1d")} | ${tf("1w")} | ${s.limitFillRate ?? "–"}% |`; };
+const cmp = V.length ? ["\n## So sánh các phiên bản\n", "| Phiên bản | Lệnh đóng | Win rate | Tổng R | R/lệnh | PF | Max DD | R năm 1 | R năm 2 | R 4H | R 1D | R 1W | Lệnh chờ khớp |", "|---|---|---|---|---|---|---|---|---|---|---|---|---|",
+  cmpRow("**main (hiện tại)**", RA, A), ...V.map(v => cmpRow(v.name, report(v.T), v.T))].join("\n") + "\n" +
   V.filter(v => v.desc).map(v => `- **${v.name}**: ${v.desc}`).join("\n") + (expSkip.length ? `\n\nThí nghiệm bị bỏ qua: ${expSkip.join("; ")}` : "") + "\n" : "";
 const name = `${new Date().toISOString().slice(0, 10)}-${SIDE}${LABEL ? "-" + LABEL.replace(/[^a-z0-9-]/gi, "") : ""}`;
 fs.mkdirSync(OUT, { recursive: true });
