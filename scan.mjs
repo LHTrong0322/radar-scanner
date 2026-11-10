@@ -304,7 +304,7 @@ async function main() {
 
   // 4.3 ghi kèo mới vào nhật ký
   const isDone = st => ["tp2", "tp1_be", "sl", "expired", "manual", "cancel"].includes(st);
-  const newOnes = [];
+  const newOnes = [], newIds = new Set();
   for (const x of picks) {
     const sym = x.a.kind === "stock" ? x.a.sym : x.base + "USDT";
     if (state.journal.some(j => j.sym === sym && !isDone(j.status))) continue;
@@ -315,6 +315,7 @@ async function main() {
       tp1Why: P.tp1Why, tp2Why: P.tp2Why, tpVer: 2, rr1: P.rr1, score: Math.round(x.score),
       status: P.mode === "Chờ hồi" ? "pending" : "open", fillAt: P.mode === "Chờ hồi" ? null : Date.now(), roi: 0, r: 0, by: "github"
     });
+    newIds.add(state.journal.at(-1).id);
     newOnes.push(x);
   }
   if (newOnes.length > 6) outbox.push(`🟢 <b>${newOnes.length} kèo mới</b>: ` + newOnes.map(x => `${esc(x.base)} ${x.tf.toUpperCase()} (${Math.round(x.score)}đ, ${x.P.rr1.toFixed(1)}R)`).join(", ") + link());
@@ -335,6 +336,12 @@ async function main() {
       const m = msgUpdate(j, prev); if (m && (j.status !== prev.status || j.half !== prev.half)) outbox.push(m);
     } catch (e) { errors.push(`${j.base}: không chấm được lệnh (${e.message})`); }
   });
+
+  // 4.45 tự đặt lệnh trên sàn Arcus (chỉ chạy khi đã cài khoá trong GitHub Secrets)
+  if (process.env.ARCUS_ADDRESS && process.env.ARCUS_PRIVATE_KEY) {
+    try { const { arcusRun } = await import(pathToFileURL(path.join(HERE, "arcus.mjs")).href); await arcusRun({ state, newIds, outbox, errors, esc, link }); }
+    catch (e) { errors.push(`Arcus: ${e.message}`); }
+  }
 
   // 4.5 lưu trạng thái
   const keep = state.journal.slice(-500);

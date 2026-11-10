@@ -37,6 +37,16 @@ jobs:
           COINGECKO_KEY: ${{ secrets.COINGECKO_KEY }}
           SITE_URL: ${{ vars.SITE_URL }}
           PING: ${{ inputs.ping }}
+          # Tự đặt lệnh trên Arcus (bỏ trống secrets thì bot chỉ báo kèo như cũ)
+          ARCUS_ADDRESS: ${{ secrets.ARCUS_ADDRESS }}
+          ARCUS_PRIVATE_KEY: ${{ secrets.ARCUS_PRIVATE_KEY }}
+          ARCUS_API_KEY: ${{ secrets.ARCUS_API_KEY }}
+          ARCUS_ENV: ${{ vars.ARCUS_ENV || 'testnet' }}
+          ARCUS_ACCOUNT_INDEX: ${{ vars.ARCUS_ACCOUNT_INDEX || '0' }}
+          TRADE_MODE: ${{ vars.TRADE_MODE || 'auto' }}
+          TRADE_USD: ${{ vars.TRADE_USD || '50' }}
+          TRADE_MAX_OPEN: ${{ vars.TRADE_MAX_OPEN || '5' }}
+          TRADE_MAX_FUNDING_APR: ${{ vars.TRADE_MAX_FUNDING_APR || '30' }}
       - name: Lưu kết quả
         run: |
           git config user.name "radar-bot"

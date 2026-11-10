@@ -1412,6 +1412,9 @@ async function journalUpdate(){
   });
   S.jBusy=false; jSave(); renderJournal();
 }
+const ARC={placed:["chờ khớp",""],open:["đang mở","up"],be:["SL về Entry","up"],closed:["đã đóng",""],skip:["bỏ qua",""],fail:["lỗi","dn"],cancel:["đã huỷ",""]};
+const arcusBadge=j=>{const a=j.arcus; if(!a||!ARC[a.st]) return ""; const [t,c]=ARC[a.st];
+  return `<span class="cg ${c==="up"?"ck":""}" title="Lệnh thật trên sàn Arcus${a.mk?` (${a.mk})`:""}: ${t}${a.why?` · ${a.why}`:""}" style="${c==="dn"?"color:var(--dn)":""}">Arcus · ${t}</span>`};
 const JST={pending:["Pending",""],open:["Open","up"],tp1_be:["TP1 hit · BE phần còn lại","up"],tp2:["TP2 hit","up"],sl:["SL hit","dn"],expired:["Cancelled · not filled",""],manual:["Manual close","up"],cancel:["Manual cancel",""]};
 const jLabel=j=>j.status==="open"&&j.half?["Partial 50% ở TP1 · SL → BE","up"]:j.status==="manual"?[j.roi>=0?"Manual take profit":"Manual cut loss",j.roi>=0?"up":"dn"]:(JST[j.status]||[j.status,""]);
 function jPrice(j){const r=rowBySym(j.sym)||S.rows.get("cg:"+j.base); return r&&r.price?r.price:(j.cur||null)}
@@ -1440,7 +1443,7 @@ function renderJournal(){
     const [lab,c]=jLabel(j), showRoi=!["pending","expired","cancel"].includes(j.status);
     const act=S.cloud&&!j.local?"":j.status==="open"?`<button class="btn sm" data-act="close" data-id="${j.id}">Close</button>`:j.status==="pending"?`<button class="btn sm" data-act="close" data-id="${j.id}">Cancel</button>`:"";
     const tip=`${modeTxt(j.mode)} · score ${j.score} · R:R kế hoạch ${j.rr1.toFixed(1)}`+(j.fillAt?` · khớp ${dt(j.fillAt)}`:"")+(j.exitAt?` · đóng ${dt(j.exitAt)}`:"")+(j.status==="open"&&j.cur?` · giá hiện tại ${fp(j.cur)}`:"")+(j.tp1Why?` · TP1: ${j.tp1Why} · TP2: ${j.tp2Why}`:"")+(j.tp1Old!=null?` · TP cũ ${fp(j.tp1Old)} / ${fp(j.tp2Old)}`:"");
-    return `<tr data-tv="${tvSym(j)}" title="${tip}"><td class="sym">${j.base}${srcBadge(j)}${S.cloud&&j.local?'<span class="cg" title="Kèo cũ lưu trên máy này, chưa chuyển lên GitHub">máy này</span>':""}</td><td>${dt(j.at)}</td><td>${j.tf.toUpperCase()}</td>
+    return `<tr data-tv="${tvSym(j)}" title="${tip}"><td class="sym">${j.base}${srcBadge(j)}${S.cloud&&j.local?'<span class="cg" title="Kèo cũ lưu trên máy này, chưa chuyển lên GitHub">máy này</span>':""}${arcusBadge(j)}</td><td>${dt(j.at)}</td><td>${j.tf.toUpperCase()}</td>
       <td>${fp(j.entry)}</td><td class="dn">${fp(j.stop)}<span class="pc dn">${pctOf(j.stop,j.entry)}</span></td><td class="up">${fp(j.tp1)}<span class="pc up">${pctOf(j.tp1,j.entry)}</span></td><td class="up">${fp(j.tp2)}<span class="pc up">${pctOf(j.tp2,j.entry)}</span></td>
       <td><span class="pill ${c}">${lab}</span></td>
       <td>${showRoi?`<b class="${j.roi>=0?"up":"dn"}">${sg(j.roi)}</b>${j.status==="open"?' <small class="mut">unrealized</small>':""}`:'<span class="mut">–</span>'}</td>
