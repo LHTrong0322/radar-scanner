@@ -153,6 +153,43 @@ export async function arcusRun({ state, newIds, outbox, errors, esc, link }) {
   const live = st => ["placed", "open", "be"].includes(st);
   const say = s => outbox.push(`🤖 <b>${TAG}</b> · ${s}`);
 
+  // 0) tự kiểm tra (TRADE_MODE=selftest): đặt 1 lệnh chờ mua BTC thấp hơn giá 30% (không thể khớp) rồi huỷ ngay
+  if (MODE === "selftest") {
+    state.arcusMeta = state.arcusMeta || {};
+    if (state.arcusMeta.selftest && state.arcusMeta.selftest.key === PUB.slice(0, 8) && state.arcusMeta.selftest.ok) return;   // đã test thành công với key này
+    const m = M.get("BTC") || M.get("ETH"), steps = [];
+    try {
+      if (!m) throw new Error("không thấy thị trường BTC/ETH");
+      const mark = mkPrice(m); if (!(mark > 0)) throw new Error("không đọc được giá");
+      const free = await freeCollateral(); steps.push(`đọc tài khoản OK (ký quỹ khả dụng ~${free.toFixed(2)} USDC)`);
+      const px = quant(mark * .7, tick(m), "down"), qty = quant(6 / parseFloat(px.s), step(m), "up");
+      const cid = "rselftest" + Date.now().toString(36);
+      await batch("entryTpsl", [
+        { m, side: "BUY", type: "LIMIT", tif: "GTT", cid: cid + "e", qty, px },
+        sellLeg(m, cid + "s", "STOP_LOSS", mark * .6, qty, false),
+        sellLeg(m, cid + "t", "TAKE_PROFIT", mark * 1.5, qty, false),
+      ]);
+      steps.push(`ký và gửi lệnh chờ mua ${m.marketDisplayName} kèm SL/TP OK`);
+      await new Promise(r => setTimeout(r, 3000));
+      const O2 = await openOrders();
+      if (!O2.has(cid + "e")) throw new Error("sàn nhận lệnh nhưng không thấy lệnh trong danh sách lệnh chờ");
+      steps.push(`lệnh hiện trên sàn${O2.has(cid + "s") ? " (kèm SL" + (O2.has(cid + "t") ? " + TP)" : ")") : ""}`);
+      await cancelCid(m, cid + "e");
+      await new Promise(r => setTimeout(r, 3000));
+      const O3 = await openOrders();
+      if (O3.has(cid + "e")) throw new Error("huỷ lệnh chưa thành công, hãy kiểm tra trên app Arcus");
+      for (const c of ["s", "t"]) if (O3.has(cid + c)) await cancelCid(m, cid + c);
+      steps.push("huỷ lệnh OK");
+      state.arcusMeta.selftest = { ok: true, at: Date.now(), key: PUB.slice(0, 8), env: ENV };
+      say(`✅ <b>Tự kiểm tra thành công</b>\n• ${steps.join("\n• ")}\n\nBot sẵn sàng. Đổi biến <code>TRADE_MODE</code> thành <code>auto</code> để bắt đầu tự vào lệnh.`);
+    } catch (e) {
+      state.arcusMeta.selftest = { ok: false, at: Date.now(), key: PUB.slice(0, 8), env: ENV, why: e.message.slice(0, 200) };
+      say(`❌ <b>Tự kiểm tra lỗi</b>\n• ${steps.join("\n• ")}${steps.length ? "\n• " : ""}lỗi: ${esc(e.message.slice(0, 300))}`);
+      errors.push(`${TAG} selftest: ${e.message}`);
+    }
+    return;
+  }
+
   // 1) quản lý lệnh đang chạy trên sàn
   for (const j of state.journal) {
     const a = j.arcus; if (!a || !live(a.st)) continue;
