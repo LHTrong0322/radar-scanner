@@ -461,7 +461,7 @@ details.how p{color:var(--muted);font-size:12.5px;line-height:1.6;max-width:90ch
         <div><h3>Dow structure</h3><p>Dò đỉnh/đáy swing đã xác nhận. Bullish khi đỉnh và đáy cao dần (HH, HL), Bearish khi thấp dần (LH, LL). Giá đóng cửa phá đáy/đỉnh gần nhất của cấu trúc thì chuyển sang Sideway.</p></div>
         <div><h3>Sóng Elliott</h3><p>Thử song song sóng đẩy, nêm (diagonal), zigzag, phẳng (flat), tam giác ở nhiều cấp sóng; loại cách đếm vi phạm quy tắc cứng, chấm theo Fibonacci, cấu trúc con và xu hướng lớn. “Sóng đẩy” và “Nêm” là sóng động lực, các dạng “Điều chỉnh” và “Tam giác” là sóng điều chỉnh.</p></div>
         <div><h3>Buy score</h3><p>Chấm tổng hợp có trọng số: Trend 30 · Entry 20 · R:R 20 · Momentum 15 · Elliott 15 · Divergence 10, có cộng hưởng và phạt rủi ro. Rê chuột vào điểm để xem từng nhóm đóng góp.</p></div>
-        <div><h3>Entry, SL, TP</h3><p>Mọi vùng giá đều được chấm điểm, vùng nhiều điểm nhất được chọn. Yếu tố cộng điểm: POC anchored volume profile (neo ở đầu sóng Elliott/đáy nhịp tăng) 3đ, POC volume profile 250 nến 2.5đ, HVN 2đ, đỉnh/đáy swing lớn 2đ, mức sai Elliott 2đ, pivot Dow 1.5đ, kháng cự/hỗ trợ cũ bị phá 1–1.5đ, EMA 200/50 1.5đ, EMA 21 1đ, mây Ichimoku 1.2đ; các mức cách nhau dưới 0.4 ATR gộp thành một vùng và cộng điểm. Entry: market khi có tín hiệu mới hoặc giá đang nằm trên vùng hỗ trợ ≥3đ, nếu không thì đặt limit ở vùng hỗ trợ nhiều điểm nhất cách giá 0.6–3 ATR. SL: dưới vùng hỗ trợ nhiều điểm nhất nằm dưới Entry (0.5–5 ATR) trừ 0.3 ATR; kèo có SL cách Entry quá 35% bị loại. TP: ngay dưới các vùng resistance phía trên giá; TP1 là vùng gần nhất, TP2–TP4 là các vùng mạnh kế tiếp hoặc mục tiêu Fibonacci của sóng Elliott. TP1 chốt 50% rồi dời SL về Entry, phần còn lại chia đều cho các TP sau, mỗi TP khớp thì SL dời lên TP trước đó.</p></div>
+        <div><h3>Entry, SL, TP</h3><p>Mọi vùng giá đều được chấm điểm, vùng nhiều điểm nhất được chọn. Yếu tố: đỉnh/đáy pivot Dow 2.5đ; POC anchored volume profile (neo ở đầu sóng Elliott/đáy nhịp tăng) 2đ, POC volume profile 250 nến 2đ, HVN 2đ; đỉnh/đáy swing lớn 2đ; EMA 200 2đ, EMA 50 1.5đ, EMA 21 1đ; mây Ichimoku 1.2đ, đã break lên mây thì đỉnh mây +2đ; RSI: mức giá để RSI chạm 70 (kháng cự) 2đ, chạm 30 2đ, về 40 1.5đ (hỗ trợ); MACD: mức giá giữ MACD trên Signal 1.5đ; kháng cự/hỗ trợ cũ bị phá 1–1.5đ; mức sai Elliott 2đ (chỉ dùng cho SL). Các mức cách nhau dưới 0.4 ATR gộp thành một vùng và cộng điểm. Entry: điểm "vào ngay" = vùng hỗ trợ tại giá + động lượng (RSI 45–68 1đ, MACD histogram dương và tăng 1.5đ, ADX &gt; 25 với +DI trội 1.5đ); nếu vùng hỗ trợ 0.6–3 ATR dưới giá nhiều điểm hơn thì đặt limit ở đó. SL: dưới vùng hỗ trợ nhiều điểm nhất dưới Entry (0.5–5 ATR) trừ 0.3 ATR; kèo có SL cách Entry quá 35% bị loại. TP: ngay dưới các vùng resistance phía trên giá; TP1 là vùng gần nhất, TP2–TP4 là các vùng mạnh kế tiếp hoặc mục tiêu Fibonacci của sóng Elliott; ADX &lt; 20 (sideway) chỉ giữ 2 TP. TP1 chốt 50% rồi dời SL về Entry, phần còn lại chia đều cho các TP sau, mỗi TP khớp thì SL dời lên TP trước đó.</p></div>
         <div><h3>Token inflation</h3><p>Tính từ dữ liệu on-chain, làm mới mỗi 30 phút. BTC: phần thưởng block mới (mempool.space) ÷ nguồn cung. ETH: phát hành staking theo lượng ETH đang stake (beaconcha.in) trừ phí bị đốt EIP-1559 tính từ 1.024 block gần nhất, nên có thể âm (giảm phát). SOL: lịch lạm phát giao thức (RPC Solana). ZEC: lượng phát hành 24h (Blockchair), dự phòng theo phần thưởng block. NEAR: biến động total supply on-chain trong ~24 giờ, đã gồm phần phí bị đốt.</p></div>
         <div><h3>Bitcoin mining cost</h3><p>Hashrate mạng và phần thưởng 144 block gần nhất (mempool.space) × hiệu suất máy (J/TH) × giá điện, chia cho số BTC đào được mỗi ngày. Chỉ là chi phí tiền điện; bạn tự chỉnh giá điện và hiệu suất máy cho sát thực tế.</p></div>
         <div><h3>Data sources &amp; fallback</h3><p>Xếp hạng: CoinGecko → CoinMarketCap → CryptoRank → CoinPaprika → volume Binance. Nến crypto: Binance (realtime qua WebSocket) → Bybit → OKX → MEXC → KuCoin → Gate → Coinbase; nhãn cạnh mã cho biết sàn đang dùng, <span class="cg">CG</span> là giá lấy mẫu từ CoinGecko. Cổ phiếu <span class="cg ck">CP</span>: Yahoo Finance → Twelve Data → Stooq. Các nguồn dự phòng chạy qua máy chủ Cloudflare của trang.</p></div>
@@ -1006,10 +1006,27 @@ function vpAnchor(c,ew){
 }
 function vpLevels(c,ew){
   const L=c.length-1, out=[], fx=volProfile(c,L-249), an=volProfile(c,vpAnchor(c,ew));
-  if(fx){ out.push([fx.poc,"POC volume profile",2.5]); fx.hvn.forEach(v=>out.push([v,"vùng volume lớn (HVN)",2])) }
-  if(an){ out.push([an.poc,"POC anchored VP",3]); an.hvn.forEach(v=>out.push([v,"HVN anchored VP",2])) }
+  if(fx){ out.push([fx.poc,"POC volume profile",2]); fx.hvn.forEach(v=>out.push([v,"vùng volume lớn (HVN)",2])) }
+  if(an){ out.push([an.poc,"POC anchored VP",2]); an.hvn.forEach(v=>out.push([v,"HVN anchored VP",2])) }
   return out;
 }
+// Mức giá của chỉ báo: giá đóng nến kế tiếp cần để RSI(14) chạm một ngưỡng, và giá để MACD cắt Signal
+function rsiPx(cl,T,n=14){
+  if(cl.length<=n+1) return null; let g=0,l=0;
+  for(let i=1;i<=n;i++){const d=cl[i]-cl[i-1]; if(d>0)g+=d; else l-=d} g/=n; l/=n;
+  for(let i=n+1;i<cl.length;i++){const d=cl[i]-cl[i-1]; g=(g*(n-1)+Math.max(d,0))/n; l=(l*(n-1)+Math.max(-d,0))/n}
+  const last=cl[cl.length-1], cur=l===0?100:100-100/(1+g/l), RS=T/(100-T);
+  if(T>cur){ const al=l*(n-1)/n, gain=n*RS*al-(n-1)*g; return gain>0?last+gain:null }
+  const ag=g*(n-1)/n, loss=n*ag/RS-(n-1)*l; return loss>0&&loss<last?last-loss:null;
+}
+function macdFlipPx(cl){
+  const f=ema(cl,12), s=ema(cl,26), m=cl.map((_,i)=>f[i]!=null&&s[i]!=null?f[i]-s[i]:null);
+  const st=m.findIndex(x=>x!=null); if(st<0) return null;
+  const sg=ema(m.slice(st),9), sig=sg[sg.length-1], L=cl.length-1; if(sig==null) return null;
+  const a=2/13, b=2/27, P=(sig-(1-a)*f[L]+(1-b)*s[L])/(a-b);
+  return P>0?{px:P,bull:m[L]>sig}:null;
+}
+function indLevels(cl){ return {r70:rsiPx(cl,70),r40:rsiPx(cl,40),r30:rsiPx(cl,30),mf:macdFlipPx(cl)} }
 // Gộp các mức cách nhau ≤ 0.4 ATR thành vùng, cộng điểm các yếu tố trùng nhau
 function zoneUp(out,at){
   out.sort((a,b)=>a.v-b.v); const Z=[];
@@ -1018,7 +1035,7 @@ function zoneUp(out,at){
   const nm=t=>{ const a=[...t]; return a.slice(0,3).join(" + ")+(a.length>3?` +${a.length-3} yếu tố`:"") };
   return Z.map(z=>({lo:z.lo,hi:z.hi,w:+z.w.toFixed(1),why:nm(z.types)+` · ${+z.w.toFixed(1)} điểm`}));
 }
-function resLevels(c,at,e200,ichi,ew){
+function resLevels(c,at,e200,ichi,ew,K){
   const L=c.length-1, px=c[L].c, out=[];
   const add=(v,type,w)=>{ if(v!=null&&isFinite(v)&&v>px+.3*at) out.push({v,type,w}) };
   for(const p of swings(c,at*2,4,40)) if(p.tp==="H") add(p.v,"đỉnh swing lớn",2);
@@ -1026,16 +1043,17 @@ function resLevels(c,at,e200,ichi,ew){
   for(let i=Math.max(k,L-300);i<=L-k;i++){
     let ph=true,pl=true;
     for(let j=i-k;j<=i+k;j++){ if(j===i) continue; if(c[j].h>=c[i].h) ph=false; if(c[j].l<=c[i].l) pl=false; if(!ph&&!pl) break }
-    if(ph) add(c[i].h,"đỉnh phản ứng trước đó (Dow)",1.5);
+    if(ph) add(c[i].h,"đỉnh phản ứng trước đó (Dow)",2.5);
     if(pl) add(c[i].l,"hỗ trợ cũ đã bị phá",1);
   }
   for(const [v,t,w] of vpLevels(c,ew)) add(v,t,w);               // volume profile: fixed range 250 nến + anchored từ gốc nhịp tăng
-  if(e200!=null) add(e200,"EMA 200",1.5);
+  if(e200!=null) add(e200,"EMA 200",2);
   if(ichi&&ichi.bot!=null){ add(ichi.bot,"đáy mây Ichimoku",1.2); add(ichi.top,"đỉnh mây Ichimoku",1.2) }
+  if(K){ add(K.r70,"RSI chạm 70 (quá mua)",2); if(K.mf&&!K.mf.bull) add(K.mf.px,"MACD cắt lên Signal",1) }
   return zoneUp(out,at);
 }
 // Vùng hỗ trợ dưới giá (chấm điểm như TP) → dùng chọn Entry chờ và SL
-function supLevels(c,at,ev,ichi,ew){
+function supLevels(c,at,ev,ichi,ew,K,forSL){
   const L=c.length-1, px=c[L].c, out=[];
   const add=(v,type,w)=>{ if(v!=null&&isFinite(v)&&v<px&&v>px-8*at) out.push({v,type,w}) };
   for(const p of swings(c,at*2,4,40)) add(p.v,p.tp==="L"?"đáy swing lớn":"đỉnh swing cũ (nay là hỗ trợ)",2);
@@ -1043,13 +1061,15 @@ function supLevels(c,at,ev,ichi,ew){
   for(let i=Math.max(k,L-300);i<=L-k;i++){
     let ph=true,pl=true;
     for(let j=i-k;j<=i+k;j++){ if(j===i) continue; if(c[j].h>=c[i].h) ph=false; if(c[j].l<=c[i].l) pl=false; if(!ph&&!pl) break }
-    if(pl) add(c[i].l,"đáy phản ứng (Dow)",1.5);
+    if(pl) add(c[i].l,"đáy phản ứng (Dow)",2.5);
     if(ph) add(c[i].h,"kháng cự cũ đã bị phá",1.5);
   }
   for(const [v,t,w] of vpLevels(c,ew)) add(v,t,w);
-  add(ev[21],"EMA 21",1); add(ev[50],"EMA 50",1.5); add(ev[200],"EMA 200",1.5);
-  if(ichi&&ichi.bot!=null){ add(ichi.bot,"đáy mây Ichimoku",1.2); add(ichi.top,"đỉnh mây Ichimoku",1.2) }
-  if(ew&&isMotive(ew)&&ew.dir>0&&ew.inv!=null) add(ew.inv,"mức sai Elliott",2);
+  add(ev[21],"EMA 21",1); add(ev[50],"EMA 50",1.5); add(ev[200],"EMA 200",2);
+  if(ichi&&ichi.bot!=null){ add(ichi.bot,"đáy mây Ichimoku",1.2); add(ichi.top,"đỉnh mây Ichimoku",1.2);
+    if(ichi.state===1) add(ichi.top,"đã break lên mây Ichimoku",2) }               // giá đã phá lên trên mây → đỉnh mây thành hỗ trợ mạnh
+  if(K){ add(K.r40,"RSI về 40",1.5); add(K.r30,"RSI chạm 30 (quá bán)",2); if(K.mf&&K.mf.bull) add(K.mf.px,"MACD còn trên Signal",1.5) }
+  if(forSL&&ew&&isMotive(ew)&&ew.dir>0&&ew.inv!=null) add(ew.inv,"mức sai Elliott",2);   // chỉ dùng cho SL
   return zoneUp(out,at).reverse();                               // gần giá nhất trước
 }
 // Vùng dùng làm TP: đủ mạnh (≥1.5) và cách giá ít nhất 0.75 ATR (bỏ mức vi mô sát giá), trừ vùng rất mạnh
@@ -1073,14 +1093,21 @@ function planTrade(i){
   // Entry: mua ngay khi có tín hiệu mới hoặc giá đang nằm trên vùng hỗ trợ mạnh; nếu không, đặt lệnh chờ ở vùng hỗ trợ nhiều điểm nhất trong 0.6–3 ATR dưới giá
   const fresh=(i.x[0]&&i.x[0].dir>0&&i.x[0].ago<=2)||(i.ichi&&i.ichi.dir>0&&i.ichi.ago<=2)||(i.div&&i.div.bull&&i.div.bull.ago<=3);
   let entry=px, mode=fresh?"Vào ngay · tín hiệu mới":"Vào ngay", ref="giá hiện tại", entryW=null;
-  const onSup=best(SZ.filter(z=>z.hi>=px-.6*atr&&z.w>=3));
+  // Điểm động lượng cộng cho "vào ngay": RSI 45–68, MACD histogram dương và đang tăng, ADX > 25 với +DI trội
+  const mom=[], m=i.macd, ad=i.adx;
+  if(i.rsi!=null&&i.rsi>=45&&i.rsi<=68) mom.push(["RSI "+i.rsi.toFixed(0),1]);
+  if(m&&m.hist!=null&&m.hist>0&&(m.prevHist==null||m.hist>=m.prevHist)) mom.push(["MACD histogram tăng",1.5]);
+  if(ad&&ad.adx>25&&ad.pdi>ad.mdi) mom.push(["ADX "+ad.adx.toFixed(0)+" xu hướng mạnh",1.5]);
+  const nowZ=best(SZ.filter(z=>z.hi>=px-.6*atr)), mkt=(nowZ?nowZ.w:0)+mom.reduce((a,x)=>a+x[1],0);
+  const mktWhy=[nowZ?"vùng "+nowZ.why.replace(/ · [\d.]+ điểm$/,""):null,...mom.map(x=>x[0])].filter(Boolean).join(" + ")+` · ${+mkt.toFixed(1)} điểm`;
   const below=best(SZ.filter(z=>z.hi<px-.6*atr&&z.hi>=px-3*atr&&z.w>=2));
-  if(fresh){ if(onSup){ ref="giá hiện tại, trên vùng "+onSup.why; entryW=onSup.w } }
-  else if(onSup&&(!below||onSup.w>=below.w)){ ref="giá hiện tại, đang nằm trên vùng "+onSup.why; entryW=onSup.w }
-  else if(below&&(e21!=null&&px-e21>1.2*atr||below.w>=3)){ entry=below.hi; ref="vùng hỗ trợ "+below.why; mode="Chờ hồi"; entryW=below.w }
+  if(fresh){ ref="giá hiện tại, "+mktWhy; entryW=+mkt.toFixed(1) }
+  else if(below&&below.w>mkt){ entry=below.hi; ref="vùng hỗ trợ "+below.why; mode="Chờ hồi"; entryW=below.w }
+  else if(mkt>=3){ ref="giá hiện tại, "+mktWhy; entryW=+mkt.toFixed(1) }
+  else if(below){ entry=below.hi; ref="vùng hỗ trợ "+below.why; mode="Chờ hồi"; entryW=below.w }
   else if(e21!=null&&px-e21>1.2*atr){ entry=e21; ref="EMA 21"; mode="Chờ hồi" }
   // SL: dưới vùng hỗ trợ nhiều điểm nhất nằm dưới Entry (0.5–5 ATR), trừ thêm 0.3 ATR; không có thì dưới đáy swing gần nhất
-  const e=i.ew, zs=best(SZ.filter(z=>z.lo<entry-.2*atr&&z.lo>=entry-5*atr));   // gồm cả vùng hỗ trợ ngay tại Entry
+  const e=i.ew, zs=best((i.lv.supSL||SZ).filter(z=>z.lo<entry-.2*atr&&z.lo>=entry-5*atr));   // gồm cả vùng hỗ trợ ngay tại Entry
   const cands=piv.filter(p=>p.tp==="L"&&p.v<entry-.5*atr).map(p=>p.v);
   if(e&&isMotive(e)&&e.dir>0&&e.inv!=null&&e.inv<entry) cands.push(e.inv);
   let stop, why, stopW=null;
@@ -1101,6 +1128,7 @@ function planTrade(i){
   const mm=Math.max(px,entry)+Math.max(2*risk, piv.length>1?Math.abs(piv[piv.length-1].v-piv[piv.length-2].v):3*atr);
   const fb=proj!=null?["mục tiêu Fibonacci của sóng Elliott",proj]:["biên độ nhịp gần nhất",mm];
   const {tp1,tp2,tp1Why,tp2Why,tps,whys,tpf}=pickTPs(Z,atr,fb,risk,fb);
+  if(ad&&ad.adx<20&&tps.length>2){ tps.length=2; whys.length=2; tpf.splice(0,tpf.length,.5,.5) }   // ADX < 20 (sideway): chỉ 2 TP, không gồng xa
   const rrMax=(tps[tps.length-1]-entry)/risk, rrAvg=tps.reduce((a,t,k)=>a+tpf[k]*(t-entry)/risk,0);
   return {reject,slPct,entry,mode,ref,px,stop,risk,why,tp1,tp2,tp1Why,tp2Why,tps,tpWhys:whys,tpf,rr1:(tp1-entry)/risk,rr2:(tp2-entry)/risk,rrMax,rrAvg,entryW,stopW,blue:!Z.length};
 }
@@ -1256,9 +1284,9 @@ function compute(row){
   const rA=rsiArr(cl), hA=histArr(cl);
   row.ind={div:divergence(c,rA,hA),rsi:rsiLast(cl),macd:macd(cl),adx:row.src==="cg"?null:adx(c),ichi:ichimoku(c,S.win),dow:dow(c),ew:elliott(c),vol:row.src==="cg"?null:volChg(c,row.tf||S.tf),
     x:SETS.map(set=>emaSignal(E,set,S.win)),ev};
-  const L=cl.length-1, at=atrLast(c);
+  const L=cl.length-1, at=atrLast(c), K=at?indLevels(cl):null;
   row.ind.lv={px:cl[L],e21:E[21][L],e50:E[50][L],e200:E[200][L],atr:at,piv:at?swings(c,at*2,4,40):[],
-    lastUp:c[L-1]?c[L-1].c>=c[L-1].o:true,res:at?resLevels(c,at,E[200][L],row.ind.ichi,row.ind.ew):[],sup:at?supLevels(c,at,ev,row.ind.ichi,row.ind.ew):[]};
+    lastUp:c[L-1]?c[L-1].c>=c[L-1].o:true,res:at?resLevels(c,at,E[200][L],row.ind.ichi,row.ind.ew,K):[],sup:at?supLevels(c,at,ev,row.ind.ichi,row.ind.ew,K):[],supSL:at?supLevels(c,at,ev,row.ind.ichi,row.ind.ew,K,true):[]};
   row.buy=buyScore(row.ind);
 }
 
