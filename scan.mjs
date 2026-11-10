@@ -274,6 +274,9 @@ async function main() {
   const assets = list.filter(m => !K.skipCoin(m)).slice(0, 100)
     .map((m, i) => ({ kind: "crypto", base: (m.symbol || "").toUpperCase().replace(/[^A-Z0-9]/g, ""), rank: i + 1 }))
     .filter(a => a.base);
+  // coin ngoài top 100 vẫn muốn quét (khai báo EXTRA_CRYPTO trong index.html)
+  const extra = ((fs.readFileSync(path.join(ROOT, "index.html"), "utf8").match(/const EXTRA_CRYPTO=(\[[^\]]*\])/) || [])[1]);
+  try { for (const b of JSON.parse(extra || "[]")) if (!assets.some(a => a.base === b)) assets.push({ kind: "crypto", base: b, rank: 0 }); } catch (e) { }
   for (const [sym, label, name, ex] of K.STOCKS) assets.push({ kind: "stock", base: label, sym, ex });
 
   // 4.2 nến 3 khung + chấm điểm

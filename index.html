@@ -374,7 +374,7 @@ details.how p{color:var(--muted);font-size:12.5px;line-height:1.6;max-width:90ch
     </section>
 
     <section class="panel" id="arbPanel">
-      <h2><span><span class="eyebrow">Delta-neutral · HL S3 + trade.xyz + Metric · Binance · Backpack</span>Short perp premium × mua cổ phiếu token</span><small id="arbNote">đang tải…</small></h2>
+      <h2><span><span class="eyebrow">Delta-neutral · HL S3 + trade.xyz + Metric · Binance · Backpack</span>Short perp premium × mua spot</span><small id="arbNote">đang tải…</small></h2>
       <div class="controls" style="margin-bottom:12px">
         <label class="f" for="arbMin">Premium tối thiểu <input id="arbMin" type="number" step="0.1" min="0" value="0.5" style="width:70px"> %</label>
         <label class="f" for="arbFee">Phí 2 chân (vào + ra) <input id="arbFee" type="number" step="0.05" min="0" value="0.3" style="width:70px"> %</label>
@@ -391,7 +391,7 @@ details.how p{color:var(--muted);font-size:12.5px;line-height:1.6;max-width:90ch
       </div>
       <div class="tablebox">
         <table class="picks" id="arbTable">
-          <thead><tr><th>Mã</th><th>Short perp trade.xyz</th><th>Giá mua spot tốt nhất</th><th>Chênh lệch</th><th>Funding / năm</th><th>Vol 24h perp</th><th>Thanh khoản</th><th>Ước tính 7 ngày</th><th>Gợi ý</th></tr></thead>
+          <thead><tr><th>Mã</th><th>Short perp (sàn)</th><th>Giá mua spot tốt nhất</th><th>Chênh lệch</th><th>Funding / năm</th><th>Vol 24h perp</th><th>Thanh khoản</th><th>Ước tính 7 ngày</th><th>Gợi ý</th></tr></thead>
           <tbody id="arbBody"></tbody>
         </table>
       </div>
@@ -481,6 +481,7 @@ const TOP=100;
 const SKIP=new Set(["brz","gyen","jpyc","zchf","xchf","vchf","veur","vgbp","eurr","eurt","eurs","ageur","eura","euroe","eurq","eurau","gbpt","tgbp","audd","audf","cadc","nzds","bidr","idrt","cnht","mxnt","usdt0","eursafo","jaaa","eutbl","ylds","a7a5","reusd","hash","kau","kag","benji","ustbl","jtrsy","usdo","srusd","syrupusdt","susdf","gusd","usdq","eurcv","eure","xsgd","tryb","bidr","pyusd","usd0++","usdy","stusdt","sfrax","sdai","ousg","buidl","trx","wbt","leo","usdy","u","jst","wlfi","htx","figr_heloc","figr","ousg","usdtb","usdt","usdc","usds","susds","usde","susde","dai","fdusd","tusd","usdp","pyusd","rlusd","usd1","usd0","usdtb","usdf","usyc","ustb","buidl","gho","crvusd","frax","lusd","usdd","usdx","eurc","eurs","xaut","paxg","bsc-usd","bfusd","usdg","usdai","syrupusdc","steth","wsteth","weth","weeth","reth","cbbtc","cbeth","wbeth","wbtc","bnsol","jitosol","msol","bbsol","jupsol","lbtc","solvbtc","tbtc","wbnb","meth","ezeth","rseth","sweth","oseth","lseth","ethx","clbtc","btcb","wsol","wavax","wtrx","weeths","rsweth","pufeth","sfrxeth","stkaave"]);
 const TFMS={"15m":9e5,"1h":36e5,"4h":144e5,"1d":864e5,"1w":6048e5};
 const CGDAYS={"15m":1,"1h":30,"4h":90,"1d":365,"1w":365};
+const EXTRA_CRYPTO=["AERO"];   // coin ngoài top 100 vẫn muốn quét
 const STOCKS=[["INTC","INTC","Intel","NASDAQ"],["CRCL","CRCL","Circle","NYSE"],["COIN","COIN","Coinbase","NASDAQ"],["HOOD","HOOD","Robinhood","NASDAQ"],["MSTR","MSTR","Strategy","NASDAQ"],["BMNR","BMNR","BitMine Immersion","AMEX"],["BLSH","BLSH","Bullish","NYSE"],["SPY","SPY500","S&P 500 (quỹ SPY)","AMEX"],["SECZ","SECZ","Securitize","NYSE"],["SPCX","SPCX","SpaceX","NASDAQ"],["NVDA","NVDA","NVIDIA","NASDAQ"],["AAPL","AAPL","Apple","NASDAQ"],["MSFT","MSFT","Microsoft","NASDAQ"],["GOOGL","GOOGL","Alphabet (Google)","NASDAQ"],["AMZN","AMZN","Amazon","NASDAQ"],["META","META","Meta","NASDAQ"],["TSLA","TSLA","Tesla","NASDAQ"],["AVGO","AVGO","Broadcom","NASDAQ"],["AMD","AMD","AMD","NASDAQ"],["NFLX","NFLX","Netflix","NASDAQ"],["PLTR","PLTR","Palantir","NASDAQ"],["ORCL","ORCL","Oracle","NYSE"],["JPM","JPM","JPMorgan Chase","NYSE"],["QQQ","QQQ","Nasdaq 100 (quỹ QQQ)","NASDAQ"]];
 const YI={"15m":["15m","60d"],"1h":["60m","730d"],"4h":["60m","730d"],"1d":["1d","5y"],"1w":["1wk","10y"]};
 async function yahoo(sym,iv,rg){
@@ -616,6 +617,8 @@ async function load(){
     return;
   }
   if(!mk) showAlert(`<b>CoinGecko chưa phản hồi</b> (${cgErr||"lỗi mạng"}), tạm xếp hạng theo volume Binance. Bấm “Tải lại” sau ít phút, hoặc nhập CoinGecko key.`);
+  EXTRA_CRYPTO.forEach((b,k)=>{ if([...S.rows.values()].some(r=>r.base===b)) return; const bs=b+"USDT", x=bin&&bin.get(bs), key=x?bs:"x:"+b;
+    S.rows.set(key,{key,sym:x?bs:"",base:b,name:b,rank:800+k+1,price:x?+x.lastPrice:null,chg:x?+x.priceChangePercent:0,src:x?"bn":"cg",c:[],ind:null}) });
   STOCKS.forEach(([sym,label,name,ex],k)=>S.rows.set("st:"+sym,{key:"st:"+sym,sym,base:label,name,ex,rank:900+k+1,src:"st",price:null,chg:0,c:[],ind:null}));
   S.stockErr=false;
   const all=[...S.rows.values()], bn=all.filter(r=>r.src==="bn"), cgs=all.filter(r=>r.src==="cg"), sts=all.filter(r=>r.src==="st");
@@ -1744,20 +1747,25 @@ async function loadBinance(){
         if(!/^[A-Z0-9]{2,8}B$/.test(base))return null;const ask=+t.askPrice,bid=+t.bidPrice;if(!(ask>0&&bid>0))return null;
         return {venue:"Binance",sym:base+"/"+q,key:base,ask,bid,liq:Math.round(ask*(+t.askQty||0)),live:true}}).filter(Boolean);return}catch(e){}}
 }
+const ALIAS={GOLD:["GOLD","XAUT","XAUT0","PAXG","XAU"],XAU:["XAUT","XAUT0","PAXG","GOLD"],SILVER:["SILVER","XAG","KAG"]};
+const hlInfo=body=>fetch("https://api.hyperliquid.xyz/info",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}).then(r=>r.ok?r.json():Promise.reject(r.status));
 async function loadArb(){
-  let raw=null,src="";
-  try{ const r=await fetch("https://api.hyperliquid.xyz/info",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"metaAndAssetCtxs",dex:"xyz"})}); if(r.ok){raw=await r.json();src="Hyperliquid trực tiếp"} }catch(e){}
-  if(!raw){ try{ const r=await fetch("/api/xyz",{cache:"no-store"}); if(r.ok){raw=await r.json();src="Hyperliquid qua máy chủ"} }catch(e){} }
-  if(raw&&Array.isArray(raw)&&raw[0]&&raw[0].universe){
-    const [meta,ctxs]=raw; ARB.rows=meta.universe.map((u,i)=>{const c=ctxs[i]||{},mark=+c.markPx,or=+c.oraclePx;
-      if(u.isDelisted||!(mark>0&&or>0)) return null;
-      return {coin:u.name,sym:String(u.name).split(":").pop(),mark,oracle:or,fund:(+c.funding||0)*8760*100,vol:+c.dayNtlVlm||0,oi:(+c.openInterest||0)*mark}}).filter(Boolean);
+  let raws=[],src="";
+  // perp trên Hyperliquid: sàn chính (crypto) + mọi sàn HIP-3 (trade.xyz cổ phiếu, vàng…)
+  try{ let dx=[""]; try{const d=await hlInfo({type:"perpDexs"}); if(Array.isArray(d)) dx=["",...d.slice(1).filter(x=>x&&x.name).map(x=>x.name)]}catch(e){dx=["","xyz"]}
+    raws=(await Promise.all(dx.map(d=>hlInfo(d?{type:"metaAndAssetCtxs",dex:d}:{type:"metaAndAssetCtxs"}).then(r=>[d,r]).catch(()=>null)))).filter(Boolean); if(raws.length) src="Hyperliquid trực tiếp" }catch(e){}
+  if(!raws.length){ try{ const r=await fetch("/api/xyz",{cache:"no-store"}); if(r.ok){raws=[["xyz",await r.json()]];src="Hyperliquid qua máy chủ"} }catch(e){} }
+  if(raws.length){
+    ARB.rows=[]; for(const [d,raw] of raws){ if(!Array.isArray(raw)||!raw[0]) continue; const [meta,ctxs]=raw;
+      meta.universe.forEach((u,i)=>{const c=ctxs[i]||{}; let sym=String(u.name).split(":").pop(), mult=1; if(!d&&/^k[A-Z]/.test(sym)){sym=sym.slice(1);mult=1000}
+        const mark=+c.markPx/mult, or=+c.oraclePx/mult; if(u.isDelisted||!(mark>0&&or>0)) return;
+        ARB.rows.push({coin:u.name,sym,dex:d||"hl",mark,oracle:or,fund:(+c.funding||0)*8760*100,vol:+c.dayNtlVlm||0,oi:(+c.openInterest||0)*mark})}) }
     ARB.at=Date.now(); ARB.src=src; ARB.fromBot=false;
   } else if(S.cloud&&S.cloud.arb&&S.cloud.arb.rows){ ARB.rows=S.cloud.arb.rows; ARB.at=S.cloud.arb.at; ARB.src="bot GitHub"; ARB.fromBot=true }
   const jobs=[];
   if(Date.now()-ARB.mAt>110e3) jobs.push(fetch("/api/metric",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{if(j&&Array.isArray(j.stocks)){ARB.metric=j.stocks;ARB.mAt=Date.now()}}).catch(()=>{}));
   jobs.push(loadBinance());
-  if(!ARB.fromBot&&ARB.rows.length){ const q=ARB.rows.map(r=>`${r.sym}:${+r.oracle.toPrecision(5)}`).join(",");
+  if(!ARB.fromBot&&ARB.rows.length){ const q=ARB.rows.filter(r=>r.dex!=="hl").map(r=>`${r.sym}:${+r.oracle.toPrecision(5)}`).join(",");
     jobs.push(fetch("/api/backpack?q="+encodeURIComponent(q),{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{if(j&&Array.isArray(j.quotes))ARB.bp=j.quotes}).catch(()=>{})) }
   await Promise.all(jobs);
   renderArb();
@@ -1765,9 +1773,9 @@ async function loadArb(){
 const compact=v=>v>=1e9?(v/1e9).toFixed(2)+"B":v>=1e6?(v/1e6).toFixed(2)+"M":v>=1e3?(v/1e3).toFixed(1)+"K":Math.round(v)+"";
 function venuesFor(r,minLiq,V){
   if(ARB.fromBot) return (r.venues||[]).filter(v=>V[v.venue.toLowerCase()]);
-  const S=mAl(r.sym), out=[];
-  if(V.metric){const mt=matchMetric(r.sym,r.oracle,minLiq); if(mt) out.push({venue:"Metric",sym:mt.sym,chain:mt.chain,ask:mt.price,bid:mt.bid||null,liq:mt.liq,live:mt.live!==false,ref:mt.ref})}
-  const near=list=>(list||[]).filter(x=>nameOk(x.key,S)&&Math.abs(x.ask/r.oracle-1)<.1).sort((a,b)=>a.ask-b.ask)[0];
+  const S=mAl(r.sym), names=ALIAS[S]||[S], out=[];
+  if(V.metric){const mt=names.map(n=>matchMetric(n,r.oracle,minLiq)).filter(Boolean).sort((a,b)=>(b.live-a.live)||a.price-b.price)[0]; if(mt) out.push({venue:"Metric",sym:mt.sym,chain:mt.chain,ask:mt.price,bid:mt.bid||null,liq:mt.liq,live:mt.live!==false,ref:mt.ref})}
+  const near=list=>names.map(n=>(list||[]).filter(x=>nameOk(x.key,n)&&Math.abs(x.ask/r.oracle-1)<.1).sort((a,b)=>a.ask-b.ask)[0]).filter(Boolean).sort((a,b)=>a.ask-b.ask)[0];
   if(V.binance){const b=near(ARB.bn); if(b) out.push(b)}
   if(V.backpack){const b=(ARB.bp||[]).filter(x=>x.for===r.sym).sort((a,b)=>a.ask-b.ask)[0]; if(b) out.push(b)}
   return out.sort((a,b)=>(b.live-a.live)||a.ask-b.ask);
@@ -1788,7 +1796,8 @@ function renderArb(){
     const all=r.vs.map(v=>`${v.venue} ${v.sym}${v.chain?` (${v.chain})`:""}: mua ${fp(v.ask)}${v.bid?` / bán ${fp(v.bid)}`:""}${v.live?"":" (giá tham chiếu)"}`).join("&#10;");
     const others=r.vs.slice(1).map(v=>`${v.venue} ${fp(v.ask)}`).join(" · ");
     const m=`<span title="${all}">${b.live?"":"≈ "}${fp(b.ask)}</span> <small class="mut">${b.venue} · ${b.sym}${b.chain?` · ${b.chain}`:""}</small>${others?`<br><small class="mut">${others}</small>`:""}`;
-    return `<tr class="${ok?"":"dim"}"><td class="sym">${r.sym}</td><td>${fp(r.mark)}</td><td>${m}</td>
+    const dx=r.dex&&r.dex!=="hl"?r.dex:"Hyperliquid";
+    return `<tr class="${ok?"":"dim"}"><td class="sym">${r.sym}</td><td>${fp(r.mark)} <small class="mut">${dx}</small></td><td>${m}</td>
       <td><b class="${r.prem>=min?"up":r.prem<0?"dn":"mut"}">${sg(r.prem,3)}%</b></td><td class="${r.fund>=0?"up":"dn"}">${sg(r.fund,1)}%</td>
       <td>${compact(r.vol)}</td><td>${b.liq?compact(b.liq):"–"}</td><td class="${r.edge>=0?"up":"dn"}">${sg(r.edge)}%</td><td>${tip}</td></tr>`}).join("")||`<tr><td colspan="9" class="mut full">Hiện không có mã nào trên trade.xyz có nơi mua spot (theo các nguồn đang bật)</td></tr>`;
 }
