@@ -100,11 +100,13 @@ async function loadMarkets() {
 }
 // tên khác nhau giữa radar và Hyperliquid
 const ALIAS = { XAUT: ["GOLD", "XAU", "PAXG"], PAXG: ["GOLD", "XAU", "PAXG"], XAU: ["GOLD", "XAU"], SPY: ["SPY", "SPX", "SP500", "US500"], SPY500: ["SPY", "SPX", "SP500", "US500"],
-  QQQ: ["QQQ", "NDX", "NAS100", "US100"], GOOGL: ["GOOGL", "GOOG"], BRKB: ["BRK.B", "BRKB"] };
+  QQQ: ["QQQ", "NDX", "NAS100", "US100"], GOOGL: ["GOOGL", "GOOG"], BRKB: ["BRK.B", "BRKB"],
+  GOLD: ["GOLD", "XAU", "PAXG", "XAUT"], SILVER: ["SILVER", "XAG"], OIL: ["OIL", "WTI", "CL", "USOIL", "CRUDE"], COPPER: ["COPPER", "HG", "XCU"] };   // hàng hoá (Trọng 12/11/2026)
 function findMarket(M, j) {
   const base = String((j.src === "st" ? j.sym || j.base : j.base) || "").toUpperCase(), ref = j.cur || j.entry;
   if (!base) return null;
-  const names = [...new Set([base, ...(ALIAS[base] || [])])];
+  const lab = String(j.base || "").toUpperCase();   // nhãn trên radar (vd. GOLD cho mã Yahoo GC=F)
+  const names = [...new Set([base, lab, ...(ALIAS[base] || []), ...(ALIAS[lab] || [])])].filter(Boolean);
   const all = [...M.values()];
   for (const n of names) {
     // ưu tiên sàn chính, sau đó sàn HIP-3 có volume lớn nhất
