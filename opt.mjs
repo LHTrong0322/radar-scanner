@@ -1,6 +1,6 @@
 // Bot tối ưu tự động thuật toán — chạy LIÊN TỤC trên GitHub Actions (mỗi vòng ~15 phút, tự gọi vòng kế tiếp).
-// Backtest 6 năm gần nhất, mọi nến 4H/1D/1W, có phí + funding. Chỉ chọn thông số trên phần huấn luyện (11/2020 → 11/2024);
-// 24 tháng gần nhất giữ kín để chấm hiệu quả thật. KHÔNG sửa bot thật: cấu hình tốt nhất chỉ là đề xuất để Trọng duyệt.
+// Backtest 6 năm gần nhất, mọi nến 4H/1D/1W, có phí + funding. Chỉ chọn thông số trên phần huấn luyện (11/2020 → 12/2022 và 2026);
+// 01/2023 → 12/2025 giữ kín để chấm hiệu quả thật. KHÔNG sửa bot thật: cấu hình tốt nhất chỉ là đề xuất để Trọng duyệt.
 import fs from "node:fs";
 import path from "node:path";
 
@@ -86,8 +86,8 @@ const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
 // ---------- trạng thái (phiên bản 2: chạy liên tục, nhiều chế độ dò, có kiểm tra kín) ----------
 // Mục tiêu (Trọng 11/11/2026): tăng tổng R + win rate, rủi ro thấp nhất.
-//   fit = tổng R ÷ sụt vốn Monte Carlo 95% — đều tính trên phần HUẤN LUYỆN (11/2020 → 24 tháng trước).
-//   24 tháng gần nhất là phần KIỂM TRA KÍN: không dùng để chọn, chỉ để chấm xem cấu hình có hiệu quả thật trên dữ liệu chưa từng thấy.
+//   fit = tổng R ÷ sụt vốn Monte Carlo 95% — đều tính trên phần HUẤN LUYỆN (11/2020 → 12/2022 và năm 2026).
+//   01/2023 → 12/2025 là phần KIỂM TRA KÍN (Trọng chốt): không dùng để chọn, chỉ để chấm xem cấu hình có hiệu quả thật trên dữ liệu chưa từng thấy.
 // Chế độ dò (tự chuyển khi chế độ hiện tại hết thứ có ích để thử; nhận được thay đổi nào thì quay lại "từng thông số"):
 //   coord  : đổi từng thông số một sang giá trị kề bên
 //   fine   : thử giá trị nằm giữa (tinh chỉnh) quanh giá trị đang tốt nhất
@@ -187,6 +187,8 @@ function candidates(S, usable, mode, want) {
 }
 function plan() {
   const S = load(), html = fs.readFileSync(HTML, "utf8"), WANT = +arg("configs", 12);
+  const SPLIT = "kin-2023-2025";   // đổi cách chia huấn luyện / kiểm tra kín → số liệu cũ không so được nữa
+  if (S.split !== SPLIT) { S.split = SPLIT; S.baseline = null; S.seen = {}; S.near = []; S.mode = "coord"; S.rounds.push({ round: S.round, mode: "coord", rows: [], accepted: [], note: "Trọng đổi kiểm tra kín sang 01/2023 → 12/2025 → bắt đầu lại từ cấu hình bot thật" }); for (const k of KNOBS) S.best[k.id] = k.cur; }
   syncLive(S, html);
   fs.rmSync(DIR, { recursive: true, force: true }); fs.mkdirSync(DIR, { recursive: true });
   const usable = KNOBS.filter(k => { try { patches(html, { [k.id]: k.c.find(v => !eq(v, k.cur)) }); return true; } catch (e) { console.log("Bỏ qua:", k.label, e.message); return false; } });
@@ -257,11 +259,11 @@ function report(S) {
   const L = [`# Tối ưu tự động (chạy liên tục) — vòng ${S.round}`, "",
     "Bot thật KHÔNG bị thay đổi cho tới khi Trọng duyệt. Backtest mọi nến 4H/1D/1W trong 6 năm gần nhất (từ 11/2020), có phí + funding, không tính BTC (BTC dành cho chiến lược RSI).", "",
     "**Mục tiêu:** tăng tổng R + win rate, rủi ro thấp nhất → chỉ số chính = tổng R ÷ sụt vốn Monte Carlo 95% (xáo trộn thứ tự lệnh 2000 lần, lấy mức sụt vốn mà 95% trường hợp không vượt quá).",
-    "Chỉ chọn thông số trên phần **huấn luyện** (11/2020 → 11/2024). **24 tháng gần nhất là kiểm tra kín**: không dùng để chọn, chỉ để chấm hiệu quả thật.",
-    "Nhận thay đổi khi: chỉ số tăng ≥ 3%, tổng R không giảm quá 3%, win rate không giảm quá 0.5 điểm, sụt vốn MC95 không tệ hơn 5%, không xấu đi ở cả 2 nửa phần huấn luyện, số lệnh không giảm quá 30%.",
-    "⚠️ Các thay đổi Trọng duyệt trước 11/11/2026 21:30 đã được chọn khi nhìn toàn bộ dữ liệu, kể cả 24 tháng gần nhất → với chúng, phần kiểm tra kín không còn kín hoàn toàn.", "",
+    "Chỉ chọn thông số trên phần **huấn luyện** (11/2020 → 12/2022 và năm 2026). **01/2023 → 12/2025 là kiểm tra kín**: không dùng để chọn, chỉ để chấm hiệu quả thật.",
+    "Nhận thay đổi khi: chỉ số tăng ≥ 3%, tổng R không giảm quá 3%, win rate không giảm quá 0.5 điểm, sụt vốn MC95 không tệ hơn 5%, không xấu đi ở cả 2 phần huấn luyện (trước 2023 / năm 2026), số lệnh không giảm quá 30%.",
+    "⚠️ Các thay đổi Trọng duyệt trước 11/11/2026 21:30 đã được chọn khi nhìn toàn bộ dữ liệu, kể cả giai đoạn kiểm tra kín → với chúng, phần kiểm tra kín không còn kín hoàn toàn.", "",
     `Chế độ dò hiện tại: **${MODE_VI[S.mode]}** · đã thử ${S.tested} phương án.`, "",
-    "## Bot thật so với cấu hình tốt nhất", "", "Cấu hình mới chỉ đáng tin khi THẮNG bot thật ở phần kiểm tra kín (24 tháng gần nhất). Thua ở đó thì bỏ, dù phần huấn luyện đẹp đến đâu.", "",
+    "## Bot thật so với cấu hình tốt nhất", "", "Cấu hình mới chỉ đáng tin khi THẮNG bot thật ở phần kiểm tra kín (01/2023 → 12/2025). Thua ở đó thì bỏ, dù phần huấn luyện đẹp đến đâu.", "",
     "| | Lệnh (huấn luyện) | Win rate | Tổng R | R/lệnh | Sụt vốn lớn nhất | Sụt vốn MC95 | Tổng R ÷ MC95 | Lệnh (kiểm tra kín) | Win rate | Tổng R | R/lệnh | Sụt vốn |",
     "|---|---|---|---|---|---|---|---|---|---|---|---|---|", row("Bot thật", lv), row("**Tốt nhất**", b), ""];
   if (b && b.tf) { const tfs = Object.keys({ ...b.tf, ...b.tfTest });
@@ -275,7 +277,7 @@ function report(S) {
   for (const r of S.rounds.slice(-10).reverse()) {
     L.push(`### Vòng ${r.round} — ${MODE_VI[r.mode] || r.mode}` + (r.base ? ` · mốc: tổng ${r.base.tot}R, win ${r.base.win}%, MC95 ${r.base.dd95}R, chỉ số ${fit(r.base).toFixed(2)}` : ""));
     if (r.note) L.push(r.note);
-    if (r.rows.length) { L.push("", "| Phương án | Tổng R | Win rate | R/lệnh | MC95 | Chỉ số | Nửa đầu | Nửa sau | Kiểm tra kín (R) | Nhận? |", "|---|---|---|---|---|---|---|---|---|---|");
+    if (r.rows.length) { L.push("", "| Phương án | Tổng R | Win rate | R/lệnh | MC95 | Chỉ số | R/lệnh trước 2023 | R/lệnh 2026 | Kiểm tra kín (R) | Nhận? |", "|---|---|---|---|---|---|---|---|---|---|");
       for (const x of r.rows) L.push(`| ${x.desc} | ${f2(x.tot)} | ${f2(x.win)}% | ${f2(x.exp)} | ${f2(x.dd95)} | ${f2(x.fit)} | ${f2(x.h1)} | ${f2(x.h2)} | ${x.test ? x.test.tot : "–"} | ${x.good ? "✅" : ""} |`); }
     if (r.accepted.length) L.push("", "Nhận: " + r.accepted.map(a => `${a.label} ${fmt(a.from)} → ${fmt(a.to)}`).join(" · "));
     L.push("");
