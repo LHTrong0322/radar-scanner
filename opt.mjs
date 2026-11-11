@@ -32,6 +32,10 @@ const KNOBS = [
   W("regime", "Lọc BTC trên EMA200 (crypto)", [[/const REGIME=[^;]*;/, "const REGIME={v};"]], true, [false, true], "Bộ lọc"),
   W("a2", "Xác nhận khung nhỏ (A2)", [[/const LTF_CONFIRM=\{[^}]*\};/, "const LTF_CONFIRM={v};"]], "ON", ["OFF", "W", "ON"], "Bộ lọc",),
   W("dow", "Cổng Dow", [[/const dw=i\.dow, dowOK=[^;]*;/, "{v}"]], "LỎNG", ["TẮT", "LỎNG", "CHẶT"], "Bộ lọc"),
+  W("maxtps", "Số TP tối đa", [["const MAX_TPS=2;", "const MAX_TPS={v};"]], 2, [1, 2, 3], "TP"),
+  W("adxw", "Điểm ADX > 25 và +DI trội (Momentum)", [["`ADX ${A} > 25, +DI trội${ad.rising?\", ADX đang tăng\":\"\"}`,2]", "`ADX ${A} > 25, +DI trội${ad.rising?\", ADX đang tăng\":\"\"}`,{v}]"]], 2, [0, 1, 2, 3, 4], "Điểm phụ"),
+  W("adxlow", "Điểm ADX < 13 cạn lực giảm (Momentum)", [["xu hướng giảm cạn lực, ủng hộ đảo chiều`,1.5]", "xu hướng giảm cạn lực, ủng hộ đảo chiều`,{v}]"]], 1.5, [0, .75, 1.5, 2.5], "Điểm phụ"),
+  W("hdiv", "Cộng điểm phân kỳ dương ẩn", [["score+=3;notes.push(\"+3 phân kỳ dương ẩn", "score+={v};notes.push(\"+3 phân kỳ dương ẩn"]], 3, [0, 1.5, 3, 5, 8], "Điểm phụ"),
   // trọng số /100
   ...[["Trend", "T", 30], ["Momentum", "M", 15], ["Elliott", "W", 15], ["Entry", "En", 20], ["R:R", "RR", 20], ["Divergence", "D", 10], ["SL", "SLq", 5]].map(([n, vn, w]) =>
     W("p_" + vn, `Trọng số phần ${n} (/100)`, [[`["${n}",${vn},${w}]`, `["${n}",${vn},{v}]`]], w, [0, Math.round(w / 2), w, Math.round(w * 1.5), w * 2], "Điểm /100")),
@@ -50,6 +54,16 @@ const KNOBS = [
     ["z_w1", "Đỉnh sóng 1 (sàn sóng 4)", [['out.push([v[1],"đỉnh sóng 1 (sàn của sóng 4)",2.5])', 'out.push([v[1],"đỉnh sóng 1 (sàn của sóng 4)",{v}])']], 2.5],
     ["z_rsi", "Mức RSI 30/70", [['add(K.r70,"RSI chạm 70 (quá mua)",1)', 'add(K.r70,"RSI chạm 70 (quá mua)",{v})'], ['add(K.r30,"RSI chạm 30 (quá bán)",1)', 'add(K.r30,"RSI chạm 30 (quá bán)",{v})']], 1],
     ["z_macd", "Mức MACD", [['add(K.mf.px,"MACD còn trên Signal",1)', 'add(K.mf.px,"MACD còn trên Signal",{v})']], 1],
+    ["z_pocfix", "POC volume profile cố định", [["out.push([fx.poc,\"POC volume profile 250 nến\",.5])", "out.push([fx.poc,\"POC volume profile 250 nến\",{v}])"]], 0.5],
+    ["z_hvna", "HVN anchored", [["out.push([v,\"HVN anchored VP\",.5])", "out.push([v,\"HVN anchored VP\",{v}])"]], 0.5],
+    ["z_hvnf", "HVN cố định", [["out.push([v,\"HVN volume profile 250 nến\",.5])", "out.push([v,\"HVN volume profile 250 nến\",{v}])"]], 0.5],
+    ["z_rsi45", "Vùng RSI 45–55", [["add(K.r45,\"RSI 45–55 (hỗ trợ)\",1)", "add(K.r45,\"RSI 45–55 (hỗ trợ)\",{v})"], ["add(K.r45,\"RSI 45–55 (kháng cự)\",1)", "add(K.r45,\"RSI 45–55 (kháng cự)\",{v})"], ["add(K.r55,\"RSI 45–55 (hỗ trợ)\",1)", "add(K.r55,\"RSI 45–55 (hỗ trợ)\",{v})"], ["add(K.r55,\"RSI 45–55 (kháng cự)\",1)", "add(K.r55,\"RSI 45–55 (kháng cự)\",{v})"]], 1],
+    ["z_ichi", "Biên mây Ichimoku", [["if(ichi&&ichi.bot!=null){ add(ichi.bot,\"đáy mây Ichimoku\",1.2); add(ichi.top,\"đỉnh mây Ichimoku\",1.2) }", "if(ichi&&ichi.bot!=null){ add(ichi.bot,\"đáy mây Ichimoku\",{v}); add(ichi.top,\"đỉnh mây Ichimoku\",{v}) }"], ["if(ichi&&ichi.bot!=null){ add(ichi.bot,\"đáy mây Ichimoku\",1.2); add(ichi.top,\"đỉnh mây Ichimoku\",1.2);", "if(ichi&&ichi.bot!=null){ add(ichi.bot,\"đáy mây Ichimoku\",{v}); add(ichi.top,\"đỉnh mây Ichimoku\",{v});"]], 1.2],
+    ["z_ewinv", "Mức sai Elliott (cho SL)", [["add(ew.inv,\"mức sai Elliott\",2)", "add(ew.inv,\"mức sai Elliott\",{v})"]], 2],
+    ["z_htc", "Hỗ trợ cũ bị phá (thành kháng cự)", [["add(c[i].l,\"hỗ trợ cũ đã bị phá\",1)", "add(c[i].l,\"hỗ trợ cũ đã bị phá\",{v})"]], 1],
+    ["z_macdx", "MACD cắt lên Signal", [["add(K.mf.px,\"MACD cắt lên Signal\",.5)", "add(K.mf.px,\"MACD cắt lên Signal\",{v})"]], 0.5],
+    ["z_fib2b", "Fib 0.5 / 0.382 sóng 2", [["\"Fib 0.5 sóng 1 (vùng sóng 2)\",2]", "\"Fib 0.5 sóng 1 (vùng sóng 2)\",{v}]"]], 2],
+    ["z_fib4", "Fib sóng 4", [["\"Fib 0.382 sóng 3 (sóng 2 sâu → sóng 4 nông)\",2.5]", "\"Fib 0.382 sóng 3 (sóng 2 sâu → sóng 4 nông)\",{v}]"], ["\"Fib 0.618 sóng 3 (sóng 2 nông → sóng 4 sâu)\",2.5]", "\"Fib 0.618 sóng 3 (sóng 2 nông → sóng 4 sâu)\",{v}]"]], 2.5],
   ].map(([id, label, finds, w]) => W(id, `Điểm vùng: ${label}`, finds, w, [0, +(w / 2).toFixed(2), w, +(w * 1.5).toFixed(2), w * 2], "Điểm vùng giá")),
 ];
 const SPECIAL = {
@@ -144,7 +158,7 @@ function update() {
   S.baseline = base;
   S.history.push({ round: S.round, base, accepted: acc, rows });
   const usable = KNOBS.length;
-  if (S.stale >= usable || S.round >= +arg("max", 30)) S.done = true;
+  if (S.stale >= usable || S.round >= +arg("max", 60)) S.done = true;
   save(S); report(S);
   fs.writeFileSync("opt/continue", S.done ? "0" : "1");
   console.log(`Vòng ${S.round}: nhận ${acc.length} thay đổi · ${S.done ? "DỪNG (hội tụ / đủ vòng)" : "tiếp tục"}`);
