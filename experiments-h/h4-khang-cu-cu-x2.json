@@ -1,0 +1,10 @@
+{
+ "name": "h4-khang-cu-cu-x2",
+ "desc": "Kháng cự cũ đã bị phá (thành hỗ trợ) điểm 1.5 → 3",
+ "patch": [
+  {
+   "find": "if(ph) add(c[i].h,\"kháng cự cũ đã bị phá\",1.5);",
+   "replace": "if(ph) add(c[i].h,\"kháng cự cũ đã bị phá\",3);"
+  }
+ ]
+}

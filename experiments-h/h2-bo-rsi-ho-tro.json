@@ -1,0 +1,10 @@
+{
+ "name": "h2-bo-rsi-ho-tro",
+ "desc": "Bỏ mức RSI (30, 45–55) khỏi vùng hỗ trợ đặt Entry/SL",
+ "patch": [
+  {
+   "find": "add(K.r45,\"RSI 45–55 (hỗ trợ)\",1); add(K.r55,\"RSI 45–55 (hỗ trợ)\",1); add(K.r30,\"RSI chạm 30 (quá bán)\",1);",
+   "replace": "add(K.r45,\"RSI 45–55 (hỗ trợ)\",0); add(K.r55,\"RSI 45–55 (hỗ trợ)\",0); add(K.r30,\"RSI chạm 30 (quá bán)\",0);"
+  }
+ ]
+}

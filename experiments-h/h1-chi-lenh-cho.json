@@ -1,0 +1,10 @@
+{
+ "name": "h1-chi-lenh-cho",
+ "desc": "Bỏ vào ngay (market), chỉ đặt lệnh chờ",
+ "patch": [
+  {
+   "find": "const STRONG_MKT=6;",
+   "replace": "const STRONG_MKT=99;"
+  }
+ ]
+}

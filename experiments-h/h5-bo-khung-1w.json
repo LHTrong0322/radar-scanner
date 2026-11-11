@@ -1,0 +1,10 @@
+{
+ "name": "h5-bo-khung-1w",
+ "desc": "Không vào lệnh khung 1W",
+ "patch": [
+  {
+   "find": "ADD_1W=0",
+   "replace": "ADD_1W=100"
+  }
+ ]
+}

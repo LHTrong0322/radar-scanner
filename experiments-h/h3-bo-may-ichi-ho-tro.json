@@ -1,0 +1,14 @@
+{
+ "name": "h3-bo-may-ichi-ho-tro",
+ "desc": "Bỏ mây Ichimoku (biên mây + đỉnh mây đã break) khỏi vùng hỗ trợ",
+ "patch": [
+  {
+   "find": "if(ichi.state===1) add(ichi.top,\"đã break lên mây Ichimoku\",2) }",
+   "replace": "if(ichi.state===1) add(ichi.top,\"đã break lên mây Ichimoku\",0) }"
+  },
+  {
+   "find": "if(ichi&&ichi.bot!=null){ add(ichi.bot,\"đáy mây Ichimoku\",1.2); add(ichi.top,\"đỉnh mây Ichimoku\",1.2);",
+   "replace": "if(ichi&&ichi.bot!=null){ add(ichi.bot,\"đáy mây Ichimoku\",0); add(ichi.top,\"đỉnh mây Ichimoku\",0);"
+  }
+ ]
+}

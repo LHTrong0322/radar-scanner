@@ -1,0 +1,30 @@
+{
+ "name": "h6-to-hop",
+ "desc": "Tổ hợp h1+h2+h3+h4+h5",
+ "patch": [
+  {
+   "find": "const STRONG_MKT=6;",
+   "replace": "const STRONG_MKT=99;"
+  },
+  {
+   "find": "add(K.r45,\"RSI 45–55 (hỗ trợ)\",1); add(K.r55,\"RSI 45–55 (hỗ trợ)\",1); add(K.r30,\"RSI chạm 30 (quá bán)\",1);",
+   "replace": "add(K.r45,\"RSI 45–55 (hỗ trợ)\",0); add(K.r55,\"RSI 45–55 (hỗ trợ)\",0); add(K.r30,\"RSI chạm 30 (quá bán)\",0);"
+  },
+  {
+   "find": "if(ichi.state===1) add(ichi.top,\"đã break lên mây Ichimoku\",2) }",
+   "replace": "if(ichi.state===1) add(ichi.top,\"đã break lên mây Ichimoku\",0) }"
+  },
+  {
+   "find": "if(ph) add(c[i].h,\"kháng cự cũ đã bị phá\",1.5);",
+   "replace": "if(ph) add(c[i].h,\"kháng cự cũ đã bị phá\",3);"
+  },
+  {
+   "find": "ADD_1W=0",
+   "replace": "ADD_1W=100"
+  },
+  {
+   "find": "if(ichi&&ichi.bot!=null){ add(ichi.bot,\"đáy mây Ichimoku\",1.2); add(ichi.top,\"đỉnh mây Ichimoku\",1.2);",
+   "replace": "if(ichi&&ichi.bot!=null){ add(ichi.bot,\"đáy mây Ichimoku\",0); add(ichi.top,\"đỉnh mây Ichimoku\",0);"
+  }
+ ]
+}
