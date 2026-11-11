@@ -1,0 +1,90 @@
+name: Backtest TOÀN BỘ dữ liệu
+
+# Backtest 100% dữ liệu: toàn bộ lịch sử (từ 2018), mọi coin trong danh sách + cổ phiếu, BTC thêm khung 15m/1h,
+# xét MỌI nến, chấm SL/TP bằng nến 1H. Chia cho 8 máy chạy song song rồi gộp kết quả. Không đặt lệnh.
+on:
+  workflow_dispatch:
+    inputs:
+      days:
+        description: "Số ngày quá khứ, hoặc max (toàn bộ từ 2018)"
+        default: "max"
+      side:
+        description: "long hoặc short"
+        default: "long"
+      experiments:
+        description: "Chạy kèm các thí nghiệm trong experiments/ (all / none)"
+        default: "all"
+      label:
+        description: "(tuỳ chọn) tên ngắn cho lần chạy"
+        default: "full"
+
+permissions:
+  contents: write
+
+jobs:
+  shard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        k: [0, 1, 2, 3, 4, 5, 6, 7]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Chạy phần ${{ matrix.k }}/8
+        env:
+          DAYS: ${{ github.event.inputs.days }}
+          SIDE: ${{ github.event.inputs.side }}
+          EXPS: ${{ github.event.inputs.experiments }}
+        run: |
+          EXTRA=""
+          if [ "$EXPS" != "none" ] && ls experiments/*.json >/dev/null 2>&1; then EXTRA="--exp experiments"; fi
+          node bt.mjs --days "$DAYS" --side "$SIDE" --shard ${{ matrix.k }}/8 --out shards $EXTRA
+      - uses: actions/upload-artifact@v4
+        with:
+          name: shard-${{ matrix.k }}
+          path: shards/
+          retention-days: 3
+
+  merge:
+    needs: shard
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/download-artifact@v4
+        with:
+          path: shards
+          merge-multiple: true
+      - name: Gộp kết quả
+        env:
+          DAYS: ${{ github.event.inputs.days }}
+          SIDE: ${{ github.event.inputs.side }}
+          EXPS: ${{ github.event.inputs.experiments }}
+          LABEL: ${{ github.event.inputs.label }}
+        run: |
+          ls shards
+          EXTRA=""
+          if [ "$EXPS" != "none" ] && ls experiments/*.json >/dev/null 2>&1; then EXTRA="--exp experiments"; fi
+          node bt.mjs --days "$DAYS" --side "$SIDE" --label "$LABEL" --merge shards $EXTRA
+      - name: Lưu kết quả
+        run: |
+          git config user.name "radar-backtest"
+          git config user.email "radar-backtest@users.noreply.github.com"
+          git add backtests
+          git commit -m "backtest full $(date -u +%Y-%m-%d)" || exit 0
+          for i in 1 2 3 4 5; do
+            git pull --rebase -X theirs origin main && git push origin HEAD:main && exit 0
+            sleep $((i * 5))
+          done
+          exit 1

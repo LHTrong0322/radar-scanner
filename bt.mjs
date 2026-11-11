@@ -10,13 +10,16 @@ import os from "node:os";
 import { Worker, isMainThread, parentPort, workerData } from "node:worker_threads";
 
 const arg = (k, d) => { const i = process.argv.indexOf("--" + k); return i > 0 ? process.argv[i + 1] : d; };
-const DAYS = +arg("days", 730), MAX = +arg("max", 200), SIDE = arg("side", "long") === "short" ? "short" : "long";
+const DAYS_ARG = arg("days", "730"), DAYS = DAYS_ARG === "max" ? Math.floor((Date.now() - Date.UTC(2018, 0, 1)) / 864e5) : +DAYS_ARG, MAX = +arg("max", 200), SIDE = arg("side", "long") === "short" ? "short" : "long";
 const HTML = arg("html", "index.html"), HTML2 = arg("html2", ""), NAMES = arg("names", ""), LABEL = arg("label", ""), OUT = arg("out", "backtests");
-const TFS = ["4h", "1d", "1w"], HTF = { "4h": "1d", "1d": "1w", "1w": null }, EXEC = { "4h": "4h", "1d": "4h", "1w": "1d" };
-const STEP = { "4h": +arg("step4h", 1), "1d": 1, "1w": 1 };    // xét mọi nến (step 1) để kết quả không phụ thuộc thời điểm lấy mẫu
+const TFS = ["4h", "1d", "1w"], LOWTFS = ["15m", "1h"], HTF = { "15m": "1h", "1h": "4h", "4h": "1d", "1d": "1w", "1w": null };
+const EXEC = { "15m": "15m", "1h": "1h", "4h": "1h", "1d": "1h", "1w": "1d" };   // chấm SL/TP bằng nến nhỏ hơn cho chính xác
+const LOW_DAYS = Math.min(DAYS, +arg("lowdays", 730));     // BTC 15m/1h: chỉ xét 2 năm gần nhất cho nhẹ
+const STEP = { "15m": 1, "1h": 1, "4h": +arg("step4h", 1), "1d": 1, "1w": 1 };    // xét mọi nến (step 1) để kết quả không phụ thuộc thời điểm lấy mẫu
 const WIN = 400;                                             // số nến đưa vào thuật toán mỗi lần (giống bot)
 const MS = { "15m": 9e5, "1h": 36e5, "4h": 144e5, "1d": 864e5, "1w": 6048e5 };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+let K1s = [];   // nhãn các mã cổ phiếu (để tách thống kê crypto / cổ phiếu)
 
 function loadCore(file, text) {
   const js = (text ?? fs.readFileSync(file, "utf8")).split("<script>")[1].split("</script>")[0];
@@ -25,8 +28,10 @@ function loadCore(file, text) {
   const src = [grab(/const TFMS=[^\n]*/), grab(/const SETS=[^\n]*/), grab(/const SKIP=[^\n]*/), grab(/const STOCKS=[^\n]*/), js.slice(a, b),
     grab(/const trendOf=[^\n]*/), grab(/function simulate\([\s\S]*?\n\}/)].join("\n");
   const extra = (js.match(/const EXTRA_CRYPTO=(\[[^\]]*\])/) || [])[1];
-  const K = new Function("S", src + "\nreturn {compute,trendOf,simulate,clamp,TFMS,PICK_MIN:typeof PICK_MIN!=='undefined'?PICK_MIN:70,MIN_RR:typeof MIN_RR!=='undefined'?MIN_RR:2,TF_ADD:typeof TF_ADD!=='undefined'?TF_ADD:{},HTF_MIN:typeof HTF_MIN!=='undefined'?HTF_MIN:null,REGIME:typeof REGIME!=='undefined'?REGIME:false,LTF_CONFIRM:typeof LTF_CONFIRM!=='undefined'?LTF_CONFIRM:{},upClear:typeof upClear!=='undefined'?upClear:()=>true,ltfOK:typeof ltfOK!=='undefined'?ltfOK:null,ema};")({ tf: "4h", win: 3, os: 30, ob: 70 });
+  const K = new Function("S", src + "\nreturn {compute,trendOf,simulate,clamp,TFMS,PICK_MIN:typeof PICK_MIN!=='undefined'?PICK_MIN:70,MIN_RR:typeof MIN_RR!=='undefined'?MIN_RR:2,TF_ADD:typeof TF_ADD!=='undefined'?TF_ADD:{},HTF_MIN:typeof HTF_MIN!=='undefined'?HTF_MIN:null,REGIME:typeof REGIME!=='undefined'?REGIME:false,LOW_TF_ASSETS:typeof LOW_TF_ASSETS!=='undefined'?LOW_TF_ASSETS:[],LTF_CONFIRM:typeof LTF_CONFIRM!=='undefined'?LTF_CONFIRM:{},upClear:typeof upClear!=='undefined'?upClear:()=>true,ltfOK:typeof ltfOK!=='undefined'?ltfOK:null,ema};")({ tf: "4h", win: 3, os: 30, ob: 70 });
   K.extra = extra ? JSON.parse(extra) : [];
+  try { K.stocks = JSON.parse((js.match(/const STOCKS=(\[[\s\S]*?\]\]);/) || [])[1] || "[]"); } catch (e) { K.stocks = []; }
+  K.lowAssets = K.LOW_TF_ASSETS || [];
   return K;
 }
 
@@ -40,7 +45,7 @@ async function getJ(url, opt = {}) {
 }
 async function binance(b, tf, from) {
   let out = [], st = from;
-  for (let p = 0; p < 20; p++) {
+  for (let p = 0; p < 150; p++) {
     const j = await getJ(`https://data-api.binance.vision/api/v3/klines?symbol=${b}USDT&interval=${tf}&limit=1000&startTime=${st}`);
     if (!Array.isArray(j) || !j.length) break;
     out = out.concat(j.map(a => ({ t: a[0], o: +a[1], h: +a[2], l: +a[3], c: +a[4], v: +a[5] })));
@@ -59,8 +64,8 @@ async function hyper(b, tf, from) {
   try { return await one(b, 1); } catch (e) { return await one("k" + b, 1000); }
 }
 async function bybit(b, tf, from) {
-  const iv = { "1h": "60", "4h": "240", "1d": "D", "1w": "W" }[tf]; let out = [], end = Date.now();
-  for (let p = 0; p < 20; p++) {
+  const iv = { "15m": "15", "1h": "60", "4h": "240", "1d": "D", "1w": "W" }[tf]; let out = [], end = Date.now();
+  for (let p = 0; p < 150; p++) {
     const j = await getJ(`https://api.bybit.com/v5/market/kline?category=spot&symbol=${b}USDT&interval=${iv}&limit=1000&start=${from}&end=${end}`);
     const L = j && j.retCode === 0 ? j.result.list : []; if (!L.length) break;
     out = L.map(a => ({ t: +a[0], o: +a[1], h: +a[2], l: +a[3], c: +a[4], v: +a[5] })).reverse().concat(out);
@@ -70,7 +75,7 @@ async function bybit(b, tf, from) {
   return out;
 }
 async function okx(b, tf, from) {
-  const bar = { "1h": "1H", "4h": "4H", "1d": "1Dutc", "1w": "1Wutc" }[tf]; let out = [], after = "";
+  const bar = { "15m": "15m", "1h": "1H", "4h": "4H", "1d": "1Dutc", "1w": "1Wutc" }[tf]; let out = [], after = "";
   for (let p = 0; p < 40; p++) {
     const j = await getJ(`https://www.okx.com/api/v5/market/history-candles?instId=${b}-USDT&bar=${bar}&limit=100${after ? "&after=" + after : ""}`);
     const L = j && j.code === "0" ? j.data : []; if (!L.length) break;
@@ -80,16 +85,59 @@ async function okx(b, tf, from) {
   if (!out.length) throw new Error("okx trống");
   return out.filter(k => k.t >= from);
 }
+async function kucoin(b, tf, from) {
+  const ty = { "15m": "15min", "1h": "1hour", "4h": "4hour", "1d": "1day", "1w": "1week" }[tf]; let out = [], end = Math.floor(Date.now() / 1000);
+  for (let p = 0; p < 40; p++) {
+    const j = await getJ(`https://api.kucoin.com/api/v1/market/candles?type=${ty}&symbol=${b}-USDT&startAt=${Math.floor(from / 1000)}&endAt=${end}`);
+    const L = j && j.code === "200000" ? j.data : []; if (!L.length) break;
+    out = L.map(a => ({ t: +a[0] * 1000, o: +a[1], c: +a[2], h: +a[3], l: +a[4], v: +a[5] })).reverse().concat(out);
+    end = +L.at(-1)[0] - 1; if (L.length < 1500 || end * 1000 <= from) break;
+  }
+  if (!out.length) throw new Error("kucoin trống"); return out;
+}
+async function mexc(b, tf, from) {
+  const iv = { "15m": "15m", "1h": "60m", "4h": "4h", "1d": "1d", "1w": "1W" }[tf]; let out = [], st = from;
+  for (let p = 0; p < 40; p++) {
+    const j = await getJ(`https://api.mexc.com/api/v3/klines?symbol=${b}USDT&interval=${iv}&limit=1000&startTime=${st}`);
+    if (!Array.isArray(j) || !j.length) break;
+    out = out.concat(j.map(a => ({ t: +a[0], o: +a[1], h: +a[2], l: +a[3], c: +a[4], v: +a[5] })));
+    if (j.length < 1000) break; st = +j.at(-1)[0] + 1;
+  }
+  if (!out.length) throw new Error("mexc trống"); return out;
+}
+async function bitget(b, tf, from) {
+  const g = { "15m": "15min", "1h": "1h", "4h": "4h", "1d": "1day", "1w": "1week" }[tf]; let out = [], end = Date.now();
+  for (let p = 0; p < 60; p++) {
+    const j = await getJ(`https://api.bitget.com/api/v2/spot/market/history-candles?symbol=${b}USDT&granularity=${g}&endTime=${end}&limit=200`);
+    const L = j && j.code === "00000" ? j.data : []; if (!L.length) break;
+    out = L.map(a => ({ t: +a[0], o: +a[1], h: +a[2], l: +a[3], c: +a[4], v: +a[5] })).concat(out);
+    end = +L[0][0] - 1; if (L.length < 200 || end <= from) break;
+  }
+  if (!out.length) throw new Error("bitget trống"); return out.filter(k => k.t >= from).sort((a, b) => a.t - b.t);
+}
 async function gate(b, tf, from) {
-  const iv = { "1h": "1h", "4h": "4h", "1d": "1d", "1w": "7d" }[tf];
+  const iv = { "15m": "15m", "1h": "1h", "4h": "4h", "1d": "1d", "1w": "7d" }[tf];
   const j = await getJ(`https://api.gateio.ws/api/v4/spot/candlesticks?currency_pair=${b}_USDT&interval=${iv}&limit=1000`);
   if (!Array.isArray(j) || !j.length) throw new Error("gate trống");
   return j.map(a => ({ t: +a[0] * 1000, o: +a[5], h: +a[3], l: +a[4], c: +a[2], v: +a[6] })).filter(k => k.t >= from);
 }
+const agg = (c, ms, wk) => { const m = new Map(); for (const x of c) { const k = wk ? Math.floor((x.t - 4 * 864e5) / ms) : Math.floor(x.t / ms), g = m.get(k);
+  if (!g) m.set(k, { t: x.t, o: x.o, h: x.h, l: x.l, c: x.c, v: x.v }); else { g.h = Math.max(g.h, x.h); g.l = Math.min(g.l, x.l); g.c = x.c; g.v += x.v; } } return [...m.values()]; };
+async function yahoo(sym, interval, range) {
+  const j = await getJ(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=${interval}&range=${range}&includePrePost=false`);
+  const r = j.chart.result[0], q = r.indicators.quote[0], out = [];
+  (r.timestamp || []).forEach((t, k) => { if ([q.open[k], q.high[k], q.low[k], q.close[k]].every(x => x != null)) out.push({ t: t * 1000, o: q.open[k], h: q.high[k], l: q.low[k], c: q.close[k], v: q.volume[k] || 0 }); });
+  if (out.length < 30) throw new Error("Yahoo thiếu nến"); return out;
+}
+const stockMemo = new Map();
+async function stockCandles(sym, tf) {
+  if (tf === "1h" || tf === "4h") { if (!stockMemo.has(sym + "h")) stockMemo.set(sym + "h", yahoo(sym, "60m", "730d")); const h = await stockMemo.get(sym + "h"); return tf === "1h" ? h : agg(h, MS["4h"]); }
+  if (!stockMemo.has(sym + "d")) stockMemo.set(sym + "d", yahoo(sym, "1d", "10y")); const d = await stockMemo.get(sym + "d"); return tf === "1w" ? agg(d, MS["1w"], true) : d;
+}
 async function candles(b, tf, from) {
   // lấy nguồn có lịch sử dài nhất trong các sàn (Binance → Bybit → OKX → Hyperliquid → Gate)
   let best = null;
-  for (const f of [binance, bybit, okx, hyper, gate]) {
+  for (const f of [binance, bybit, okx, hyper, kucoin, mexc, bitget, gate]) {
     try { const c = await f(b, tf, from); if (c.length && (!best || c.length > best.length * 1.2)) best = c; if (best && best[0].t <= from + MS[tf] * 30) break; } catch (e) { }
   }
   if (!best) throw new Error("không sàn nào có " + b);
@@ -97,20 +145,22 @@ async function candles(b, tf, from) {
 }
 
 /* ---------- chạy thuật toán qua từng nến ---------- */
+const lastLE = (A, f) => { let lo = 0, hi = A.length - 1, k = -1; while (lo <= hi) { const m = (lo + hi) >> 1; if (f(A[m])) { k = m; lo = m + 1; } else hi = m - 1; } return k; };
 function partial(htfBars, lowBars, upto, htf) {
   // nến khung lớn tại thời điểm `upto`: các nến đã đóng + nến đang chạy dựng lại từ nến khung nhỏ (không nhìn trước)
   const ms = MS[htf], key = t => htf === "1w" ? Math.floor((t - 4 * 864e5) / ms) : Math.floor(t / ms), k0 = key(upto);
-  const closed = htfBars.filter(x => key(x.t) < k0);
-  const part = lowBars.filter(x => key(x.t) === k0 && x.t <= upto);
+  const hi = lastLE(htfBars, x => key(x.t) < k0), closed = htfBars.slice(Math.max(0, hi - WIN - 5), hi + 1);
+  const li = lastLE(lowBars, x => x.t <= upto), part = [];
+  for (let q = li; q >= 0 && key(lowBars[q].t) === k0; q--) part.unshift(lowBars[q]);
   if (part.length) closed.push({ t: part[0].t, o: part[0].o, h: Math.max(...part.map(x => x.h)), l: Math.min(...part.map(x => x.l)), c: part.at(-1).c, v: part.reduce((a, x) => a + x.v, 0) });
   return closed;
 }
-function signals(K, D, startT) {
-  const out = [];
-  for (const tf of TFS) {
+function signals(K, D, startT, base) {
+  const out = [], low = (K.LOW_TF_ASSETS || []).includes(base), tfs = low ? [...LOWTFS, ...TFS] : TFS, lowStart = Date.now() - LOW_DAYS * 864e5;
+  for (const tf of tfs) {
     const bars = D[tf]; if (!bars || bars.length < 80) continue;
-    for (let i = 60; i < bars.length - 1; i += STEP[tf]) {
-      if (bars[i].t < startT) continue;
+    const st0 = LOWTFS.includes(tf) ? Math.max(startT, lowStart) : startT;
+    for (let i = Math.max(60, lastLE(bars, x => x.t < st0) + 1); i < bars.length - 1; i += STEP[tf]) {
       const w = bars.slice(Math.max(0, i - WIN + 1), i + 1), t = { src: "ex", c: w, tf, side: SIDE };
       K.compute(t); const B = t.buy; if (!B || !B.plan || B.plan.reject) continue;
       let sc = B.score; if (sc < K.PICK_MIN - 8) continue;
@@ -136,11 +186,12 @@ function signals(K, D, startT) {
   return out.sort((a, b) => a.t - b.t || b.rank - a.rank);
 }
 function trades(K, D, base, startT) {
-  const S = signals(K, D, startT), res = []; let busy = 0;
+  const S = signals(K, D, startT, base), res = []; let busy = 0;
   for (const s of S) {
     if (s.t < busy) continue;
     const P = s.P, j = { side: SIDE, tf: s.tf, at: s.t, mode: P.mode, entry: P.entry, stop: P.stop, tp1: P.tp1, tp2: P.tp2, tps: P.tps, tpf: P.tpf };
-    const ex = D[EXEC[s.tf]].filter(k => k.t >= s.t - MS[EXEC[s.tf]]), cur = ex.length ? ex.at(-1).c : null;
+    const et = [EXEC[s.tf], "4h", s.tf].find(x => D[x] && D[x].length && D[x][0].t <= s.t) || s.tf, E = D[et];   // nến nhỏ nhất có dữ liệu phủ thời điểm vào lệnh
+    const ex = E.slice(Math.max(0, lastLE(E, k => k.t < s.t - MS[et]) + 1)), cur = ex.length ? ex.at(-1).c : null;
     const r = K.simulate(j, ex, cur);
     const end = r.exitAt || (r.status === "expired" ? s.t + 12 * MS[s.tf] : Infinity);
     busy = end === Infinity ? Infinity : end + 1;
@@ -165,7 +216,7 @@ function stats(T) {
 const group = (T, f) => { const m = {}; for (const x of T) (m[f(x)] = m[f(x)] || []).push(x); return Object.fromEntries(Object.entries(m).sort().map(([k, v]) => [k, stats(v)])); };
 function report(T) {
   return { all: stats(T), byTF: group(T, x => x.tf), byScore: group(T, x => x.sc >= 90 ? "90+" : x.sc >= 80 ? "80-89" : "70-79"), byMode: group(T, x => x.mode),
-    byTPs: group(T, x => x.nTp + " TP"), byAsset: Object.fromEntries(Object.entries(group(T, x => x.base)).sort((a, b) => b[1].totalR - a[1].totalR)) };
+    byTPs: group(T, x => x.nTp + " TP"), byYear: group(T, x => String(new Date(x.at).getUTCFullYear())), byKind: group(T, x => K1s.includes(x.base) ? "cổ phiếu" : "crypto"), byAsset: Object.fromEntries(Object.entries(group(T, x => x.base)).sort((a, b) => b[1].totalR - a[1].totalR)) };
 }
 function md(title, R, R2) {
   const row = (k, s, s2) => `| ${k} | ${s.closed} | ${s.winRate ?? "–"}% | ${s.totalR} | ${s.expectancy ?? "–"} | ${s.profitFactor ?? "–"} | ${s.maxDD_R} |` + (s2 ? ` ${s2.closed} | ${s2.winRate ?? "–"}% | ${s2.totalR} | ${s2.expectancy ?? "–"} | ${s2.maxDD_R} |` : "");
@@ -179,7 +230,7 @@ function md(title, R, R2) {
     `\nKiểu thoát (A): ${ex(R.all)}` + (R2 ? `\nKiểu thoát (B): ${ex(R2.all)}` : ""),
     `\nTỷ lệ lệnh chờ được khớp (A): ${R.all.limitFillRate ?? "–"}%` + (R2 ? ` · (B): ${R2.all.limitFillRate ?? "–"}%` : ""),
     sec("Theo khung", R.byTF, R2 && R2.byTF), sec("Theo điểm", R.byScore, R2 && R2.byScore), sec("Vào ngay / Chờ hồi", R.byMode, R2 && R2.byMode),
-    sec("Theo số TP", R.byTPs, R2 && R2.byTPs),
+    sec("Theo năm", R.byYear, R2 && R2.byYear), sec("Crypto / cổ phiếu", R.byKind, R2 && R2.byKind), sec("Theo số TP", R.byTPs, R2 && R2.byTPs),
     `\n### 10 mã tốt nhất / tệ nhất (A)\n`, ...Object.entries(R.byAsset).filter(([, s]) => s.closed).slice(0, 10).map(([k, s]) => `- ${k}: ${s.totalR}R (${s.closed} lệnh)`),
     "…", ...Object.entries(R.byAsset).filter(([, s]) => s.closed).slice(-10).map(([k, s]) => `- ${k}: ${s.totalR}R (${s.closed} lệnh)`),
     `\nLưu ý: backtest dùng nến đã đóng, khi một nến chạm cả SL lẫn TP thì tính SL trước (thận trọng); chưa tính phí giao dịch, funding và trượt giá.`].join("\n");
@@ -258,10 +309,24 @@ const K2 = V.length === 1 && !EXP;
 let uni = [];
 try { const st = JSON.parse(fs.readFileSync("state.json", "utf8")); uni = Object.keys(st.universe || {}); if (!uni.length) uni = [...new Set((st.journal || []).filter(j => j.src !== "st").map(j => j.base))]; } catch (e) { }
 uni = [...new Set([...uni, ...K1.extra])].filter(b => /^[A-Z0-9]{2,12}$/.test(b)).slice(0, MAX);
-const startT = Date.now() - DAYS * 864e5, from = { "1h": startT - WIN * MS["1h"], "4h": startT - WIN * MS["4h"], "1d": startT - WIN * MS["1d"], "1w": Date.UTC(2017, 0, 1) };
+const STOCKS = arg("stocks", "1") === "1" ? K1.stocks : [];   // cổ phiếu (Yahoo): 4H/1H tối đa 2 năm, 1D/1W tối đa 10 năm
+const ALL = [...uni.map(b => ({ b })), ...STOCKS.map(([sym, label]) => ({ b: label, sym, stock: true }))];
+K1s = STOCKS.map(x => x[1]);
+const SHARD = arg("shard", ""), MERGE = arg("merge", "");   // chia việc cho nhiều máy: --shard k/n chạy 1 phần · --merge thư_mục gộp kết quả
+if (SHARD) { const [k, n] = SHARD.split("/").map(Number); for (let i = ALL.length - 1; i >= 0; i--) if (i % n !== k) ALL.splice(i, 1); }
+const startT = Date.now() - DAYS * 864e5, lowFrom = Date.now() - LOW_DAYS * 864e5;
+const from = { "15m": lowFrom - WIN * MS["15m"], "1h": startT - WIN * MS["4h"], "4h": startT - WIN * MS["4h"], "1d": startT - WIN * MS["1d"], "1w": Date.UTC(2017, 0, 1) };
 const NW = Math.max(1, Math.min(8, os.cpus().length));
-console.log(`Backtest ${uni.length} mã · ${DAYS} ngày · ${SIDE} · ${NW} luồng${V.length ? ` · so sánh ${V.length} phiên bản: ${V.map(v => v.name).join(", ")}` : ""}`);
+console.log(`Backtest ${uni.length} coin + ${STOCKS.length} cổ phiếu · ${DAYS} ngày · ${SIDE} · ${NW} luồng${V.length ? ` · so sánh ${V.length} phiên bản: ${V.map(v => v.name).join(", ")}` : ""}`);
 const texts = [mainText, ...V.map(v => v.text)];
+const A = [], B = [], miss = [];
+if (MERGE) {
+  for (const f of fs.readdirSync(MERGE).filter(f => /^shard-.*\.json$/.test(f))) {
+    const sh = JSON.parse(fs.readFileSync(path.join(MERGE, f), "utf8")); A.push(...sh.A); miss.push(...sh.miss);
+    sh.V.forEach((t, i) => { if (V[i]) V[i].T.push(...t); });
+  }
+  console.log(`Gộp ${A.length} lệnh (main) từ các phần`);
+} else {
 try { const bd = await candles("BTC", "1d", Date.UTC(2017, 0, 1)), e = K1.ema(bd.map(x => x.c), 200); REG = bd.map((x, i) => [x.t + MS["1d"], e[i] != null && x.c > e[i]]); }
 catch (e) { console.log("Không lấy được BTC cho bộ lọc thị trường"); }
 const workers = Array.from({ length: NW }, () => new Worker(new URL(import.meta.url), { workerData: { texts, reg: REG }, argv: process.argv.slice(2) }));
@@ -269,18 +334,23 @@ const wait = new Map(); let seq = 0, rr = 0;
 for (const w of workers) w.on("message", m => { const f = wait.get(m.id); wait.delete(m.id); if (m.err) console.log("  lỗi luồng:", m.err); f(m.T); });
 const task = (vi, D, base) => new Promise(res => { const id = ++seq; wait.set(id, res); workers[rr++ % NW].postMessage({ id, vi, D, base, startT }); });
 const keep = setInterval(() => { }, 10000);                  // giữ tiến trình sống khi chờ mạng
-const A = [], B = [], miss = [];
 let done = 0;
-async function runOne(b) {
-  const D = {};
-  for (const tf of [...TFS, "1h"]) { try { D[tf] = await candles(b, tf, from[tf]); } catch (e) { } }   // 1h: khung xác nhận cho kèo 4H
+async function runOne({ b, sym, stock }) {
+  const D = {}, low = (K1.lowAssets || []).includes(b) && !stock;
+  for (const tf of [...TFS, "1h", ...(low ? ["15m"] : [])]) { try { D[tf] = stock ? await stockCandles(sym, tf) : await candles(b, tf, from[tf]); } catch (e) { } }   // 1h: xác nhận + chấm SL/TP
   if (!D["4h"] || !D["1d"]) { miss.push(b); return; }
   const R = await Promise.all(texts.map((_, vi) => task(vi, D, b)));
   A.push(...R[0]); V.forEach((v, i) => v.T.push(...R[i + 1]));
-  if (++done % 10 === 0) console.log(`  ${done}/${uni.length} mã · ${((Date.now() - t0) / 1000).toFixed(0)}s`);
+  if (++done % 10 === 0) console.log(`  ${done}/${ALL.length} mã · ${((Date.now() - t0) / 1000).toFixed(0)}s`);
 }
-let qi = 0; await Promise.all(Array.from({ length: 3 }, async () => { while (qi < uni.length) await runOne(uni[qi++]); }));
+let qi = 0; await Promise.all(Array.from({ length: 3 }, async () => { while (qi < ALL.length) await runOne(ALL[qi++]); }));
 clearInterval(keep); for (const w of workers) w.terminate();
+if (SHARD) {
+  fs.mkdirSync(OUT, { recursive: true });
+  fs.writeFileSync(path.join(OUT, `shard-${SHARD.replace("/", "of")}.json`), JSON.stringify({ A, V: V.map(v => v.T), miss }));
+  console.log(`Phần ${SHARD} xong: ${A.length} lệnh · ${((Date.now() - t0) / 1000).toFixed(0)}s`); process.exit(0);
+}
+}
 if (K2) B.push(...V[0].T);
 const RA = report(A), RB = K2 ? report(B) : null;
 // bảng so sánh nhiều phiên bản
