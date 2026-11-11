@@ -14,7 +14,7 @@ const DAYS_ARG = arg("days", "730"), DAYS = DAYS_ARG === "max" ? Math.floor((Dat
 const HTML = arg("html", "index.html"), HTML2 = arg("html2", ""), NAMES = arg("names", ""), LABEL = arg("label", ""), OUT = arg("out", "backtests");
 const TFS = ["4h", "1d", "1w"], LOWTFS = ["15m", "1h"], HTF = { "15m": "1h", "1h": "4h", "4h": "1d", "1d": "1w", "1w": null };
 const EXEC = { "15m": "15m", "1h": "1h", "4h": "1h", "1d": "1h", "1w": "1d" };   // chấm SL/TP bằng nến nhỏ hơn cho chính xác
-const LOW_DAYS = Math.min(DAYS, +arg("lowdays", 730)), LOWTF_ON = arg("lowtf", "1") !== "0";   // --lowtf 0: chỉ xét 4H/1D/1W     // BTC 15m/1h: chỉ xét 2 năm gần nhất cho nhẹ
+const LOW_DAYS = Math.min(DAYS, arg("lowdays", "730") === "max" ? DAYS : +arg("lowdays", "730")), LOWTF_ON = arg("lowtf", "1") !== "0";   // --lowtf 0: chỉ xét 4H/1D/1W     // BTC 15m/1h: chỉ xét 2 năm gần nhất cho nhẹ
 const STEP = { "15m": 1, "1h": 1, "4h": +arg("step4h", 1), "1d": 1, "1w": 1 };    // xét mọi nến (step 1) để kết quả không phụ thuộc thời điểm lấy mẫu
 const WIN = 400;                                             // số nến đưa vào thuật toán mỗi lần (giống bot)
 const MS = { "15m": 9e5, "1h": 36e5, "4h": 144e5, "1d": 864e5, "1w": 6048e5 };
@@ -45,7 +45,7 @@ async function getJ(url, opt = {}) {
 }
 async function binance(b, tf, from) {
   let out = [], st = from;
-  for (let p = 0; p < 150; p++) {
+  for (let p = 0; p < 400; p++) {
     const j = await getJ(`https://data-api.binance.vision/api/v3/klines?symbol=${b}USDT&interval=${tf}&limit=1000&startTime=${st}`);
     if (!Array.isArray(j) || !j.length) break;
     out = out.concat(j.map(a => ({ t: a[0], o: +a[1], h: +a[2], l: +a[3], c: +a[4], v: +a[5] })));
@@ -216,7 +216,22 @@ function stats(T) {
 const group = (T, f) => { const m = {}; for (const x of T) (m[f(x)] = m[f(x)] || []).push(x); return Object.fromEntries(Object.entries(m).sort().map(([k, v]) => [k, stats(v)])); };
 function report(T) {
   return { all: stats(T), byTF: group(T, x => x.tf), byScore: group(T, x => x.sc >= 90 ? "90+" : x.sc >= 80 ? "80-89" : "70-79"), byMode: group(T, x => x.mode),
-    byTPs: group(T, x => x.nTp + " TP"), byYear: group(T, x => String(new Date(x.at).getUTCFullYear())), byKind: group(T, x => K1s.includes(x.base) ? "cổ phiếu" : "crypto"), byAsset: Object.fromEntries(Object.entries(group(T, x => x.base)).sort((a, b) => b[1].totalR - a[1].totalR)) };
+    byTPs: group(T, x => x.nTp + " TP"), byYear: group(T, x => String(new Date(x.at).getUTCFullYear())), byQuarterTF: quarterTF(T), byKind: group(T, x => K1s.includes(x.base) ? "cổ phiếu" : "crypto"), byAsset: Object.fromEntries(Object.entries(group(T, x => x.base)).sort((a, b) => b[1].totalR - a[1].totalR)) };
+}
+const qKey = t => { const d = new Date(t); return `${d.getUTCFullYear()}-Q${Math.floor(d.getUTCMonth() / 3) + 1}`; };
+function quarterTF(T) {
+  const C = T.filter(x => DONE.includes(x.st)), Q = {};
+  for (const x of C) { const k = qKey(x.exitAt || x.at); (Q[k] = Q[k] || []).push(x); }
+  return Object.fromEntries(Object.keys(Q).sort().map(k => { const a = Q[k], s = stats(a), tf = {};
+    for (const x of a) tf[x.tf] = +((tf[x.tf] || 0) + x.r).toFixed(2); return [k, { ...s, tf }]; }));
+}
+function quarterMd(Q) {
+  const ks = Object.keys(Q); if (!ks.length) return "";
+  const tfs = [...new Set(ks.flatMap(k => Object.keys(Q[k].tf)))].sort((a, b) => MS[a] - MS[b]);
+  let eq = 0;
+  const rows = ks.map(k => { const s = Q[k]; eq += s.totalR; return `| ${k} | ${s.closed} | ${s.winRate ?? "–"}% | ${s.totalR >= 0 ? "+" : ""}${s.totalR} | ${s.expectancy ?? "–"} | ${s.maxDD_R} | ${tfs.map(t => s.tf[t] ?? "–").join(" | ")} | ${eq.toFixed(1)} |`; });
+  return [`\n### Theo quý (tính theo quý lệnh đóng)\n`, `| Quý | Lệnh đóng | Win rate | Tổng R | R/lệnh | Max DD trong quý | ${tfs.map(t => "R " + t.toUpperCase()).join(" | ")} | R luỹ kế |`,
+    `|---|---|---|---|---|---|${tfs.map(() => "---").join("|")}|---|`, ...rows].join("\n");
 }
 function md(title, R, R2) {
   const row = (k, s, s2) => `| ${k} | ${s.closed} | ${s.winRate ?? "–"}% | ${s.totalR} | ${s.expectancy ?? "–"} | ${s.profitFactor ?? "–"} | ${s.maxDD_R} |` + (s2 ? ` ${s2.closed} | ${s2.winRate ?? "–"}% | ${s2.totalR} | ${s2.expectancy ?? "–"} | ${s2.maxDD_R} |` : "");
@@ -230,7 +245,7 @@ function md(title, R, R2) {
     `\nKiểu thoát (A): ${ex(R.all)}` + (R2 ? `\nKiểu thoát (B): ${ex(R2.all)}` : ""),
     `\nTỷ lệ lệnh chờ được khớp (A): ${R.all.limitFillRate ?? "–"}%` + (R2 ? ` · (B): ${R2.all.limitFillRate ?? "–"}%` : ""),
     sec("Theo khung", R.byTF, R2 && R2.byTF), sec("Theo điểm", R.byScore, R2 && R2.byScore), sec("Vào ngay / Chờ hồi", R.byMode, R2 && R2.byMode),
-    sec("Theo năm", R.byYear, R2 && R2.byYear), sec("Crypto / cổ phiếu", R.byKind, R2 && R2.byKind), sec("Theo số TP", R.byTPs, R2 && R2.byTPs),
+    quarterMd(R.byQuarterTF || {}), sec("Theo năm", R.byYear, R2 && R2.byYear), sec("Crypto / cổ phiếu", R.byKind, R2 && R2.byKind), sec("Theo số TP", R.byTPs, R2 && R2.byTPs),
     `\n### 10 mã tốt nhất / tệ nhất (A)\n`, ...Object.entries(R.byAsset).filter(([, s]) => s.closed).slice(0, 10).map(([k, s]) => `- ${k}: ${s.totalR}R (${s.closed} lệnh)`),
     "…", ...Object.entries(R.byAsset).filter(([, s]) => s.closed).slice(-10).map(([k, s]) => `- ${k}: ${s.totalR}R (${s.closed} lệnh)`),
     `\nLưu ý: backtest dùng nến đã đóng, khi một nến chạm cả SL lẫn TP thì tính SL trước (thận trọng); chưa tính phí giao dịch, funding và trượt giá.`].join("\n");
@@ -309,7 +324,9 @@ const K2 = V.length === 1 && !EXP;
 let uni = [];
 try { const st = JSON.parse(fs.readFileSync("state.json", "utf8")); uni = Object.keys(st.universe || {}); if (!uni.length) uni = [...new Set((st.journal || []).filter(j => j.src !== "st").map(j => j.base))]; } catch (e) { }
 uni = [...new Set([...uni, ...K1.extra])].filter(b => /^[A-Z0-9]{2,12}$/.test(b)).slice(0, MAX);
-const STOCKS = arg("stocks", "1") === "1" ? K1.stocks : [];   // cổ phiếu (Yahoo): 4H/1H tối đa 2 năm, 1D/1W tối đa 10 năm
+const STOCKS = arg("stocks", "1") === "1" ? K1.stocks.filter(x => !arg("only", "") || arg("only", "").toUpperCase().split(",").includes(x[1])) : [];   // cổ phiếu (Yahoo): 4H/1H tối đa 2 năm, 1D/1W tối đa 10 năm
+const ONLY = arg("only", "") ? arg("only", "").toUpperCase().split(",") : null;
+if (ONLY) uni = uni.filter(b => ONLY.includes(b)).concat(ONLY.filter(b => !uni.includes(b) && !K1.stocks.some(x => x[1] === b)));
 const ALL = [...uni.map(b => ({ b })), ...STOCKS.map(([sym, label]) => ({ b: label, sym, stock: true }))];
 K1s = STOCKS.map(x => x[1]);
 const SHARD = arg("shard", ""), MERGE = arg("merge", "");   // chia việc cho nhiều máy: --shard k/n chạy 1 phần · --merge thư_mục gộp kết quả

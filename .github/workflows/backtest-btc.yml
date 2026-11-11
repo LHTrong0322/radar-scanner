@@ -1,0 +1,41 @@
+name: Backtest BTC đa khung
+
+# Backtest riêng BTC trên mọi khung (15m, 1H, 4H, 1D, 1W), toàn bộ lịch sử từ 2018, xét mọi nến,
+# thống kê theo quý và theo năm. Không đặt lệnh.
+on:
+  workflow_dispatch:
+    inputs:
+      side:
+        description: "long hoặc short"
+        default: "long"
+      label:
+        description: "tên ngắn cho lần chạy"
+        default: "btc-da-khung"
+
+permissions:
+  contents: write
+
+jobs:
+  btc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Backtest BTC
+        run: node bt.mjs --only BTC --stocks 0 --days max --lowdays max --side "${{ github.event.inputs.side }}" --label "${{ github.event.inputs.label }}"
+      - name: Lưu kết quả
+        run: |
+          git config user.name "radar-backtest"
+          git config user.email "radar-backtest@users.noreply.github.com"
+          git add backtests
+          git commit -m "backtest BTC $(date -u +%Y-%m-%d)" || exit 0
+          for i in 1 2 3 4 5; do
+            git pull --rebase -X theirs origin main && git push origin HEAD:main && exit 0
+            sleep $((i * 5))
+          done
+          exit 1
