@@ -1,0 +1,10 @@
+{
+ "name": "p4-bo-entry",
+ "desc": "Điểm /100: bỏ phần Entry",
+ "patch": [
+  {
+   "find": "[\"Entry\",En,30]",
+   "replace": "[\"Entry\",En,0]"
+  }
+ ]
+}

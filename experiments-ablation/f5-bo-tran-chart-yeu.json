@@ -1,0 +1,10 @@
+{
+ "name": "f5-bo-tran-chart-yeu",
+ "desc": "Bộ lọc: bỏ trần 45 khi chart yếu",
+ "patch": [
+  {
+   "find": "if(T!=null&&T<-.3){score=Math.min(score,45);",
+   "replace": "if(T!=null&&T<-9){score=Math.min(score,45);"
+  }
+ ]
+}

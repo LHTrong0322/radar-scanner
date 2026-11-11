@@ -1,0 +1,18 @@
+{
+ "name": "z05-bo-vp-co-dinh-hvn",
+ "desc": "Vùng giá: bỏ POC cố định + HVN",
+ "patch": [
+  {
+   "find": "out.push([fx.poc,\"POC volume profile 250 nến\",.5])",
+   "replace": "out.push([fx.poc,\"POC volume profile 250 nến\",0])"
+  },
+  {
+   "find": "out.push([v,\"HVN anchored VP\",.5])",
+   "replace": "out.push([v,\"HVN anchored VP\",0])"
+  },
+  {
+   "find": "out.push([v,\"HVN volume profile 250 nến\",.5])",
+   "replace": "out.push([v,\"HVN volume profile 250 nến\",0])"
+  }
+ ]
+}

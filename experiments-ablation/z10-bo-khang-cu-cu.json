@@ -1,0 +1,10 @@
+{
+ "name": "z10-bo-khang-cu-cu",
+ "desc": "Vùng giá: bỏ kháng cự cũ bị phá",
+ "patch": [
+  {
+   "find": "add(c[i].h,\"kháng cự cũ đã bị phá\",1.5)",
+   "replace": "add(c[i].h,\"kháng cự cũ đã bị phá\",0)"
+  }
+ ]
+}

@@ -1,0 +1,10 @@
+{
+ "name": "p5-bo-rr",
+ "desc": "Điểm /100: bỏ phần R:R",
+ "patch": [
+  {
+   "find": "[\"R:R\",RR,30]",
+   "replace": "[\"R:R\",RR,0]"
+  }
+ ]
+}

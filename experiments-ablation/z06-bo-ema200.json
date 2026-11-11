@@ -1,0 +1,14 @@
+{
+ "name": "z06-bo-ema200",
+ "desc": "Vùng giá: bỏ EMA200",
+ "patch": [
+  {
+   "find": "add(e200,\"EMA 200\",2)",
+   "replace": "add(e200,\"EMA 200\",0)"
+  },
+  {
+   "find": "add(ev[200],\"EMA 200\",2)",
+   "replace": "add(ev[200],\"EMA 200\",0)"
+  }
+ ]
+}

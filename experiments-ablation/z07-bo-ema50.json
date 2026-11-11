@@ -1,0 +1,10 @@
+{
+ "name": "z07-bo-ema50",
+ "desc": "Vùng giá: bỏ EMA50",
+ "patch": [
+  {
+   "find": "add(ev[50],\"EMA 50\",0.75)",
+   "replace": "add(ev[50],\"EMA 50\",0)"
+  }
+ ]
+}

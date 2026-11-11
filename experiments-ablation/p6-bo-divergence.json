@@ -1,0 +1,10 @@
+{
+ "name": "p6-bo-divergence",
+ "desc": "Điểm /100: bỏ phần Divergence",
+ "patch": [
+  {
+   "find": "[\"Divergence\",D,10]",
+   "replace": "[\"Divergence\",D,0]"
+  }
+ ]
+}

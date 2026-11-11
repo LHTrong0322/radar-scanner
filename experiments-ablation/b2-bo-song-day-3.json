@@ -1,0 +1,10 @@
+{
+ "name": "b2-bo-song-day-3",
+ "desc": "Bỏ +3 sóng đẩy cùng chiều",
+ "patch": [
+  {
+   "find": "score+=3;notes.push(\"+3 sóng đẩy",
+   "replace": "score+=0;notes.push(\"+3 sóng đẩy"
+  }
+ ]
+}

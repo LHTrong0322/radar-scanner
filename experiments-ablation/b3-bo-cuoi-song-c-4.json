@@ -1,0 +1,10 @@
+{
+ "name": "b3-bo-cuoi-song-c-4",
+ "desc": "Bỏ +4 phân kỳ cuối sóng C",
+ "patch": [
+  {
+   "find": "score+=4;notes.push(\"+4 phân kỳ dương ở cuối sóng C",
+   "replace": "score+=0;notes.push(\"+4 phân kỳ dương ở cuối sóng C"
+  }
+ ]
+}

@@ -1,0 +1,10 @@
+{
+ "name": "p3-bo-elliott",
+ "desc": "Điểm /100: bỏ phần Elliott",
+ "patch": [
+  {
+   "find": "[\"Elliott\",W,8]",
+   "replace": "[\"Elliott\",W,0]"
+  }
+ ]
+}

@@ -1,0 +1,10 @@
+{
+ "name": "f3-bo-xac-nhan-khung-nho",
+ "desc": "Bộ lọc: bỏ xác nhận khung nhỏ (A2)",
+ "patch": [
+  {
+   "find": "const LTF_CONFIRM={\"1w\":\"1d\",\"1d\":\"4h\",\"4h\":\"1h\",\"1h\":\"15m\"};",
+   "replace": "const LTF_CONFIRM={};"
+  }
+ ]
+}

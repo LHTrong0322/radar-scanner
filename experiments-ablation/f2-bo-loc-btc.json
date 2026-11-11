@@ -1,0 +1,10 @@
+{
+ "name": "f2-bo-loc-btc",
+ "desc": "Bộ lọc: bỏ lọc BTC trên EMA200",
+ "patch": [
+  {
+   "find": "const REGIME=true;",
+   "replace": "const REGIME=false;"
+  }
+ ]
+}

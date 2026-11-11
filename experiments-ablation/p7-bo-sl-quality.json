@@ -1,0 +1,10 @@
+{
+ "name": "p7-bo-sl-quality",
+ "desc": "Điểm /100: bỏ phần chất lượng SL",
+ "patch": [
+  {
+   "find": "[\"SL\",SLq,5]",
+   "replace": "[\"SL\",SLq,0]"
+  }
+ ]
+}

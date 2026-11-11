@@ -1,0 +1,30 @@
+{
+ "name": "z13-bo-rsi",
+ "desc": "Vùng giá: bỏ mức RSI (30/70 + 45–55)",
+ "patch": [
+  {
+   "find": "add(K.r70,\"RSI chạm 70 (quá mua)\",1)",
+   "replace": "add(K.r70,\"RSI chạm 70 (quá mua)\",0)"
+  },
+  {
+   "find": "add(K.r30,\"RSI chạm 30 (quá bán)\",1)",
+   "replace": "add(K.r30,\"RSI chạm 30 (quá bán)\",0)"
+  },
+  {
+   "find": "add(K.r45,\"RSI 45–55 (hỗ trợ)\",1)",
+   "replace": "add(K.r45,\"RSI 45–55 (hỗ trợ)\",0)"
+  },
+  {
+   "find": "add(K.r45,\"RSI 45–55 (kháng cự)\",1)",
+   "replace": "add(K.r45,\"RSI 45–55 (kháng cự)\",0)"
+  },
+  {
+   "find": "add(K.r55,\"RSI 45–55 (hỗ trợ)\",1)",
+   "replace": "add(K.r55,\"RSI 45–55 (hỗ trợ)\",0)"
+  },
+  {
+   "find": "add(K.r55,\"RSI 45–55 (kháng cự)\",1)",
+   "replace": "add(K.r55,\"RSI 45–55 (kháng cự)\",0)"
+  }
+ ]
+}

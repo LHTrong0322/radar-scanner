@@ -1,0 +1,10 @@
+{
+ "name": "p1-bo-trend",
+ "desc": "Điểm /100: bỏ phần Trend",
+ "patch": [
+  {
+   "find": "[\"Trend\",T,30]",
+   "replace": "[\"Trend\",T,0]"
+  }
+ ]
+}

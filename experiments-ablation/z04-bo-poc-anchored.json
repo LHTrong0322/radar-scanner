@@ -1,0 +1,10 @@
+{
+ "name": "z04-bo-poc-anchored",
+ "desc": "Vùng giá: bỏ POC anchored",
+ "patch": [
+  {
+   "find": "out.push([an.poc,\"POC anchored VP\",3])",
+   "replace": "out.push([an.poc,\"POC anchored VP\",0])"
+  }
+ ]
+}

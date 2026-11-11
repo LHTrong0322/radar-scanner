@@ -1,0 +1,14 @@
+{
+ "name": "p8-bo-adx",
+ "desc": "Momentum: bỏ điểm ADX (mạnh + cạn lực)",
+ "patch": [
+  {
+   "find": "`ADX ${A} > 25, +DI trội${ad.rising?\", ADX đang tăng\":\"\"}`,2]",
+   "replace": "`ADX ${A} > 25, +DI trội${ad.rising?\", ADX đang tăng\":\"\"}`,0]"
+  },
+  {
+   "find": "xu hướng giảm cạn lực, ủng hộ đảo chiều`,1.5]",
+   "replace": "xu hướng giảm cạn lực, ủng hộ đảo chiều`,0]"
+  }
+ ]
+}

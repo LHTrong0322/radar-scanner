@@ -1,0 +1,14 @@
+{
+ "name": "z14-bo-macd",
+ "desc": "Vùng giá: bỏ mức MACD",
+ "patch": [
+  {
+   "find": "add(K.mf.px,\"MACD còn trên Signal\",1)",
+   "replace": "add(K.mf.px,\"MACD còn trên Signal\",0)"
+  },
+  {
+   "find": "add(K.mf.px,\"MACD cắt lên Signal\",.5)",
+   "replace": "add(K.mf.px,\"MACD cắt lên Signal\",0)"
+  }
+ ]
+}

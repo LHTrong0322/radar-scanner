@@ -1,0 +1,10 @@
+{
+ "name": "z11-bo-ho-tro-cu",
+ "desc": "Vùng giá: bỏ hỗ trợ cũ bị phá (kháng cự/TP)",
+ "patch": [
+  {
+   "find": "add(c[i].l,\"hỗ trợ cũ đã bị phá\",1)",
+   "replace": "add(c[i].l,\"hỗ trợ cũ đã bị phá\",0)"
+  }
+ ]
+}

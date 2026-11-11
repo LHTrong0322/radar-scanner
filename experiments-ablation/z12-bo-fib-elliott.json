@@ -1,0 +1,26 @@
+{
+ "name": "z12-bo-fib-elliott",
+ "desc": "Vùng giá: bỏ Fib sóng 2/4 + đỉnh sóng 1",
+ "patch": [
+  {
+   "find": "\"Fib 0.618 sóng 1 (vùng sóng 2)\",2.5]",
+   "replace": "\"Fib 0.618 sóng 1 (vùng sóng 2)\",0]"
+  },
+  {
+   "find": "out.push([v[1],\"đỉnh sóng 1 (sàn của sóng 4)\",2.5])",
+   "replace": "out.push([v[1],\"đỉnh sóng 1 (sàn của sóng 4)\",0])"
+  },
+  {
+   "find": "\"Fib 0.5 sóng 1 (vùng sóng 2)\",3]",
+   "replace": "\"Fib 0.5 sóng 1 (vùng sóng 2)\",0]"
+  },
+  {
+   "find": "\"Fib 0.382 sóng 3 (sóng 2 sâu → sóng 4 nông)\",1.25]",
+   "replace": "\"Fib 0.382 sóng 3 (sóng 2 sâu → sóng 4 nông)\",0]"
+  },
+  {
+   "find": "\"Fib 0.618 sóng 3 (sóng 2 nông → sóng 4 sâu)\",1.25]",
+   "replace": "\"Fib 0.618 sóng 3 (sóng 2 nông → sóng 4 sâu)\",0]"
+  }
+ ]
+}

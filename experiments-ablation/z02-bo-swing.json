@@ -1,0 +1,14 @@
+{
+ "name": "z02-bo-swing",
+ "desc": "Vùng giá: bỏ đỉnh/đáy swing lớn",
+ "patch": [
+  {
+   "find": "add(p.v,\"đỉnh swing lớn\",2)",
+   "replace": "add(p.v,\"đỉnh swing lớn\",0)"
+  },
+  {
+   "find": "add(p.v,p.tp===\"L\"?\"đáy swing lớn\":\"đỉnh swing cũ (nay là hỗ trợ)\",2);",
+   "replace": "add(p.v,p.tp===\"L\"?\"đáy swing lớn\":\"đỉnh swing cũ (nay là hỗ trợ)\",0);"
+  }
+ ]
+}

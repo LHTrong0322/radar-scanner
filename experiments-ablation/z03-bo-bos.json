@@ -1,0 +1,10 @@
+{
+ "name": "z03-bo-bos",
+ "desc": "Vùng giá: bỏ BOS",
+ "patch": [
+  {
+   "find": "add(lastH.v,\"BOS (đỉnh swing vừa bị phá)\",2)",
+   "replace": "add(lastH.v,\"BOS (đỉnh swing vừa bị phá)\",0)"
+  }
+ ]
+}

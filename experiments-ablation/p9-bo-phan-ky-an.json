@@ -1,0 +1,10 @@
+{
+ "name": "p9-bo-phan-ky-an",
+ "desc": "Bỏ điểm cộng phân kỳ dương ẩn",
+ "patch": [
+  {
+   "find": "score+=3;notes.push(\"+3 phân kỳ dương ẩn",
+   "replace": "score+=0;notes.push(\"+3 phân kỳ dương ẩn"
+  }
+ ]
+}

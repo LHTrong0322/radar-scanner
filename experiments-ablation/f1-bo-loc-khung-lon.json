@@ -1,0 +1,10 @@
+{
+ "name": "f1-bo-loc-khung-lon",
+ "desc": "Bộ lọc: bỏ yêu cầu khung lớn phải tăng",
+ "patch": [
+  {
+   "find": "const HTF_MIN=0.4;",
+   "replace": "const HTF_MIN=null;"
+  }
+ ]
+}

@@ -1,0 +1,10 @@
+{
+ "name": "b1-bo-cong-huong-6",
+ "desc": "Bỏ +6 cộng hưởng (chart khoẻ + entry đẹp + R:R tốt)",
+ "patch": [
+  {
+   "find": "score+=6;notes.push(\"+6 cộng hưởng",
+   "replace": "score+=0;notes.push(\"+6 cộng hưởng"
+  }
+ ]
+}

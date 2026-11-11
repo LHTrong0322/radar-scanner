@@ -1,0 +1,10 @@
+{
+ "name": "z15-bo-muc-sai-elliott",
+ "desc": "Vùng giá: bỏ mức sai Elliott (SL)",
+ "patch": [
+  {
+   "find": "add(ew.inv,\"mức sai Elliott\",2)",
+   "replace": "add(ew.inv,\"mức sai Elliott\",0)"
+  }
+ ]
+}

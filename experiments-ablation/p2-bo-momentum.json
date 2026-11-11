@@ -1,0 +1,10 @@
+{
+ "name": "p2-bo-momentum",
+ "desc": "Điểm /100: bỏ phần Momentum",
+ "patch": [
+  {
+   "find": "[\"Momentum\",M,15]",
+   "replace": "[\"Momentum\",M,0]"
+  }
+ ]
+}
