@@ -34,7 +34,7 @@ function loadCore() {
     grab(/function simulate\([\s\S]*?\n\}/, "simulate"),
   ].join("\n");
   const S = { tf: "4h", win: 3, os: 30, ob: 70 };
-  return new Function("S", src + "\nreturn {TFMS,SETS,STOCKS,skipCoin,bucket,compute,trendOf,pickReasons,simulate,MAX_SL,clamp,swapTxt,PICK_MIN:typeof PICK_MIN!=='undefined'?PICK_MIN:70,MIN_RR:typeof MIN_RR!=='undefined'?MIN_RR:2,TF_ADD:typeof TF_ADD!=='undefined'?TF_ADD:{},HTF_MIN:typeof HTF_MIN!=='undefined'?HTF_MIN:null,REGIME:typeof REGIME!=='undefined'?REGIME:false,ema};")(S);
+  return new Function("S", src + "\nreturn {TFMS,SETS,STOCKS,skipCoin,bucket,compute,trendOf,pickReasons,simulate,MAX_SL,clamp,swapTxt,PICK_MIN:typeof PICK_MIN!=='undefined'?PICK_MIN:70,MIN_RR:typeof MIN_RR!=='undefined'?MIN_RR:2,TF_ADD:typeof TF_ADD!=='undefined'?TF_ADD:{},HTF_MIN:typeof HTF_MIN!=='undefined'?HTF_MIN:null,REGIME:typeof REGIME!=='undefined'?REGIME:false,LOW_TF_ASSETS:typeof LOW_TF_ASSETS!=='undefined'?LOW_TF_ASSETS:[],ema};")(S);
 }
 const K = loadCore();
 
@@ -76,23 +76,23 @@ const CANDLES = [
     try { return await hlCandles(b, tf, n, st); } catch (e) { return await hlCandles("k" + b, tf, n, st, 1000); }
   }],
   ["mexc", async (b, tf, n) => {
-    const iv = { "1h": "60m", "4h": "4h", "1d": "1d", "1w": "1W" }[tf];
+    const iv = { "15m": "15m", "1h": "60m", "4h": "4h", "1d": "1d", "1w": "1W" }[tf];
     const j = await getJ(`https://api.mexc.com/api/v3/klines?symbol=${b}USDT&interval=${iv}&limit=${Math.min(n, 1000)}`);
     return j.map(a => ({ t: num(a[0]), o: num(a[1]), h: num(a[2]), l: num(a[3]), c: num(a[4]), v: num(a[5]) }));
   }],
   ["gate", async (b, tf, n) => {
-    const iv = { "1h": "1h", "4h": "4h", "1d": "1d", "1w": "7d" }[tf];
+    const iv = { "15m": "15m", "1h": "1h", "4h": "4h", "1d": "1d", "1w": "7d" }[tf];
     const j = await getJ(`https://api.gateio.ws/api/v4/spot/candlesticks?currency_pair=${b}_USDT&interval=${iv}&limit=${Math.min(n, 1000)}`);
     return j.map(a => ({ t: num(a[0]) * 1000, o: num(a[5]), h: num(a[3]), l: num(a[4]), c: num(a[2]), v: num(a[6]) }));
   }],
   ["kucoin", async (b, tf) => {
-    const ty = { "1h": "1hour", "4h": "4hour", "1d": "1day", "1w": "1week" }[tf];
+    const ty = { "15m": "15min", "1h": "1hour", "4h": "4hour", "1d": "1day", "1w": "1week" }[tf];
     const j = await getJ(`https://api.kucoin.com/api/v1/market/candles?type=${ty}&symbol=${b}-USDT`);
     if (j.code !== "200000") throw new Error(j.msg);
     return j.data.map(a => ({ t: num(a[0]) * 1000, o: num(a[1]), c: num(a[2]), h: num(a[3]), l: num(a[4]), v: num(a[5]) })).reverse();
   }],
   ["okx", async (b, tf) => {
-    const bar = { "1h": "1H", "4h": "4H", "1d": "1Dutc", "1w": "1Wutc" }[tf];
+    const bar = { "15m": "15m", "1h": "1H", "4h": "4H", "1d": "1Dutc", "1w": "1Wutc" }[tf];
     const j = await getJ(`https://www.okx.com/api/v5/market/candles?instId=${b}-USDT&bar=${bar}&limit=300`);
     if (j.code !== "0") throw new Error(j.msg);
     return j.data.map(a => ({ t: num(a[0]), o: num(a[1]), h: num(a[2]), l: num(a[3]), c: num(a[4]), v: num(a[5]) })).reverse();
@@ -313,8 +313,8 @@ async function main() {
   // 4.2 nến 3 khung + chấm điểm
   const ok = [], near = [], evals = new Map();
   await pool(assets, 6, async a => {
-    const R = {}, why = [];
-    for (const tf of PICK_TFS) {
+    const R = {}, why = [], TFA = a.kind !== "stock" && K.LOW_TF_ASSETS.includes(a.base) ? ["15m", "1h", ...PICK_TFS] : PICK_TFS;   // BTC: thêm khung 15m, 1h
+    for (const tf of TFA) {
       try {
         const c = a.kind === "stock" ? await stockCandles(a.sym, tf) : (await cryptoCandles(a.base, tf)).c;
         if (c.length < 60) continue;
@@ -324,9 +324,9 @@ async function main() {
     }
     if (!Object.keys(R).length) { errors.push(`${a.base}: không có dữ liệu (${why.join(" | ") || "thiếu nến"})`); return; }
     a.price = (R["4h"] || R["1d"] || R["1w"]).c.at(-1).c;
-    PICK_TFS.forEach((tf, k) => {
+    TFA.forEach((tf, k) => {
       const t = R[tf]; if (!t || !t.buy || !t.buy.plan || t.buy.plan.reject) return;
-      const htf = PICK_TFS[k + 1] || null, hT = htf ? K.trendOf(R[htf]) : null;
+      const htf = TFA[k + 1] || null, hT = htf ? K.trendOf(R[htf]) : null;
       if (K.HTF_MIN != null && htf && (hT == null || hT < K.HTF_MIN)) return;
       let sc = t.buy.score; if (hT != null) { if (hT > .3) sc += 3; else if (hT < -.3) sc -= 5; }
       sc = K.clamp(sc, 0, 100);
@@ -402,9 +402,10 @@ async function main() {
         catch (e) { try { c = await xStock(j.sym, "1h"); } catch (e2) { c = await stockDaily(j.sym); } }
       }
       else {                                                             // lấy đủ nến 1H từ lúc ghi kèo tới hiện tại (kèo khung D/W có thể kéo dài nhiều tháng)
-        c = (await cryptoCandles(j.base, "1h", 1000, j.at - 36e5)).c;
-        for (let pg = 0; pg < 8 && c.length && c.at(-1).t < Date.now() - 2 * 36e5; pg++) {
-          const more = (await cryptoCandles(j.base, "1h", 1000, c.at(-1).t + 36e5).catch(() => ({ c: [] }))).c.filter(k => k.t > c.at(-1).t);
+        const iv = j.tf === "15m" ? "15m" : "1h", ms = iv === "15m" ? 9e5 : 36e5;   // kèo khung 15m chấm bằng nến 15m
+        c = (await cryptoCandles(j.base, iv, 1000, j.at - ms)).c;
+        for (let pg = 0; pg < 8 && c.length && c.at(-1).t < Date.now() - 2 * ms; pg++) {
+          const more = (await cryptoCandles(j.base, iv, 1000, c.at(-1).t + ms).catch(() => ({ c: [] }))).c.filter(k => k.t > c.at(-1).t);
           if (!more.length) break; c = c.concat(more);
         }
       }
