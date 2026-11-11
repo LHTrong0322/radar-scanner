@@ -21,10 +21,11 @@ const STEP = { "15m": 1, "1h": 1, "4h": +arg("step4h", 1), "1d": 1, "1w": 1 };  
 const WIN = 500;                                             // số nến đưa vào thuật toán mỗi lần (GIỐNG HỆT bot thật: 500 nến)
 const MS = { "15m": 9e5, "1h": 36e5, "4h": 144e5, "1d": 864e5, "1w": 6048e5 };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
-let K1s = [];   // nhãn các mã cổ phiếu (để tách thống kê crypto / cổ phiếu)
+let K1s = [], EXP_BARS = 12;   // nhãn các mã cổ phiếu (để tách thống kê crypto / cổ phiếu)
 
 function loadCore(file, text) {
   const js = (text ?? fs.readFileSync(file, "utf8")).split("<script>")[1].split("</script>")[0];
+  EXP_BARS = +((js.match(/const expiry=j\.at\+(\d+)\*TFMS/) || [])[1] || 12);   // số nến lệnh chờ hết hạn (đọc từ thuật toán)
   const grab = re => { const m = js.match(re); if (!m) throw new Error("thiếu " + re); return m[0]; };
   const a = js.indexOf("/* ---------- indicators ---------- */"), b = js.indexOf("/* ---------- render ---------- */");
   const src = [grab(/const TFMS=[^\n]*/), grab(/const SETS=[^\n]*/), grab(/const SKIP=[^\n]*/), grab(/const STOCKS=[^\n]*/), js.slice(a, b),
@@ -202,7 +203,7 @@ function trades(K, D, base, startT, stock, F) {
     const et = [EXEC[s.tf], "4h", s.tf].find(x => D[x] && D[x].length && D[x][0].t <= s.t) || s.tf, E = D[et];   // nến nhỏ nhất có dữ liệu phủ thời điểm vào lệnh
     const ex = E.slice(Math.max(0, lastLE(E, k => k.t < s.t - MS[et]) + 1)), cur = ex.length ? ex.at(-1).c : null;
     const r = K.simulate(j, ex, cur);
-    const end = r.exitAt || (r.status === "expired" ? s.t + 12 * MS[s.tf] : Infinity);
+    const end = r.exitAt || (r.status === "expired" ? s.t + EXP_BARS * MS[s.tf] : Infinity);
     busyM[bk] = end === Infinity ? Infinity : end + 1;
     // phí + funding (theo R): phí vào (limit = maker, market = taker) + phí ra (taker), funding cho thời gian giữ lệnh
     let fee = 0;

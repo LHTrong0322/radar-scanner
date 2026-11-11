@@ -17,14 +17,14 @@ const KNOBS = [
   // ngưỡng & quản lý lệnh
   W("pick", "Ngưỡng điểm vào kèo", [["const PICK_MIN=70;", "const PICK_MIN={v};"]], 70, [55, 60, 65, 70, 75, 80, 85], "Ngưỡng"),
   W("rr", "R:R tối thiểu tới TP1", [[/const MIN_RR=[^;]*;/, "const MIN_RR={v};"]], 2.5, [1.2, 1.5, 2, 2.5, 3, 4], "Ngưỡng"),
-  W("mkt", "Ngưỡng điểm 'vào ngay' (tín hiệu mạnh)", [["const STRONG_MKT=5;", "const STRONG_MKT={v};"]], 5, [2, 3, 4, 5, 6, 7, 9], "Entry"),
+  W("mkt", "Ngưỡng điểm 'vào ngay' (tín hiệu mạnh)", [[/const STRONG_MKT=\d+;/, "const STRONG_MKT={v};"]], 6, [2, 3, 4, 5, 6, 7, 9], "Entry"),
   W("maxsl", "SL tối đa (% Entry)", [["const MAX_SL=.35;", "const MAX_SL={v};"]], .35, [.08, .12, .2, .35, .5], "SL"),
-  W("slbuf", "Đệm SL dưới vùng hỗ trợ (ATR)", [["stop=zs.lo-.5*atr;", "stop=zs.lo-{v}*atr;"]], .5, [.2, .3, .4, .5, .6, .8, 1], "SL"),
+  W("slbuf", "Đệm SL dưới vùng hỗ trợ (ATR)", [[/stop=zs\.lo-[\d.]+\*atr;/, "stop=zs.lo-{v}*atr;"]], 1, [.3, .5, .7, .8, 1, 1.2, 1.5, 2], "SL"),
   W("slzone", "Điểm tối thiểu của vùng đặt SL", [["if(zs&&zs.w>=2)", "if(zs&&zs.w>={v})"]], 2, [1, 2, 3, 4, 5], "SL"),
-  W("tp1f", "% chốt ở TP1", [["const tpFrac=n=>n<=1?[1]:[.5,...Array(n-1).fill(.5/(n-1))];", "const tpFrac=n=>n<=1?[1]:[{v},...Array(n-1).fill((1-{v})/(n-1))];"]], .5, [.25, .33, .5, .67, .8, 1], "TP"),
+  W("tp1f", "% chốt ở TP1", [[/const tpFrac=n=>n<=1\?\[1\]:\[[^;]*;/, "const tpFrac=n=>n<=1?[1]:[{v},...Array(n-1).fill((1-{v})/(n-1))];"]], .3, [.2, .25, .3, .33, .4, .5, .67, 1], "TP"),
   W("tpmin", "Khoảng cách tối thiểu TP1 (ATR)", [["z.lo>from+.3*atr&&(z.lo>from+.75*atr||z.w>=3)", "z.lo>from+.3*atr&&(z.lo>from+{v}*atr||z.w>=3)"]], .75, [.5, .75, 1, 1.5, 2], "TP"),
-  W("exp", "Lệnh chờ hết hạn sau (nến)", [["const expiry=j.at+12*TFMS[j.tf];", "const expiry=j.at+{v}*TFMS[j.tf];"]], 12, [4, 6, 8, 12, 18, 24, 36], "Entry"),
-  W("limz", "Điểm tối thiểu vùng đặt lệnh chờ", [["const below=best(SZ.filter(z=>z.hi<px-.6*atr&&z.hi>=px-3*atr&&z.w>=2));", "const below=best(SZ.filter(z=>z.hi<px-.6*atr&&z.hi>=px-3*atr&&z.w>={v}));"]], 2, [1, 2, 3, 4, 5], "Entry"),
+  W("exp", "Lệnh chờ hết hạn sau (nến)", [[/const expiry=j\.at\+\d+\*TFMS\[j\.tf\];/, "const expiry=j.at+{v}*TFMS[j.tf];"]], 8, [4, 6, 8, 10, 12, 18], "Entry"),
+  W("limz", "Điểm tối thiểu vùng đặt lệnh chờ", [["const below=best(SZ.filter(z=>z.hi<px-.6*atr&&z.hi>=px-3*atr&&z.w>=3));", "const below=best(SZ.filter(z=>z.hi<px-.6*atr&&z.hi>=px-3*atr&&z.w>={v}));"]], 3, [1, 2, 3, 4, 5], "Entry"),
   W("dowk", "Số nến mỗi bên để xác định đỉnh/đáy Dow", [["function dow(c,k=5){", "function dow(c,k={v}){"]], 5, [2, 3, 4, 5, 7, 10], "Bộ lọc"),
   W("weak", "Trần điểm khi chart yếu (Trend < x)", [["if(T!=null&&T<-.3){score=Math.min(score,45);", "if(T!=null&&T<{v}){score=Math.min(score,45);"]], -.3, [-.6, -.3, 0, .2], "Ngưỡng"),
   // bộ lọc (bật/tắt)
@@ -132,7 +132,7 @@ function update() {
       if (!name.startsWith(`k-${id}-`)) continue;
       const m = metric(v), val0 = v.name.slice(`k-${id}-`.length);
       const good = m && m.exp >= base.exp + .005 && m.h1 >= base.h1 - .005 && m.h2 >= base.h2 - .005 && (m.h1 > base.h1 || m.h2 > base.h2)
-        && m.dd <= base.dd * 1.15 + 1 && m.n >= base.n * .5;
+        && m.dd <= base.dd * 1.1 + 1 && m.n >= base.n * .5 && m.tot >= base.tot * .9;   // giảm rủi ro: sụt vốn không tệ hơn 10%, tổng R không giảm quá 10%
       const score = m ? Math.max(0, Math.min(10, +(5 + (m.exp - base.exp) / .05).toFixed(1))) : null;
       rows.push({ knob: id, label: k.label, from: S.best[id], to: val0, ...m, score, good });
       S.tested[`${id}=${val0}`] = { round: S.round, ...m, score };
@@ -157,7 +157,7 @@ function report(S) {
   const first = S.history.find(h => h.base);
   const L = [`# Tối ưu tự động — vòng ${S.round}${S.done ? " (đã dừng)" : ""}`, "",
     "Đây là báo cáo để thảo luận. Bot thật KHÔNG bị thay đổi cho tới khi Trọng duyệt.", "",
-    "Mỗi vòng: backtest toàn bộ dữ liệu (từ 2018, mọi nến, có phí + funding), đổi từng thông số một so với cấu hình tốt nhất hiện tại. Chỉ nhận thay đổi khi R/lệnh tăng ≥ 0.005R, KHÔNG xấu đi ở cả nửa đầu lẫn nửa sau dữ liệu, sụt vốn không tệ hơn 15%, số lệnh không giảm quá nửa.", ""];
+    "Mỗi vòng: backtest toàn bộ dữ liệu (từ 2018, mọi nến, có phí + funding), đổi từng thông số một so với cấu hình tốt nhất hiện tại. Chỉ nhận thay đổi khi R/lệnh tăng ≥ 0.005R, KHÔNG xấu đi ở cả nửa đầu lẫn nửa sau dữ liệu, sụt vốn không tệ hơn 10%, tổng R không giảm quá 10%, số lệnh không giảm quá nửa.", ""];
   if (first && last) L.push(`**Mốc ban đầu:** ${first.base.n} lệnh · win rate ${first.base.win}% · ${first.base.exp}R/lệnh · tổng ${first.base.tot}R · sụt vốn ${first.base.dd}R`,
     `**Cấu hình tốt nhất hiện tại:** ${last.base.n} lệnh · win rate ${last.base.win}% · ${last.base.exp}R/lệnh · tổng ${last.base.tot}R · sụt vốn ${last.base.dd}R`, "");
   L.push("## Thông số khác với bot thật", "", "| Thông số | Bot thật | Đề xuất |", "|---|---|---|", ...(diff.length ? diff.map(k => `| ${k.label} | ${fmt(live[k.id])} | **${fmt(S.best[k.id])}** |`) : ["| (chưa có) | | |"]), "");
