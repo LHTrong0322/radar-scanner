@@ -216,7 +216,7 @@ function trades(K, D, base, startT, stock, F) {
       fee = slPct > 0 ? ((inF + FEE_TAKER) / 100 + FUND_APR / 100 * hold) / slPct : 0;
     }
     r.r -= fee;
-    res.push({ base, tf: s.tf, at: s.t, sc: Math.round(s.sc), mode: P.mode === "Chờ hồi" ? "limit" : "market", nTp: (P.tps || []).length, rr1: +P.rr1.toFixed(2),
+    res.push({ base, bull: btcBull(s.t), tf: s.tf, at: s.t, sc: Math.round(s.sc), mode: P.mode === "Chờ hồi" ? "limit" : "market", nTp: (P.tps || []).length, rr1: +P.rr1.toFixed(2),
       st: r.status, r: +r.r.toFixed(3), fee: +fee.toFixed(3), exitAt: r.exitAt || null, hit: r.hit || 0, parts: s.parts, eWhy: P.ref || "", sWhy: P.why || "", tWhy: P.tp1Why || "" });
   }
   return res;
@@ -310,6 +310,11 @@ function effectMd(E) {
 
 /* ---------- bộ lọc thị trường: BTC 1D so với EMA200 ---------- */
 let REGS = {}, BTCD = null;
+function btcBull(t) {                   // thị trường lúc vào lệnh: BTC 1D trên EMA200 = bull, dưới = bear (để chấm long trong bull, short trong bear)
+  const REG = REGS[200] || []; let lo = 0, hi = REG.length - 1, k = -1;
+  while (lo <= hi) { const m = (lo + hi) >> 1; if (REG[m][0] <= t) { k = m; lo = m + 1; } else hi = m - 1; }
+  return k < 0 ? null : REG[k][1];
+}
 function regimeOK(t, p = 200) {
   const REG = REGS[p] || REGS[200] || [];
   if (!REG.length) return true; let lo = 0, hi = REG.length - 1, k = -1;
