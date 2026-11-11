@@ -1,4 +1,4 @@
-# Tối ưu tự động (chạy liên tục) — vòng 23
+# Tối ưu tự động (chạy liên tục) — vòng 24
 
 Bot thật KHÔNG bị thay đổi cho tới khi Trọng duyệt. Backtest mọi nến 4H/1D/1W trong từ 01/2023 tới nay, có phí + funding, không tính BTC (BTC dành cho chiến lược RSI).
 
@@ -7,7 +7,7 @@ Chỉ chọn thông số trên **01/2023 → 12/2025** (Trọng chốt). **năm 
 Nhận thay đổi khi: chỉ số tăng ≥ 3%, tổng R không giảm quá 3%, win rate không giảm quá 0.5 điểm, sụt vốn MC95 không tệ hơn 5%, không xấu đi ở cả 2 nửa 2023–2025 (01/2023–06/2024 và 07/2024–12/2025), số lệnh không giảm quá 30%.
 ⚠️ Các thay đổi Trọng duyệt trước 11/11/2026 21:30 đã được chọn khi nhìn toàn bộ dữ liệu, kể cả giai đoạn kiểm tra kín → với chúng, phần kiểm tra kín không còn kín hoàn toàn.
 
-Chế độ dò hiện tại: **từng thông số** · đã thử 48 phương án.
+Chế độ dò hiện tại: **từng thông số** · đã thử 60 phương án.
 
 ## Bot thật so với cấu hình tốt nhất
 
@@ -15,8 +15,8 @@ Cấu hình mới chỉ đáng tin khi THẮNG bot thật ở phần kiểm tra 
 
 | | Lệnh 2023–2025 | Win rate | Tổng R | R/lệnh | Sụt vốn lớn nhất | Sụt vốn MC95 | Tổng R ÷ MC95 | Lệnh 2026 (kín) | Win rate | Tổng R | R/lệnh | Sụt vốn |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Bot thật | 215 | 37.7% | 52.84R | 0.246 | 12.91R | 19.4R | 2.72 | 47 | 23.4% | -7.54R | -0.16 | 14.92R |
-| **Tốt nhất** | 220 | 40.9% | 91.95R | 0.418 | 7.78R | 13.8R | 6.66 | 67 | 22.4% | -12.31R | -0.184 | 13.98R |
+| Bot thật | 215 | 37.7% | 52.84R | 0.246 | 12.91R | 19.3R | 2.74 | 47 | 23.4% | -7.54R | -0.16 | 14.92R |
+| **Tốt nhất** | 220 | 40.9% | 91.95R | 0.418 | 7.78R | 14.12R | 6.51 | 67 | 22.4% | -12.31R | -0.184 | 13.98R |
 
 ## Theo khung (cấu hình tốt nhất)
 
@@ -34,11 +34,13 @@ Cấu hình mới chỉ đáng tin khi THẮNG bot thật ở phần kiểm tra 
 | Số nến mỗi bên để xác định đỉnh/đáy Dow | 5 | **4** |
 | Lọc BTC trên EMA200 (crypto) | true | **false** |
 | Điểm ADX > 25 và +DI trội (Momentum) | 2 | **3** |
+| Trọng số phần R:R (/100) | 30 | **20** |
 
 ## Các thay đổi đã nhận (mới nhất trước)
 
 | Vòng | Thông số | Từ → Thành | Tổng R | Win rate | MC95 | Chỉ số |
 |---|---|---|---|---|---|---|
+| 24 | Trọng số phần R:R (/100) | 30 → 20 | 92.96R | 41.3% | 13.64R | 6.82 |
 | 22 | Điểm ADX > 25 và +DI trội (Momentum) | 2 → 3 | 82.86R | 40.3% | 14.81R | 5.59 |
 | 22 | Lọc BTC trên EMA200 (crypto) | true → false | 83.22R | 40.4% | 14.66R | 5.68 |
 | 21 | Điểm tối thiểu của vùng đặt SL | 2 → 3 | 54.36R | 37.7% | 19.55R | 2.78 |
@@ -46,6 +48,25 @@ Cấu hình mới chỉ đáng tin khi THẮNG bot thật ở phần kiểm tra 
 | 19 (hoàn tác) | Ngưỡng điểm 'vào ngay' (tín hiệu mạnh) | 6 → 5 | 104.08R | 43.9% | 13.85R | 7.51 |
 
 ## 10 vòng gần nhất
+
+### Vòng 24 — từng thông số · mốc: tổng 91.95R, win 40.9%, MC95 14.12R, chỉ số 6.51
+
+| Phương án | Tổng R | Win rate | R/lệnh | MC95 | Chỉ số | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
+|---|---|---|---|---|---|---|---|---|---|
+| Trọng số phần R:R (/100): 30 → 20 | 92.96 | 41.3% | 0.426 | 13.64 | 6.82 | 0.405 | 0.449 | -13.09 | ✅ |
+| Trọng số phần R:R (/100): 30 → 40 | 91.64 | 40.7% | 0.415 | 13.76 | 6.66 | 0.392 | 0.438 | -10.42 |  |
+| Trọng số phần Divergence (/100): 10 → 5 | 91.95 | 40.9% | 0.418 | 14.12 | 6.51 | 0.392 | 0.445 | -13.34 |  |
+| Trọng số phần Divergence (/100): 10 → 15 | 91.6 | 40.9% | 0.416 | 13.95 | 6.57 | 0.392 | 0.442 | -13.09 |  |
+| Trọng số phần SL (/100): 5 → 3 | 92.47 | 41.1% | 0.422 | 14.09 | 6.56 | 0.392 | 0.455 | -12.31 |  |
+| Trọng số phần SL (/100): 5 → 8 | 91.95 | 40.9% | 0.418 | 14.12 | 6.51 | 0.392 | 0.445 | -10.42 |  |
+| Điểm vùng: Đỉnh/đáy pivot Dow: 2.5 → 1.25 | 87.62 | 38.6% | 0.384 | 14.91 | 5.88 | 0.375 | 0.394 | 5.87 |  |
+| Điểm vùng: Đỉnh/đáy pivot Dow: 2.5 → 3.75 | 82.3 | 41.5% | 0.45 | 11.92 | 6.9 | 0.619 | 0.25 | -14.57 |  |
+| Điểm vùng: Đỉnh/đáy swing lớn: 2 → 1 | 91.41 | 37.8% | 0.281 | 19.04 | 4.8 | 0.334 | 0.23 | 0.59 |  |
+| Điểm vùng: Đỉnh/đáy swing lớn: 2 → 3 | 38.65 | 38.3% | 0.322 | 13.09 | 2.95 | 0.43 | 0.234 | -9.52 |  |
+| Điểm vùng: BOS: 2 → 1 | 91.95 | 40.9% | 0.418 | 14.12 | 6.51 | 0.392 | 0.445 | -12.31 |  |
+| Điểm vùng: BOS: 2 → 3 | 91.95 | 40.9% | 0.418 | 14.12 | 6.51 | 0.392 | 0.445 | -12.31 |  |
+
+Nhận: Trọng số phần R:R (/100) 30 → 20
 
 ### Vòng 23 — từng thông số · mốc: tổng 91.95R, win 40.9%, MC95 13.8R, chỉ số 6.66
 
