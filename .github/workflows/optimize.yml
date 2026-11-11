@@ -1,0 +1,112 @@
+name: Tối ưu tự động
+
+# Mỗi lượt = 1 vòng: lập kế hoạch (đổi từng thông số một so với cấu hình tốt nhất) → backtest toàn bộ dữ liệu có phí trên 16 máy
+# → chấm điểm, chỉ nhận thay đổi tốt hơn và ổn định → ghi opt/report.md → tự chạy vòng tiếp theo cho tới khi hội tụ / đủ số vòng.
+# KHÔNG sửa bot thật.
+on:
+  workflow_dispatch:
+    inputs:
+      batch:
+        description: "Số thông số dò mỗi vòng"
+        default: "6"
+      max_rounds:
+        description: "Số vòng tối đa"
+        default: "30"
+      auto_next:
+        description: "Tự chạy vòng tiếp theo (1/0)"
+        default: "1"
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: optimize
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node opt.mjs plan --batch "${{ github.event.inputs.batch }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: opt-plan
+          path: |
+            experiments-opt/
+            opt/
+          retention-days: 3
+
+  shard:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    strategy:
+      fail-fast: false
+      matrix:
+        k: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/download-artifact@v4
+        with:
+          name: opt-plan
+          path: .
+      - run: node bt.mjs --days max --lowtf 1 --exp experiments-opt --shard ${{ matrix.k }}/16 --out shards
+      - uses: actions/upload-artifact@v4
+        with:
+          name: opt-shard-${{ matrix.k }}
+          path: shards/
+          retention-days: 3
+
+  merge:
+    needs: shard
+    if: always() && needs.plan.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/download-artifact@v4
+        with:
+          name: opt-plan
+          path: .
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: opt-shard-*
+          path: shards
+          merge-multiple: true
+      - name: Gộp + chấm điểm vòng
+        run: |
+          R=$(node -e 'console.log(JSON.parse(require("fs").readFileSync("opt/state.json")).round)')
+          node bt.mjs --days max --lowtf 1 --label "opt-r$R" --merge shards --exp experiments-opt
+          node opt.mjs update --result "$(ls -t backtests/*-opt-r$R.json | head -1)" --max "${{ github.event.inputs.max_rounds }}"
+      - name: Lưu kết quả
+        run: |
+          git config user.name "radar-optimizer"
+          git config user.email "radar-optimizer@users.noreply.github.com"
+          git add opt backtests
+          git commit -m "tối ưu: vòng $(node -e 'console.log(JSON.parse(require("fs").readFileSync("opt/state.json")).round)')" || true
+          for i in 1 2 3 4 5; do
+            git pull --rebase -X theirs origin main && git push origin HEAD:main && break
+            sleep $((i * 5))
+          done
+      - name: Chạy vòng tiếp theo
+        if: github.event.inputs.auto_next == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "$(cat opt/continue 2>/dev/null)" = "1" ]; then
+            gh workflow run optimize.yml --ref main -f batch="${{ github.event.inputs.batch }}" -f max_rounds="${{ github.event.inputs.max_rounds }}" -f auto_next=1
+          else
+            echo "Dừng: đã hội tụ hoặc đủ số vòng"
+          fi
