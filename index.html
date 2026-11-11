@@ -994,7 +994,7 @@ const PICK_MIN=70;   // điểm tối thiểu để thành kèo
 const MAX_TPS=2;
 const MIN_RR=2;       // R:R tối thiểu tới TP1
 const TF_ADD={"4h":0,"1d":0,"1w":0};
-const HTF_MIN=.3;    // khung lớn hơn phải đang tăng (trend ≥ 0.3) mới vào kèo — backtest 2 năm: −15.5R → +72.5R, cả 2 năm đều lời (Trọng duyệt 11/11/2026)
+const HTF_MIN=null;  // khung lớn hơn KHÔNG bắt buộc phải tăng — backtest: khi đã có xác nhận khung nhỏ (A2) thì luật này cắt mất kèo tốt (+32.7R → +66.4R khi bỏ). Trọng duyệt bỏ 11/11/2026
 const LOW_TF_ASSETS=["BTC"];
 const LTF_CONFIRM={"1w":"1d","1d":"4h","4h":"1h","1h":"15m"};   // khung nhỏ hơn phải xác nhận: W cần D tăng rõ; D/4H/1H cần khung nhỏ đã có cấu trúc tăng (A2, Trọng bật 11/11/2026)
 // cấu trúc khung xác nhận "tăng rõ": Dow đang tăng (hoặc vừa phá đỉnh thấp hơn) và xu hướng ≥ HTF_MIN
