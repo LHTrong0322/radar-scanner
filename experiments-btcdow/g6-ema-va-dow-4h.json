@@ -1,0 +1,10 @@
+{
+ "name": "g6-ema-va-dow-4h",
+ "desc": "Giữ EMA200 VÀ thêm BTC 4H có cấu trúc Dow tăng",
+ "patch": [
+  {
+   "find": "const REGIME_SRC=\"ema\";",
+   "replace": "const REGIME_SRC=\"ema+dow4h\";"
+  }
+ ]
+}

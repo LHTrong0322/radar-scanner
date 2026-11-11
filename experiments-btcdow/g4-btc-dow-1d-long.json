@@ -1,0 +1,14 @@
+{
+ "name": "g4-btc-dow-1d-long",
+ "desc": "Như g2, Dow nới lỏng",
+ "patch": [
+  {
+   "find": "const REGIME_SRC=\"ema\";",
+   "replace": "const REGIME_SRC=\"dow1d\";"
+  },
+  {
+   "find": "const REGIME_DOW_LOOSE=false;",
+   "replace": "const REGIME_DOW_LOOSE=true;"
+  }
+ ]
+}

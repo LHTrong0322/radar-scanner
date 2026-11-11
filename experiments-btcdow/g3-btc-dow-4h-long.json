@@ -1,0 +1,14 @@
+{
+ "name": "g3-btc-dow-4h-long",
+ "desc": "Như g1, tính cả lúc BTC 4H vừa đóng cửa vượt đỉnh thấp hơn (Dow nới lỏng)",
+ "patch": [
+  {
+   "find": "const REGIME_SRC=\"ema\";",
+   "replace": "const REGIME_SRC=\"dow4h\";"
+  },
+  {
+   "find": "const REGIME_DOW_LOOSE=false;",
+   "replace": "const REGIME_DOW_LOOSE=true;"
+  }
+ ]
+}

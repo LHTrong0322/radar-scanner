@@ -1,0 +1,10 @@
+{
+ "name": "g1-btc-dow-4h",
+ "desc": "Thay EMA200: chỉ vào lệnh khi BTC 4H có cấu trúc Dow tăng (HH + HL, nến đã đóng)",
+ "patch": [
+  {
+   "find": "const REGIME_SRC=\"ema\";",
+   "replace": "const REGIME_SRC=\"dow4h\";"
+  }
+ ]
+}

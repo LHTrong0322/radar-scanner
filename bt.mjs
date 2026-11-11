@@ -32,7 +32,7 @@ function loadCore(file, text) {
   const src = [grab(/const TFMS=[^\n]*/), grab(/const SETS=[^\n]*/), grab(/const SKIP=[^\n]*/), grab(/const STOCKS=[^\n]*/), js.slice(a, b),
     grab(/const trendOf=[^\n]*/), grab(/function simulate\([\s\S]*?\n\}/)].join("\n");
   const extra = (js.match(/const EXTRA_CRYPTO=(\[[^\]]*\])/) || [])[1];
-  const K = new Function("S", src + "\nreturn {compute,trendOf,simulate,clamp,TFMS,PICK_MIN:typeof PICK_MIN!=='undefined'?PICK_MIN:70,RR_TF:typeof RR_TF!=='undefined'?RR_TF:{},REGIME_EMA:typeof REGIME_EMA!=='undefined'?REGIME_EMA:200,REGIME_SLOPE:typeof REGIME_SLOPE!=='undefined'?REGIME_SLOPE:0,rsOK:typeof rsOK!=='undefined'?rsOK:null,volOK:typeof volOK!=='undefined'?volOK:null,MIN_RR:typeof MIN_RR!=='undefined'?MIN_RR:2,TF_ADD:typeof TF_ADD!=='undefined'?TF_ADD:{},HTF_MIN:typeof HTF_MIN!=='undefined'?HTF_MIN:null,REGIME:typeof REGIME!=='undefined'?REGIME:false,LOW_TF_ASSETS:typeof LOW_TF_ASSETS!=='undefined'?LOW_TF_ASSETS:[],LOW_TFS:typeof LOW_TFS!=='undefined'?LOW_TFS:['15m','1h'],LTF_CONFIRM:typeof LTF_CONFIRM!=='undefined'?LTF_CONFIRM:{},upClear:typeof upClear!=='undefined'?upClear:()=>true,ltfOK:typeof ltfOK!=='undefined'?ltfOK:null,ema};")({ tf: "4h", win: 3, os: 30, ob: 70 });
+  const K = new Function("S", src + "\nreturn {compute,trendOf,simulate,clamp,TFMS,PICK_MIN:typeof PICK_MIN!=='undefined'?PICK_MIN:70,RR_TF:typeof RR_TF!=='undefined'?RR_TF:{},REGIME_EMA:typeof REGIME_EMA!=='undefined'?REGIME_EMA:200,REGIME_SLOPE:typeof REGIME_SLOPE!=='undefined'?REGIME_SLOPE:0,REGIME_SRC:typeof REGIME_SRC!=='undefined'?REGIME_SRC:'ema',REGIME_DOW_LOOSE:typeof REGIME_DOW_LOOSE!=='undefined'?REGIME_DOW_LOOSE:false,dow,rsOK:typeof rsOK!=='undefined'?rsOK:null,volOK:typeof volOK!=='undefined'?volOK:null,MIN_RR:typeof MIN_RR!=='undefined'?MIN_RR:2,TF_ADD:typeof TF_ADD!=='undefined'?TF_ADD:{},HTF_MIN:typeof HTF_MIN!=='undefined'?HTF_MIN:null,REGIME:typeof REGIME!=='undefined'?REGIME:false,LOW_TF_ASSETS:typeof LOW_TF_ASSETS!=='undefined'?LOW_TF_ASSETS:[],LOW_TFS:typeof LOW_TFS!=='undefined'?LOW_TFS:['15m','1h'],LTF_CONFIRM:typeof LTF_CONFIRM!=='undefined'?LTF_CONFIRM:{},upClear:typeof upClear!=='undefined'?upClear:()=>true,ltfOK:typeof ltfOK!=='undefined'?ltfOK:null,ema};")({ tf: "4h", win: 3, os: 30, ob: 70 });
   K.extra = extra ? JSON.parse(extra) : [];
   try { K.stocks = JSON.parse((js.match(/const STOCKS=(\[[\s\S]*?\]\]);/) || [])[1] || "[]"); } catch (e) { K.stocks = []; }
   K.lowAssets = K.LOW_TF_ASSETS || [];
@@ -179,7 +179,11 @@ function signals(K, D, startT, base, stock, F) {
         if (hc.length >= 60) { const h = { src: "ex", c: hc, tf: htf, side: SIDE }; K.compute(h); hT = K.trendOf(h); if (hT != null) { if (hT > .3) sc += 3; else if (hT < -.3) sc -= 5; } }
         if (K.HTF_MIN != null && (hT == null || hT < K.HTF_MIN)) { bump(tf, "5 khung lớn không tăng"); continue; }
       }
-      if (K.REGIME && !stock && !regimeOK(bars[i].t + MS[tf], K.REGIME_EMA, K.REGIME_SLOPE)) { bump(tf, "6 BTC dưới EMA200"); continue; }   // lọc BTC chỉ áp cho crypto
+      if (K.REGIME && !stock) {                                  // lọc thị trường theo BTC — chỉ áp cho crypto
+        const src = K.REGIME_SRC || "ema", tt = bars[i].t + MS[tf];
+        if (src.includes("ema") && !regimeOK(tt, K.REGIME_EMA, K.REGIME_SLOPE)) { bump(tf, "6 BTC dưới EMA200"); continue; }
+        if (src.includes("dow") && !dowRegOK(tt, src.includes("4h") ? "4h" : "1d", K.REGIME_DOW_LOOSE)) { bump(tf, "6 BTC chưa có cấu trúc tăng"); continue; }
+      }
       if (!stock && K.rsOK && !K.rsOK(D["1d"], BTCD, bars[i].t + MS[tf])) { bump(tf, "6b coin yếu hơn BTC"); continue; }
       if (K.volOK && !K.volOK(w)) { bump(tf, "6c biến động bất thường"); continue; }
       const ltf = K.LTF_CONFIRM[tf];
@@ -309,7 +313,13 @@ function effectMd(E) {
 }
 
 /* ---------- bộ lọc thị trường: BTC 1D so với EMA200 ---------- */
-let REGS = {}, BTCD = null;
+let REGS = {}, BTCD = null, DOWS = {};
+function dowRegOK(t, tf, loose) {        // cấu trúc Dow của BTC (nến đã đóng trước thời điểm t): long cần tăng, short cần giảm
+  const A = DOWS[tf] || []; let lo = 0, hi = A.length - 1, k = -1;
+  while (lo <= hi) { const m = (lo + hi) >> 1; if (A[m][0] <= t) { k = m; lo = m + 1; } else hi = m - 1; }
+  if (k < 0) return true; const [, st, brokeDown, brokeUp] = A[k];
+  return SIDE === "short" ? st === -1 || (loose && brokeUp) : st === 1 || (loose && brokeDown);
+}
 function btcBull(t) {                   // thị trường lúc vào lệnh: BTC 1D trên EMA200 = bull, dưới = bear (để chấm long trong bull, short trong bear)
   const REG = REGS["200:0"] || []; let lo = 0, hi = REG.length - 1, k = -1;
   while (lo <= hi) { const m = (lo + hi) >> 1; if (REG[m][0] <= t) { k = m; lo = m + 1; } else hi = m - 1; }
@@ -325,7 +335,7 @@ function regimeOK(t, p = 200, sl = 0) {
 /* ---------- chạy ---------- */
 // Luồng phụ (worker): nhận dữ liệu 1 mã + chỉ số phiên bản → trả về danh sách lệnh. Chạy song song trên mọi nhân CPU.
 if (!isMainThread) {
-  const KS = workerData.texts.map(t => loadCore(null, t)); REGS = workerData.regs || {}; BTCD = workerData.btcd || null;
+  const KS = workerData.texts.map(t => loadCore(null, t)); REGS = workerData.regs || {}; BTCD = workerData.btcd || null; DOWS = workerData.dows || {};
   parentPort.on("message", ({ id, vi, D, base, startT, stock }) => {
     try { const F = vi === 0 ? {} : null; parentPort.postMessage({ id, T: trades(KS[vi], D, base, startT, stock, F), F }); }
     catch (e) { parentPort.postMessage({ id, T: [], err: e.message }); }
@@ -380,7 +390,14 @@ try { const bd = await candles("BTC", "1d", Date.UTC(2017, 0, 1)); BTCD = bd;
       const prev = e[i - sl]; if (e[i] == null || prev == null) return [x.t + MS["1d"], up ? 1 : -1];
       return [x.t + MS["1d"], up && e[i] > prev ? 1 : !up && e[i] < prev ? -1 : 0]; }); } }   // 1 = tăng, −1 = giảm, 0 = đi ngang (giá và độ dốc EMA ngược nhau)
 catch (e) { console.log("Không lấy được BTC cho bộ lọc thị trường"); }
-const workers = Array.from({ length: NW }, () => new Worker(new URL(import.meta.url), { workerData: { texts, regs: REGS, btcd: BTCD }, argv: process.argv.slice(2) }));
+// cấu trúc Dow của BTC khung 4H / 1D tại từng nến đã đóng (cho bộ lọc REGIME_SRC = "dow4h" / "dow1d")
+for (const tf of ["4h", "1d"]) {
+  try { const bb = tf === "1d" && BTCD ? BTCD : await candles("BTC", tf, Date.UTC(2018, 0, 1)), out = [];
+    for (let i = 60; i < bb.length; i++) { const d = K1.dow(bb.slice(Math.max(0, i - 300), i + 1)); const w = d && d.why || "";
+      out.push([bb[i].t + MS[tf], d ? d.state : 0, /^Gãy cấu trúc giảm/.test(w), /^Gãy cấu trúc tăng/.test(w)]); }
+    DOWS[tf] = out; } catch (e) { console.log("Không tính được cấu trúc Dow BTC " + tf + ": " + e.message); }
+}
+const workers = Array.from({ length: NW }, () => new Worker(new URL(import.meta.url), { workerData: { texts, regs: REGS, btcd: BTCD, dows: DOWS }, argv: process.argv.slice(2) }));
 const wait = new Map(); let seq = 0, rr = 0;
 for (const w of workers) w.on("message", m => { const f = wait.get(m.id); wait.delete(m.id); if (m.err) console.log("  lỗi luồng:", m.err); if (m.F) addFunnel(m.F); f(m.T); });
 const task = (vi, D, base, stock) => new Promise(res => { const id = ++seq; wait.set(id, res); workers[rr++ % NW].postMessage({ id, vi, D, base, startT, stock }); });

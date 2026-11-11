@@ -1,0 +1,10 @@
+{
+ "name": "g2-btc-dow-1d",
+ "desc": "Thay EMA200: chỉ vào lệnh khi BTC 1D có cấu trúc Dow tăng",
+ "patch": [
+  {
+   "find": "const REGIME_SRC=\"ema\";",
+   "replace": "const REGIME_SRC=\"dow1d\";"
+  }
+ ]
+}
