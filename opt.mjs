@@ -272,33 +272,33 @@ function report(S) {
   const row = (n, m) => m ? `| ${n} | ${m.n} | ${m.win}% | ${m.tot}R | ${m.exp} | ${m.dd}R | ${m.dd95}R | ${fit(m).toFixed(2)} | ${m.test.n} | ${f2(m.test.win)}% | ${m.test.tot}R | ${f2(m.test.exp)} | ${f2(m.test.dd)}R |` : `| ${n} | – |`;
   const L = [`# Tối ưu tự động (chạy liên tục) — vòng ${S.round}`, "",
     "Bot thật KHÔNG bị thay đổi cho tới khi Trọng duyệt. Backtest mọi nến 4H/1D/1W trong từ 01/2023 tới nay, có phí + funding, không tính BTC (BTC dành cho chiến lược RSI).", "",
-    "**Mục tiêu:** tăng tổng R + win rate, rủi ro thấp nhất → chỉ số chính = tổng R ÷ sụt vốn Monte Carlo 95% (xáo trộn thứ tự lệnh 2000 lần, lấy mức sụt vốn mà 95% trường hợp không vượt quá).",
+    "**Mục tiêu:** tăng tổng R + win rate, rủi ro thấp nhất → chỉ số chính = **Lời ÷ rủi ro** = tổng R chia cho **rủi ro tụt vốn (95%)**. Rủi ro tụt vốn (95%): xáo trộn thứ tự các lệnh 2000 lần, lấy mức tụt vốn mà 95% số lần không vượt quá — tức là "lúc xui nhất thường gặp, ví có thể tụt bao nhiêu". Chỉ số càng cao càng tốt: lời nhiều trên mỗi đồng rủi ro.",
     "Chỉ chọn thông số trên **01/2023 → 12/2025** (Trọng chốt). **năm 2026 là kiểm tra kín** (dữ liệu mới nhất): không dùng để chọn, chỉ để chấm hiệu quả thật.",
-    "Nhận thay đổi khi: chỉ số tăng ≥ 3%, tổng R không giảm quá 3%, win rate không giảm quá 0.5 điểm, sụt vốn MC95 không tệ hơn 5%, không xấu đi ở cả 2 nửa 2023–2025 (01/2023–06/2024 và 07/2024–12/2025), số lệnh không giảm quá 30%.",
+    "Nhận thay đổi khi: Lời ÷ rủi ro tăng ít nhất 3%, tổng R không giảm quá 3%, win rate không giảm quá 0.5 điểm, rủi ro tụt vốn (95%) không tăng quá 5%, không xấu đi ở cả 2 nửa 2023–2025 (01/2023–06/2024 và 07/2024–12/2025), số lệnh không giảm quá 30%.",
     "⚠️ Các thay đổi Trọng duyệt trước 11/11/2026 21:30 đã được chọn khi nhìn toàn bộ dữ liệu, kể cả giai đoạn kiểm tra kín → với chúng, phần kiểm tra kín không còn kín hoàn toàn.", "",
     `Chế độ dò hiện tại: **${MODE_VI[S.mode]}** · đã thử ${S.tested} phương án.`, "",
     "## Bot thật so với cấu hình tốt nhất", "", "Cấu hình mới chỉ đáng tin khi THẮNG bot thật ở phần kiểm tra kín (năm 2026). Thua ở đó thì bỏ, dù phần huấn luyện đẹp đến đâu.", "",
-    "| | Lệnh 2023–2025 | Win rate | Tổng R | R/lệnh | Sụt vốn lớn nhất | Sụt vốn MC95 | Tổng R ÷ MC95 | Lệnh 2026 (kín) | Win rate | Tổng R | R/lệnh | Sụt vốn |",
+    "| | Lệnh 2023–2025 | Tỷ lệ thắng | Tổng R | R/lệnh | Tụt vốn lớn nhất (thực tế) | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | Lệnh 2026 (kín) | Tỷ lệ thắng | Tổng R | R/lệnh | Tụt vốn |",
     "|---|---|---|---|---|---|---|---|---|---|---|---|---|", row("Bot thật", lv), row("**Tốt nhất**", b), ""];
   if (b && b.tf) { const tfs = Object.keys({ ...b.tf, ...b.tfTest });
-    L.push("## Theo khung (cấu hình tốt nhất)", "", "| Khung | Lệnh 2023–2025 | Win rate | Tổng R | Lệnh 2026 (kiểm tra kín) | Win rate | Tổng R |", "|---|---|---|---|---|---|---|",
+    L.push("## Theo khung (cấu hình tốt nhất)", "", "| Khung | Lệnh 2023–2025 | Tỷ lệ thắng | Tổng R | Lệnh 2026 (kiểm tra kín) | Tỷ lệ thắng | Tổng R |", "|---|---|---|---|---|---|---|",
       ...tfs.map(t => { const a = b.tf[t] || {}, c = b.tfTest[t] || {}; return `| ${t.toUpperCase()} | ${a.n ?? 0} | ${a.win ?? "–"}% | ${a.tot ?? 0}R | ${c.n ?? 0} | ${c.win ?? "–"}% | ${c.tot ?? 0}R |`; }), ""); }
   { const V2 = S.verified;
     L.push("## ✅ Cấu hình tốt nhất ĐÃ QUA kiểm tra 2026 (đề xuất để Trọng duyệt)", "");
     if (!V2) L.push("Chưa có cấu hình nào vừa hơn bot thật ở 2023–2025 vừa hơn ở năm 2026.", "");
     else { const dv = KNOBS.filter(k => !eq(V2.cfg[k.id], live[k.id]));
-      L.push(`Tìm thấy ở vòng ${V2.round} (${V2.desc}).`, "", "| | Lệnh 2023–2025 | Win rate | Tổng R | Sụt vốn MC95 | Chỉ số | Lệnh 2026 | Win rate | Tổng R 2026 |", "|---|---|---|---|---|---|---|---|---|",
+      L.push(`Tìm thấy ở vòng ${V2.round} (${V2.desc}).`, "", "| | Lệnh 2023–2025 | Tỷ lệ thắng | Tổng R | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | Lệnh 2026 | Tỷ lệ thắng | Tổng R 2026 |", "|---|---|---|---|---|---|---|---|---|",
         ...[["Bot thật", lv], ["**Đề xuất**", V2.m]].map(([n, m]) => m ? `| ${n} | ${m.n} | ${m.win}% | ${m.tot}R | ${m.dd95}R | ${fit(m).toFixed(2)} | ${m.test.n} | ${f2(m.test.win)}% | ${m.test.tot}R |` : `| ${n} | – |`), "",
         "| Thông số | Bot thật | Đề xuất |", "|---|---|---|", ...dv.map(k => `| ${k.label} | ${fmt(live[k.id])} | **${fmt(V2.cfg[k.id])}** |`), ""); } }
   L.push("## Thông số khác với bot thật", "", "| Thông số | Bot thật | Đề xuất |", "|---|---|---|", ...(diff.length ? diff.map(k => `| ${k.label} | ${fmt(live[k.id])} | **${fmt(S.best[k.id])}** |`) : ["| (chưa có) | | |"]), "");
   const acc = S.accepted.slice(-40).reverse();
-  L.push("## Các thay đổi đã nhận (mới nhất trước)", "", "| Vòng | Thông số | Từ → Thành | Tổng R | Win rate | MC95 | Chỉ số |", "|---|---|---|---|---|---|---|",
+  L.push("## Các thay đổi đã nhận (mới nhất trước)", "", "| Vòng | Thông số | Từ → Thành | Tổng R | Tỷ lệ thắng | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro |", "|---|---|---|---|---|---|---|",
     ...(acc.length ? acc.map(a => `| ${a.round}${a.undone ? " (hoàn tác)" : ""} | ${a.label} | ${fmt(a.from)} → ${fmt(a.to)} | ${a.tot}R | ${a.win}% | ${a.dd95}R | ${a.fit} |`) : ["| | (chưa có) | | | | | |"]), "");
   L.push("## 10 vòng gần nhất", "");
   for (const r of S.rounds.slice(-10).reverse()) {
-    L.push(`### Vòng ${r.round} — ${MODE_VI[r.mode] || r.mode}` + (r.base ? ` · mốc: tổng ${r.base.tot}R, win ${r.base.win}%, MC95 ${r.base.dd95}R, chỉ số ${fit(r.base).toFixed(2)}` : ""));
+    L.push(`### Vòng ${r.round} — ${MODE_VI[r.mode] || r.mode}` + (r.base ? ` · mốc: tổng ${r.base.tot}R, win ${r.base.win}%, rủi ro tụt vốn ${r.base.dd95}R, lời÷rủi ro ${fit(r.base).toFixed(2)}` : ""));
     if (r.note) L.push(r.note);
-    if (r.rows.length) { L.push("", "| Phương án | Tổng R | Win rate | R/lệnh | MC95 | Chỉ số | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |", "|---|---|---|---|---|---|---|---|---|---|");
+    if (r.rows.length) { L.push("", "| Phương án | Tổng R | Tỷ lệ thắng | R/lệnh | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |", "|---|---|---|---|---|---|---|---|---|---|");
       for (const x of r.rows) L.push(`| ${x.desc} | ${f2(x.tot)} | ${f2(x.win)}% | ${f2(x.exp)} | ${f2(x.dd95)} | ${f2(x.fit)} | ${f2(x.h1)} | ${f2(x.h2)} | ${x.test ? x.test.tot : "–"} | ${x.good ? "✅" : ""} |`); }
     if (r.accepted.length) L.push("", "Nhận: " + r.accepted.map(a => `${a.label} ${fmt(a.from)} → ${fmt(a.to)}`).join(" · "));
     L.push("");
