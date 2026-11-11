@@ -1,0 +1,10 @@
+{
+ "name": "c05-dem-sl-0.7",
+ "desc": "Đệm SL 0.7 ATR (thay vì 0.5)",
+ "patch": [
+  {
+   "find": "stop=zs.lo-.5*atr;",
+   "replace": "stop=zs.lo-.7*atr;"
+  }
+ ]
+}

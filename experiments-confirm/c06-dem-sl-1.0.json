@@ -1,0 +1,10 @@
+{
+ "name": "c06-dem-sl-1.0",
+ "desc": "Đệm SL 1 ATR",
+ "patch": [
+  {
+   "find": "stop=zs.lo-.5*atr;",
+   "replace": "stop=zs.lo-1*atr;"
+  }
+ ]
+}

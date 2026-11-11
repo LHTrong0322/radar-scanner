@@ -1,0 +1,10 @@
+{
+ "name": "c02-tp1-chot-30",
+ "desc": "Chốt 30% ở TP1",
+ "patch": [
+  {
+   "find": "const tpFrac=n=>n<=1?[1]:[.5,...Array(n-1).fill(.5/(n-1))];",
+   "replace": "const tpFrac=n=>n<=1?[1]:[.3,...Array(n-1).fill(.7/(n-1))];"
+  }
+ ]
+}

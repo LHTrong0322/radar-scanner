@@ -1,0 +1,10 @@
+{
+ "name": "c12-rr-2-cu",
+ "desc": "So sánh: R:R tối thiểu 2 như cũ",
+ "patch": [
+  {
+   "find": "const MIN_RR=2.5;     // R:R tối thiểu tới TP1 (TP1 phải ≥ 2.5R mới vào lệnh) — Trọng duyệt 11/11/2026",
+   "replace": "const MIN_RR=2;"
+  }
+ ]
+}

@@ -1,0 +1,10 @@
+{
+ "name": "c04-vao-ngay-7",
+ "desc": "Ngưỡng vào ngay 7",
+ "patch": [
+  {
+   "find": "const STRONG_MKT=5;",
+   "replace": "const STRONG_MKT=7;"
+  }
+ ]
+}

@@ -1,0 +1,26 @@
+{
+ "name": "c11-to-hop-sl-1",
+ "desc": "Tổ hợp + đệm SL 1 ATR",
+ "patch": [
+  {
+   "find": "const tpFrac=n=>n<=1?[1]:[.5,...Array(n-1).fill(.5/(n-1))];",
+   "replace": "const tpFrac=n=>n<=1?[1]:[.33,...Array(n-1).fill(.67/(n-1))];"
+  },
+  {
+   "find": "const STRONG_MKT=5;",
+   "replace": "const STRONG_MKT=6;"
+  },
+  {
+   "find": "const expiry=j.at+12*TFMS[j.tf];",
+   "replace": "const expiry=j.at+8*TFMS[j.tf];"
+  },
+  {
+   "find": "const below=best(SZ.filter(z=>z.hi<px-.6*atr&&z.hi>=px-3*atr&&z.w>=2));",
+   "replace": "const below=best(SZ.filter(z=>z.hi<px-.6*atr&&z.hi>=px-3*atr&&z.w>=3));"
+  },
+  {
+   "find": "stop=zs.lo-.5*atr;",
+   "replace": "stop=zs.lo-1*atr;"
+  }
+ ]
+}

@@ -1,0 +1,10 @@
+{
+ "name": "c03-vao-ngay-6",
+ "desc": "Ngưỡng vào ngay (tín hiệu mạnh) 6 thay vì 5",
+ "patch": [
+  {
+   "find": "const STRONG_MKT=5;",
+   "replace": "const STRONG_MKT=6;"
+  }
+ ]
+}

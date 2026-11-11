@@ -1,0 +1,10 @@
+{
+ "name": "c08-lenh-cho-8-nen",
+ "desc": "Lệnh chờ hết hạn sau 8 nến (thay vì 12)",
+ "patch": [
+  {
+   "find": "const expiry=j.at+12*TFMS[j.tf];",
+   "replace": "const expiry=j.at+8*TFMS[j.tf];"
+  }
+ ]
+}

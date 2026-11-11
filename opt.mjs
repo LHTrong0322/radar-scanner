@@ -16,7 +16,7 @@ const W = (id, label, finds, cur, c, group) => ({ id, label, finds, cur, c, grou
 const KNOBS = [
   // ngưỡng & quản lý lệnh
   W("pick", "Ngưỡng điểm vào kèo", [["const PICK_MIN=70;", "const PICK_MIN={v};"]], 70, [55, 60, 65, 70, 75, 80, 85], "Ngưỡng"),
-  W("rr", "R:R tối thiểu tới TP1", [["const MIN_RR=2;", "const MIN_RR={v};"]], 2, [1.2, 1.5, 2, 2.5, 3, 4], "Ngưỡng"),
+  W("rr", "R:R tối thiểu tới TP1", [[/const MIN_RR=[^;]*;/, "const MIN_RR={v};"]], 2.5, [1.2, 1.5, 2, 2.5, 3, 4], "Ngưỡng"),
   W("mkt", "Ngưỡng điểm 'vào ngay' (tín hiệu mạnh)", [["const STRONG_MKT=5;", "const STRONG_MKT={v};"]], 5, [2, 3, 4, 5, 6, 7, 9], "Entry"),
   W("maxsl", "SL tối đa (% Entry)", [["const MAX_SL=.35;", "const MAX_SL={v};"]], .35, [.08, .12, .2, .35, .5], "SL"),
   W("slbuf", "Đệm SL dưới vùng hỗ trợ (ATR)", [["stop=zs.lo-.5*atr;", "stop=zs.lo-{v}*atr;"]], .5, [.2, .3, .4, .5, .6, .8, 1], "SL"),
@@ -31,7 +31,7 @@ const KNOBS = [
   W("htf", "Khung lớn phải tăng (trend ≥)", [[/const HTF_MIN=[^;]*;/, "const HTF_MIN={v};"]], .3, [null, 0, .2, .3, .4, .5], "Bộ lọc"),
   W("regime", "Lọc BTC trên EMA200 (crypto)", [[/const REGIME=[^;]*;/, "const REGIME={v};"]], true, [false, true], "Bộ lọc"),
   W("a2", "Xác nhận khung nhỏ (A2)", [[/const LTF_CONFIRM=\{[^}]*\};/, "const LTF_CONFIRM={v};"]], "ON", ["OFF", "W", "ON"], "Bộ lọc",),
-  W("dow", "Cổng Dow", [["const dw=i.dow, dowOK=!!dw&&dw.state===1;", "{v}"]], "CHẶT", ["TẮT", "LỎNG", "CHẶT"], "Bộ lọc"),
+  W("dow", "Cổng Dow", [[/const dw=i\.dow, dowOK=[^;]*;/, "{v}"]], "LỎNG", ["TẮT", "LỎNG", "CHẶT"], "Bộ lọc"),
   // trọng số /100
   ...[["Trend", "T", 30], ["Momentum", "M", 15], ["Elliott", "W", 15], ["Entry", "En", 20], ["R:R", "RR", 20], ["Divergence", "D", 10], ["SL", "SLq", 5]].map(([n, vn, w]) =>
     W("p_" + vn, `Trọng số phần ${n} (/100)`, [[`["${n}",${vn},${w}]`, `["${n}",${vn},{v}]`]], w, [0, Math.round(w / 2), w, Math.round(w * 1.5), w * 2], "Điểm /100")),
@@ -86,7 +86,8 @@ function plan() {
   if (S.done) { console.log("Đã hội tụ, không còn gì để thử."); fs.writeFileSync("opt/continue", "0"); return; }
   // giá trị hiện tại trong code có thể đã đổi (Trọng duyệt áp dụng) → đồng bộ "cur" của các thông số đặc biệt
   // đồng bộ với bot thật: nếu Trọng đã đổi bộ lọc trên bot thật thì cấu hình gốc của tối ưu cũng đổi theo
-  const liveOf = { htf: () => { const m = html.match(/const HTF_MIN=([^;]*);/); return m ? (m[1] === "null" ? null : +m[1]) : undefined; },
+  const liveOf = { rr: () => { const m = html.match(/const MIN_RR=([^;]*);/); return m ? +m[1] : undefined; },
+    htf: () => { const m = html.match(/const HTF_MIN=([^;]*);/); return m ? (m[1] === "null" ? null : +m[1]) : undefined; },
     regime: () => { const m = html.match(/const REGIME=([^;]*);/); return m ? m[1] === "true" : undefined; },
     a2: () => { const m = html.match(/const LTF_CONFIRM=(\{[^}]*\});/); return m ? Object.keys(SPECIAL.a2).find(k => SPECIAL.a2[k] === m[1]) : undefined; },
     dow: () => Object.keys(SPECIAL.dow).find(k => html.includes(SPECIAL.dow[k])) };

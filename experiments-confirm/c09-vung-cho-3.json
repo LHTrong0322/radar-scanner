@@ -1,0 +1,10 @@
+{
+ "name": "c09-vung-cho-3",
+ "desc": "Vùng đặt lệnh chờ cần điểm ≥ 3",
+ "patch": [
+  {
+   "find": "const below=best(SZ.filter(z=>z.hi<px-.6*atr&&z.hi>=px-3*atr&&z.w>=2));",
+   "replace": "const below=best(SZ.filter(z=>z.hi<px-.6*atr&&z.hi>=px-3*atr&&z.w>=3));"
+  }
+ ]
+}
