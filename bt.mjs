@@ -377,7 +377,7 @@ try {   // loại dự án vốn hoá HIỆN TẠI dưới 30 triệu USD (như 
 let STOCKS = arg("stocks", "1") === "1" ? K1.stocks.filter(x => !arg("only", "") || arg("only", "").toUpperCase().split(",").includes(x[1])) : [];
 if (arg("hlonly", "1") === "1") try {   // như bot thật: chỉ giữ coin / cổ phiếu / hàng hoá đang trade được trên Hyperliquid (danh sách hiện tại)
   const { hlTradable } = await import("./hyper.mjs"), T = await hlTradable(), b0 = uni.length, s0 = STOCKS.length;
-  uni = uni.filter(b => T.has(b)); STOCKS = STOCKS.filter(x => T.has(x[1], x[0]));
+  uni = uni.filter(b => T.has(b) && !K1.stocks.some(x => x[1] === b)); STOCKS = STOCKS.filter(x => T.has(x[1], x[0]));   // mã đã có trong danh sách cổ phiếu/hàng hoá thì không tính thêm lần nữa như coin
   console.log(`Hyperliquid: giữ ${uni.length}/${b0} coin, ${STOCKS.length}/${s0} cổ phiếu/hàng hoá`);
 } catch (e) { console.log("Không lọc được theo Hyperliquid:", e.message); }   // cổ phiếu (Yahoo): 4H/1H tối đa 2 năm, 1D/1W tối đa 10 năm
 const ONLY = arg("only", "") ? arg("only", "").toUpperCase().split(",") : null;

@@ -331,7 +331,7 @@ async function main() {
     for (const u of meta.universe || []) {
       if (u.isDelisted) continue; const b = /^k[A-Z]/.test(u.name) ? u.name.slice(1) : u.name;   // kPEPE = 1000 PEPE → quét theo PEPE
       if (!/^[A-Z0-9]{2,12}$/.test(b)) continue;
-      if (!assets.some(x => x.base === b)) { assets.push({ kind: "crypto", base: b, rank: 0, hl: true }); nHL++; }
+      if (!assets.some(x => x.base === b) && !K.STOCKS.some(x => x[1] === b)) { assets.push({ kind: "crypto", base: b, rank: 0, hl: true }); nHL++; }   // tránh trùng với cổ phiếu/hàng hoá cùng tên
     }
     state.hlListed = (meta.universe || []).filter(u => !u.isDelisted).length; console.log(`Hyperliquid: ${state.hlListed} dự án đang niêm yết, thêm ${nHL} mã ngoài danh sách cũ`);
   } catch (e) { errors.push(`Không lấy được danh sách Hyperliquid: ${e.message}`); }
