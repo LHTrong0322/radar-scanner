@@ -106,6 +106,7 @@ function plan() {
     a2: () => { const m = html.match(/const LTF_CONFIRM=(\{[^}]*\});/); return m ? Object.keys(SPECIAL.a2).find(k => SPECIAL.a2[k] === m[1]) : undefined; },
     dow: () => Object.keys(SPECIAL.dow).find(k => html.includes(SPECIAL.dow[k])) };
   S.live = S.live || {};
+  if (S.objective !== "fit") { S.objective = "fit"; S.stale = 0; S.done = false; S.baseline = null; S.history.push({ round: S.round, note: "Đổi mục tiêu theo yêu cầu Trọng: tăng tổng R + win rate, sụt vốn thấp nhất (chỉ số tổng R ÷ sụt vốn); quét lại mọi thông số", accepted: [], base: null }); }
   for (const k of KNOBS) if (!(k.id in S.best)) S.best[k.id] = k.cur;      // thông số mới thêm sau khi tối ưu đã chạy → lấy giá trị đang dùng (tránh hiện "undefined")
   for (const [id, f] of Object.entries(liveOf)) { const v = f(); if (v === undefined) continue; const k = KNOBS.find(x => x.id === id); k.cur = v;
     if (!eq(S.live[id], v)) { if (S.live[id] !== undefined || !eq(S.best[id], v)) S.best[id] = v; S.live[id] = v; } }
@@ -132,11 +133,12 @@ function update() {
   const J = JSON.parse(fs.readFileSync(file, "utf8")), V = Object.fromEntries((J.variants || []).map(v => [v.name, v]));
   const metric = v => v && v.R && v.R.all ? { n: v.R.all.closed, exp: v.R.all.expectancy ?? -9, win: v.R.all.winRate ?? 0, dd: v.R.all.maxDD_R, tot: v.R.all.totalR, h1: v.half1 ? v.half1.expectancy ?? -9 : -9, h2: v.half2 ? v.half2.expectancy ?? -9 : -9 } : null;
   const base = metric(V["000-best"]); if (!base) throw new Error("thiếu kết quả 000-best");
+  const fit = m => m ? m.tot / Math.max(m.dd, 1) : -9;   // mục tiêu (Trọng 11/11): tổng R cao + sụt vốn thấp → tổng R ÷ sụt vốn lớn nhất
   // nếu cấu hình gộp tệ hơn mốc vòng trước → hoàn tác lần nhận gần nhất
-  if (S.baseline && base.exp < S.baseline.exp - .01 && S.history.length && S.history.at(-1).accepted.length) {
+  if (S.baseline && fit(base) < fit(S.baseline) * .98 && S.history.length && S.history.at(-1).accepted.length) {
     const last = S.history.at(-1);
     for (const a of last.accepted) S.best[a.knob] = a.from;
-    S.history.push({ round: S.round, note: `Gộp các thay đổi vòng ${last.round} làm kết quả giảm (${S.baseline.exp} → ${base.exp}R/lệnh) → hoàn tác`, accepted: [], base });
+    S.history.push({ round: S.round, note: `Gộp các thay đổi vòng ${last.round} làm kết quả giảm (tổng R ÷ sụt vốn ${fit(S.baseline).toFixed(2)} → ${fit(base).toFixed(2)}) → hoàn tác`, accepted: [], base });
     save(S); report(S); fs.writeFileSync("opt/continue", "1"); return;
   }
   const rows = [], acc = [];
@@ -145,12 +147,14 @@ function update() {
     for (const [name, v] of Object.entries(V)) {
       if (!name.startsWith(`k-${id}-`)) continue;
       const m = metric(v), val0 = v.name.slice(`k-${id}-`.length);
-      const good = m && m.exp >= base.exp + .005 && m.h1 >= base.h1 - .005 && m.h2 >= base.h2 - .005 && (m.h1 > base.h1 || m.h2 > base.h2)
-        && m.dd <= base.dd * 1.1 + 1 && m.n >= base.n * .5 && m.tot >= base.tot * .9;   // giảm rủi ro: sụt vốn không tệ hơn 10%, tổng R không giảm quá 10%
-      const score = m ? Math.max(0, Math.min(10, +(5 + (m.exp - base.exp) / .05).toFixed(1))) : null;
+      // nhận khi: tổng R ÷ sụt vốn tăng ≥ 3%, tổng R không giảm quá 3%, win rate không giảm quá 0.5 điểm, sụt vốn không tệ hơn 5%,
+      // không xấu đi ở cả 2 nửa dữ liệu (chống khớp quá khứ), số lệnh không giảm quá 30%
+      const good = m && fit(m) >= fit(base) * 1.03 && m.tot >= base.tot * .97 && m.win >= base.win - .5 && m.dd <= base.dd * 1.05
+        && m.h1 >= base.h1 - .005 && m.h2 >= base.h2 - .005 && (m.h1 > base.h1 || m.h2 > base.h2) && m.n >= base.n * .7;
+      const score = m ? Math.max(0, Math.min(10, +(5 + (fit(m) / fit(base) - 1) / .04).toFixed(1))) : null;   // 5 = như mốc, +1 điểm mỗi 4% tổng R ÷ sụt vốn
       rows.push({ knob: id, label: k.label, from: S.best[id], to: val0, ...m, score, good });
       S.tested[`${id}=${val0}`] = { round: S.round, ...m, score };
-      if (good && (!bestC || m.exp > bestC.m.exp || (m.exp === bestC.m.exp && m.win > bestC.m.win))) bestC = { m, val0 };
+      if (good && (!bestC || fit(m) > fit(bestC.m) || (fit(m) === fit(bestC.m) && m.win > bestC.m.win))) bestC = { m, val0 };
     }
     if (bestC) { const kv = k.c.find(x => fmt(x) === bestC.val0); acc.push({ knob: id, label: k.label, from: S.best[id], to: kv, exp: bestC.m.exp }); S.best[id] = kv; }
   }
@@ -171,7 +175,7 @@ function report(S) {
   const first = S.history.find(h => h.base);
   const L = [`# Tối ưu tự động — vòng ${S.round}${S.done ? " (đã dừng)" : ""}`, "",
     "Đây là báo cáo để thảo luận. Bot thật KHÔNG bị thay đổi cho tới khi Trọng duyệt.", "",
-    "Mỗi vòng: backtest toàn bộ dữ liệu (từ 2018, mọi nến, có phí + funding), đổi từng thông số một so với cấu hình tốt nhất hiện tại. Chỉ nhận thay đổi khi R/lệnh tăng ≥ 0.005R, KHÔNG xấu đi ở cả nửa đầu lẫn nửa sau dữ liệu, sụt vốn không tệ hơn 10%, tổng R không giảm quá 10%, số lệnh không giảm quá nửa.", ""];
+    "Mỗi vòng: backtest toàn bộ dữ liệu (từ 2018, mọi nến, có phí + funding), đổi từng thông số một so với cấu hình tốt nhất hiện tại. Mục tiêu (Trọng 11/11): tăng tổng R + win rate, sụt vốn thấp nhất → chỉ số chính là TỔNG R ÷ SỤT VỐN LỚN NHẤT. Chỉ nhận thay đổi khi chỉ số này tăng ≥ 3%, tổng R không giảm quá 3%, win rate không giảm quá 0.5 điểm, sụt vốn không tệ hơn 5%, KHÔNG xấu đi ở cả nửa đầu lẫn nửa sau dữ liệu, số lệnh không giảm quá 30%. (Các vòng trước 'đổi mục tiêu' dùng tiêu chí cũ: R/lệnh.)", ""];
   if (first && last) L.push(`**Mốc ban đầu:** ${first.base.n} lệnh · win rate ${first.base.win}% · ${first.base.exp}R/lệnh · tổng ${first.base.tot}R · sụt vốn ${first.base.dd}R`,
     `**Cấu hình tốt nhất hiện tại:** ${last.base.n} lệnh · win rate ${last.base.win}% · ${last.base.exp}R/lệnh · tổng ${last.base.tot}R · sụt vốn ${last.base.dd}R`, "");
   L.push("## Thông số khác với bot thật", "", "| Thông số | Bot thật | Đề xuất |", "|---|---|---|", ...(diff.length ? diff.map(k => `| ${k.label} | ${fmt(live[k.id])} | **${fmt(S.best[k.id])}** |`) : ["| (chưa có) | | |"]), "");
@@ -180,8 +184,8 @@ function report(S) {
     L.push(`### Vòng ${h.round}` + (h.base ? ` — mốc: ${h.base.exp}R/lệnh, win ${h.base.win}%, DD ${h.base.dd}R, ${h.base.n} lệnh` : ""));
     if (h.note) L.push(h.note);
     if (h.rows && h.rows.length) {
-      L.push("", "| Thông số | Từ → Thử | Điểm 0–10 | R/lệnh | Win rate | Lệnh | Max DD | Nửa đầu | Nửa sau | Nhận? |", "|---|---|---|---|---|---|---|---|---|---|");
-      for (const r of h.rows) L.push(`| ${r.label} | ${fmt(r.from)} → ${r.to} | ${r.score ?? "–"} | ${r.exp ?? "–"} | ${r.win ?? "–"}% | ${r.n ?? "–"} | ${r.dd ?? "–"} | ${r.h1 ?? "–"} | ${r.h2 ?? "–"} | ${r.good ? "✅" : ""} |`);
+      L.push("", "| Thông số | Từ → Thử | Điểm 0–10 | Tổng R | Tổng R ÷ sụt vốn | R/lệnh | Win rate | Lệnh | Max DD | Nửa đầu | Nửa sau | Nhận? |", "|---|---|---|---|---|---|---|---|---|---|---|---|");
+      for (const r of h.rows) L.push(`| ${r.label} | ${fmt(r.from)} → ${r.to} | ${r.score ?? "–"} | ${r.tot ?? "–"} | ${r.tot != null && r.dd ? (r.tot / Math.max(r.dd, 1)).toFixed(2) : "–"} | ${r.exp ?? "–"} | ${r.win ?? "–"}% | ${r.n ?? "–"} | ${r.dd ?? "–"} | ${r.h1 ?? "–"} | ${r.h2 ?? "–"} | ${r.good ? "✅" : ""} |`);
     }
     if (h.accepted && h.accepted.length) L.push("", "Nhận: " + h.accepted.map(a => `${a.label} ${fmt(a.from)} → ${fmt(a.to)}`).join(" · "));
     L.push("");
