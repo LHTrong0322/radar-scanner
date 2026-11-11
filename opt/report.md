@@ -1,4 +1,4 @@
-# Tối ưu tự động (chạy liên tục) — vòng 30
+# Tối ưu tự động (chạy liên tục) — vòng 31
 
 Bot thật KHÔNG bị thay đổi cho tới khi Trọng duyệt. Backtest mọi nến 4H/1D/1W trong từ 01/2023 tới nay, có phí + funding, không tính BTC (BTC dành cho chiến lược RSI).
 
@@ -7,7 +7,7 @@ Chỉ chọn thông số trên **01/2023 → 12/2025** (Trọng chốt). **năm 
 Nhận thay đổi khi: chỉ số tăng ≥ 3%, tổng R không giảm quá 3%, win rate không giảm quá 0.5 điểm, sụt vốn MC95 không tệ hơn 5%, không xấu đi ở cả 2 nửa 2023–2025 (01/2023–06/2024 và 07/2024–12/2025), số lệnh không giảm quá 30%.
 ⚠️ Các thay đổi Trọng duyệt trước 11/11/2026 21:30 đã được chọn khi nhìn toàn bộ dữ liệu, kể cả giai đoạn kiểm tra kín → với chúng, phần kiểm tra kín không còn kín hoàn toàn.
 
-Chế độ dò hiện tại: **từng thông số** · đã thử 120 phương án.
+Chế độ dò hiện tại: **từng thông số** · đã thử 132 phương án.
 
 ## Bot thật so với cấu hình tốt nhất
 
@@ -15,20 +15,37 @@ Cấu hình mới chỉ đáng tin khi THẮNG bot thật ở phần kiểm tra 
 
 | | Lệnh 2023–2025 | Win rate | Tổng R | R/lệnh | Sụt vốn lớn nhất | Sụt vốn MC95 | Tổng R ÷ MC95 | Lệnh 2026 (kín) | Win rate | Tổng R | R/lệnh | Sụt vốn |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Bot thật | 222 | 46.4% | 46.16R | 0.208 | 9.99R | 15.7R | 2.94 | 48 | 41.7% | -0.49R | -0.01 | 10R |
-| **Tốt nhất** | 226 | 49.6% | 63.12R | 0.279 | 7.81R | 11.6R | 5.44 | 66 | 34.8% | -9.16R | -0.139 | 10.64R |
+| Bot thật | 214 | 37.9% | 53.86R | 0.252 | 12.91R | 18.99R | 2.84 | 47 | 23.4% | -7.55R | -0.161 | 14.93R |
+| **Tốt nhất** | 218 | 43.1% | 107.97R | 0.495 | 7.13R | 11.89R | 9.08 | 66 | 21.2% | -12.55R | -0.19 | 13.81R |
 
 ## Theo khung (cấu hình tốt nhất)
 
 | Khung | Lệnh 2023–2025 | Win rate | Tổng R | Lệnh 2026 (kiểm tra kín) | Win rate | Tổng R |
 |---|---|---|---|---|---|---|
-| 1D | 34 | 47.1% | 5.44R | 7 | 0% | -4.58R |
-| 1W | 11 | 54.5% | 5.57R | 2 | 0% | -2.04R |
-| 4H | 181 | 49.7% | 52.12R | 57 | 40.4% | -2.54R |
+| 1D | 29 | 41.4% | 20.01R | 7 | 0% | -5.62R |
+| 1W | 10 | 50% | 2.45R | 2 | 0% | -2.04R |
+| 4H | 179 | 43% | 85.5R | 57 | 24.6% | -4.89R |
 
 ## ✅ Cấu hình tốt nhất ĐÃ QUA kiểm tra 2026 (đề xuất để Trọng duyệt)
 
-Chưa có cấu hình nào vừa hơn bot thật ở 2023–2025 vừa hơn ở năm 2026.
+Tìm thấy ở vòng 31 (Số nến mỗi bên để xác định đỉnh/đáy Dow: 4 → 3).
+
+| | Lệnh 2023–2025 | Win rate | Tổng R | Sụt vốn MC95 | Chỉ số | Lệnh 2026 | Win rate | Tổng R 2026 |
+|---|---|---|---|---|---|---|---|---|
+| Bot thật | 214 | 37.9% | 53.86R | 18.99R | 2.84 | 47 | 23.4% | -7.55R |
+| **Đề xuất** | 229 | 38.9% | 76.2R | 16.51R | 4.62 | 55 | 25.5% | 4.08R |
+
+| Thông số | Bot thật | Đề xuất |
+|---|---|---|
+| Cộng thêm ngưỡng điểm khung 1D | 0 | **5** |
+| Điểm tối thiểu của vùng đặt SL | 2 | **3** |
+| Số nến mỗi bên để xác định đỉnh/đáy Dow | 5 | **3** |
+| Lọc BTC trên EMA200 (crypto) | true | **false** |
+| Điểm ADX > 25 và +DI trội (Momentum) | 2 | **3** |
+| Trọng số phần R:R (/100) | 30 | **20** |
+| Điểm vùng: POC volume profile cố định | 0.5 | **0.75** |
+| Điểm vùng: HVN anchored | 0.5 | **0.25** |
+| Điểm vùng: HVN cố định | 0.5 | **0.25** |
 
 ## Thông số khác với bot thật
 
@@ -63,6 +80,23 @@ Chưa có cấu hình nào vừa hơn bot thật ở 2023–2025 vừa hơn ở 
 | 19 (hoàn tác) | Ngưỡng điểm 'vào ngay' (tín hiệu mạnh) | 6 → 5 | 104.08R | 43.9% | 13.85R | 7.51 |
 
 ## 10 vòng gần nhất
+
+### Vòng 31 — từng thông số · mốc: tổng 107.97R, win 43.1%, MC95 11.89R, chỉ số 9.08
+
+| Phương án | Tổng R | Win rate | R/lệnh | MC95 | Chỉ số | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
+|---|---|---|---|---|---|---|---|---|---|
+| Điểm tối thiểu của vùng đặt SL: 3 → 2 | 117.88 | 43.2% | 0.531 | 12.05 | 9.78 | 0.508 | 0.556 | -11.53 |  |
+| Điểm tối thiểu của vùng đặt SL: 3 → 4 | 106.08 | 43.7% | 0.493 | 11.66 | 9.1 | 0.425 | 0.566 | -12.55 |  |
+| % chốt ở TP1: 0.3 → 0.25 | 108.46 | 43.1% | 0.498 | 12.07 | 8.99 | 0.426 | 0.575 | -12.58 |  |
+| % chốt ở TP1: 0.3 → 0.33 | 107.68 | 43.1% | 0.494 | 11.87 | 9.07 | 0.425 | 0.569 | -12.53 |  |
+| Khoảng cách tối thiểu TP1 (ATR): 0.75 → 0.5 | 56.47 | 38.6% | 0.34 | 13.89 | 4.07 | 0.243 | 0.45 | -11.22 |  |
+| Khoảng cách tối thiểu TP1 (ATR): 0.75 → 1 | 120.26 | 41.9% | 0.445 | 13.95 | 8.62 | 0.414 | 0.479 | -13.93 |  |
+| Lệnh chờ hết hạn sau (nến): 8 → 6 | 90.44 | 42.1% | 0.508 | 11.94 | 7.57 | 0.462 | 0.557 | -7.61 |  |
+| Lệnh chờ hết hạn sau (nến): 8 → 10 | 117.48 | 43% | 0.472 | 12.4 | 9.47 | 0.413 | 0.53 | -12.58 |  |
+| Điểm tối thiểu vùng đặt lệnh chờ: 3 → 2 | 105.82 | 43.3% | 0.488 | 11.73 | 9.02 | 0.404 | 0.58 | -10.64 |  |
+| Điểm tối thiểu vùng đặt lệnh chờ: 3 → 4 | 103.58 | 42.2% | 0.475 | 12.33 | 8.4 | 0.417 | 0.535 | -11.87 |  |
+| Số nến mỗi bên để xác định đỉnh/đáy Dow: 4 → 3 | 76.2 | 38.9% | 0.333 | 16.51 | 4.62 | 0.371 | 0.297 | 4.08 |  |
+| Số nến mỗi bên để xác định đỉnh/đáy Dow: 4 → 5 | 63.95 | 37.5% | 0.296 | 17.83 | 3.59 | 0.267 | 0.325 | -2.83 |  |
 
 ### Vòng 30 — từng thông số · mốc: tổng 63.12R, win 49.6%, MC95 11.6R, chỉ số 5.44
 
@@ -212,22 +246,3 @@ Nhận: Trọng số phần R:R (/100) 30 → 20
 | Điểm ADX > 25 và +DI trội (Momentum): 2 → 3 | 82.86 | 40.3% | 0.384 | 14.81 | 5.59 | 0.364 | 0.405 | -5.43 | ✅ |
 
 Nhận: Lọc BTC trên EMA200 (crypto) true → false · Điểm ADX > 25 và +DI trội (Momentum) 2 → 3
-
-### Vòng 21 — từng thông số · mốc: tổng 52.84R, win 37.7%, MC95 19.58R, chỉ số 2.70
-
-| Phương án | Tổng R | Win rate | R/lệnh | MC95 | Chỉ số | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
-|---|---|---|---|---|---|---|---|---|---|
-| Điểm tối thiểu của vùng đặt SL: 2 → 1 | 52.84 | 37.7% | 0.246 | 19.58 | 2.7 | 0.289 | 0.202 | -7.54 |  |
-| Điểm tối thiểu của vùng đặt SL: 2 → 3 | 54.36 | 37.7% | 0.253 | 19.55 | 2.78 | 0.303 | 0.202 | -7.54 | ✅ |
-| % chốt ở TP1: 0.3 → 0.25 | 53.36 | 37.7% | 0.248 | 19.7 | 2.71 | 0.293 | 0.202 | -7.64 |  |
-| % chốt ở TP1: 0.3 → 0.33 | 52.53 | 37.7% | 0.244 | 19.53 | 2.69 | 0.286 | 0.201 | -7.48 |  |
-| Khoảng cách tối thiểu TP1 (ATR): 0.75 → 0.5 | 26.2 | 34.4% | 0.164 | 20.28 | 1.29 | 0.204 | 0.118 | -0.58 |  |
-| Khoảng cách tối thiểu TP1 (ATR): 0.75 → 1 | 64.94 | 37.8% | 0.248 | 19.53 | 3.33 | 0.39 | 0.101 | -7.35 |  |
-| Lệnh chờ hết hạn sau (nến): 8 → 6 | 25.59 | 35.7% | 0.15 | 21.19 | 1.21 | 0.204 | 0.095 | -3.77 |  |
-| Lệnh chờ hết hạn sau (nến): 8 → 10 | 50.88 | 36.1% | 0.214 | 21.22 | 2.4 | 0.287 | 0.145 | -9.46 |  |
-| Điểm tối thiểu vùng đặt lệnh chờ: 3 → 2 | 52.39 | 39% | 0.246 | 18.71 | 2.8 | 0.26 | 0.231 | -7.86 |  |
-| Điểm tối thiểu vùng đặt lệnh chờ: 3 → 4 | 46.22 | 36.3% | 0.215 | 20.9 | 2.21 | 0.291 | 0.137 | -9.25 |  |
-| Số nến mỗi bên để xác định đỉnh/đáy Dow: 5 → 4 | 73.82 | 39.5% | 0.336 | 15.56 | 4.74 | 0.3 | 0.376 | -5.44 | ✅ |
-| Số nến mỗi bên để xác định đỉnh/đáy Dow: 5 → 7 | 47.6 | 37.6% | 0.252 | 16.45 | 2.89 | 0.351 | 0.181 | -1.38 |  |
-
-Nhận: Số nến mỗi bên để xác định đỉnh/đáy Dow 5 → 4 · Điểm tối thiểu của vùng đặt SL 2 → 3
