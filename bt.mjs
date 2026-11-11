@@ -396,7 +396,7 @@ const MID = Date.now() - DAYS * 864e5 / 2;                 // chia đôi kỳ ba
 const half = (T, first) => stats(T.filter(x => first ? x.at < MID : x.at >= MID));
 // ---- kiểm tra kín: giữ riêng N tháng gần nhất (mặc định 12). Bot tối ưu chỉ được chọn thông số dựa trên phần "huấn luyện" (trước mốc),
 // phần "kiểm tra kín" chỉ dùng để chấm cuối cùng → biết cấu hình mới có hiệu quả thật trên dữ liệu chưa từng thấy hay không.
-const HOLD_M = +arg("holdout", "12"), CUT = Date.now() - HOLD_M * 30.44 * 864e5;
+const HOLD_M = +arg("holdout", "24"), CUT = Date.now() - HOLD_M * 30.44 * 864e5;
 const T_START = A.length ? Math.min(...A.map(x => x.at)) : Date.now() - 365 * 864e5, T_MID = (T_START + CUT) / 2;
 function mcDD(T, runs = 2000) {          // sụt vốn Monte Carlo: xáo trộn thứ tự lệnh nhiều lần, lấy mức sụt vốn mà 95% trường hợp không vượt quá
   const R = T.filter(x => DONE.includes(x.st)).map(x => x.r); if (R.length < 5) return null;
