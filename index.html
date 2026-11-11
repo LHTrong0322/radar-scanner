@@ -1532,8 +1532,13 @@ document.addEventListener("click",e=>{ const b=e.target.closest&&e.target.closes
   sideUI(); computePicks(); renderPicks() });
 function computePicks(){
   const ok=[], near=[];
+  // khớp với bot thật: chỉ mã bot đang quét (có trên Hyperliquid, vốn hoá ≥ 30 triệu USD) và altcoin chỉ khi thị trường BTC đạt (EMA200 + cấu trúc Dow 1D)
+  const C=S.cloud, scanSet=C&&Array.isArray(C.scanSet)&&C.scanSet.length?new Set(C.scanSet):null, cryptoOff=!!(C&&C.market&&C.market.cryptoOK===false);
+  S.marketNote=cryptoOff?`Thị trường chưa đạt (${(C.market.why||[]).join(", ")||"BTC chưa đạt điều kiện"}) → tạm không vào altcoin, chỉ xét cổ phiếu và hàng hoá`:"";
   for(const r of S.rows.values()){
     if(r.src!=="bn"&&r.src!=="st"&&r.src!=="ex") continue;
+    if(scanSet&&!scanSet.has(r.base)) continue;
+    if(cryptoOff&&r.src!=="st") continue;
     const R={}; for(const tf of PICK_TFS) R[tf]=evalTF(r,tf,curSide());
     { const h1=evalTF(r,"1h",curSide()); if(h1) R["1h"]=h1 }   // khung xác nhận cho kèo 4H (nếu đã có nến 1H)
     PICK_TFS.forEach((tf,k)=>{
@@ -1558,7 +1563,7 @@ function computePicks(){
 }
 function renderPicks(){
   const body=$("pickBody"); if(!body) return;
-  $("pickNote").textContent=S.pickStatus||(S.picksAt?`${S.picks.length} setup đạt chuẩn · tính lúc ${new Date(S.picksAt).toLocaleTimeString("vi-VN")}`:"đang chờ dữ liệu…");
+  $("pickNote").textContent=(S.pickStatus||(S.picksAt?`${S.picks.length} setup đạt chuẩn · tính lúc ${new Date(S.picksAt).toLocaleTimeString("vi-VN")}`:"đang chờ dữ liệu…"))+(S.marketNote?` · ⚠️ ${S.marketNote}`:"");
   const pct=(v,b)=>{const x=(v/b-1)*100;return (x>=0?"+":"")+x.toFixed(1)+"%"};
   body.innerHTML=S.picks.length?S.picks.map(x=>{
     const P=x.P, wait=P.mode==="Chờ hồi";
@@ -1790,6 +1795,7 @@ async function loadCloud(){
     document.body.classList.add("cloud"); jSave();
     $("jImport").hidden=!local.length; $("jImport").textContent=`Chuyển ${local.length} kèo cũ lên GitHub`;
     renderJournal(); botStatus(); if(first) journalUpdate();
+    if(S.picksAt&&!S.pickStatus){ computePicks(); renderPicks() }   // áp bộ lọc của bot (mã được quét, thị trường BTC) ngay khi có dữ liệu bot
   }catch(e){}
 }
 function botStatus(){

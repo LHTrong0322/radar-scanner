@@ -382,11 +382,12 @@ async function main() {
   });
   const best = arr => { const m = new Map(); for (const x of arr) { const o = m.get(x.base); if (!o || x.rank > o.rank) m.set(x.base, x); } return [...m.values()].sort((p, q) => q.rank - p.rank); };
   // bộ lọc thị trường (REGIME trong index.html): chỉ LONG khi BTC 1D trên EMA200 (SHORT: dưới)
-  let regimeOK = true;
+  let regimeOK = true, marketWhy = [];
   if (K.REGIME) {
     try { const bc = (await cryptoCandles("BTC", "1d", 400)).c, e = K.ema(bc.map(x => x.c), K.REGIME_EMA || 200), up = bc.at(-1).c > e.at(-1), sl = K.REGIME_SLOPE || 0, rising = !sl || e.at(-1) > e.at(-1 - sl), falling = !sl || e.at(-1) < e.at(-1 - sl); const src = K.REGIME_SRC || "ema"; regimeOK = !src.includes("ema") || (SIDE === "short" ? !up && falling : up && rising);
       if (src.includes("dow")) { const dtf = src.includes("4h") ? "4h" : "1d", dc = (await cryptoCandles("BTC", dtf, 300)).c, d = K.dow(K.closedOnly(dc, dtf));
-        const dOK = SIDE === "short" ? K.btcDowDown(d) : K.btcDowUp(d); if (!dOK) console.log(`Bộ lọc thị trường: BTC ${dtf.toUpperCase()} chưa có cấu trúc ${SIDE === "short" ? "giảm" : "tăng"}`); regimeOK = regimeOK && dOK; }
+        const dOK = SIDE === "short" ? K.btcDowDown(d) : K.btcDowUp(d); if (!dOK) console.log(`Bộ lọc thị trường: BTC ${dtf.toUpperCase()} chưa có cấu trúc ${SIDE === "short" ? "giảm" : "tăng"}`); if (!dOK) marketWhy.push(`BTC ${dtf.toUpperCase()} chưa có cấu trúc ${SIDE === "short" ? "giảm" : "tăng"}`); regimeOK = regimeOK && dOK; }
+      if (src.includes("ema") && !(SIDE === "short" ? !up : up)) marketWhy.unshift(`BTC ${up ? "trên" : "dưới"} EMA${K.REGIME_EMA || 200} ngày`);
       if (!regimeOK) console.log(`Bộ lọc thị trường: BTC ${up ? "trên" : "dưới"} EMA200 1D → không mở kèo ${SIDE}`); } catch (e) { }
     if (!regimeOK) for (let i = ok.length - 1; i >= 0; i--) if (ok[i].a.kind !== "stock") ok.splice(i, 1);   // chỉ áp cho crypto, cổ phiếu không phụ thuộc BTC
   }
@@ -483,7 +484,8 @@ async function main() {
   const pub = x => ({ side: SIDE, base: x.base, sym: x.a.kind === "stock" ? x.a.sym : x.base + "USDT", src: x.a.kind === "stock" ? "st" : "bn", ex: x.a.ex, tf: x.tf, score: Math.round(x.score),
     rank: x.rank, entry: x.P.entry, mode: x.P.mode, stop: x.P.stop, tp1: x.P.tp1, tp2: x.P.tp2, rr1: x.P.rr1, rr2: x.P.rr2, tp1Why: x.P.tp1Why, tp2Why: x.P.tp2Why, why: x.why, htf: x.htf, hT: x.hT });
   const out = { version: 1, updatedAt: Date.now(), tookSec: Math.round((Date.now() - t0) / 1000), rankSrc, scanned: assets.length,
-    picks: picks.map(pub), near: nears.map(pub), journal: keep, errors: errors.slice(0, 40), arcusMeta: state.arcusMeta, hlMeta: state.hlMeta, arb, arbAlert: state.arbAlert, universe: state.universe, side: SIDE, breakerMsg: state.breakerMsg, rsiDca: state.rsiDca };
+    picks: picks.map(pub), near: nears.map(pub), journal: keep, errors: errors.slice(0, 40), arcusMeta: state.arcusMeta, hlMeta: state.hlMeta, arb, arbAlert: state.arbAlert, universe: state.universe, side: SIDE, breakerMsg: state.breakerMsg, rsiDca: state.rsiDca,
+    scanSet: assets.map(a => a.base), market: { cryptoOK: regimeOK, why: marketWhy } };   // để trang web lọc kèo y như bot (chỉ mã bot quét; altcoin chỉ khi thị trường đạt)
   fs.mkdirSync(path.dirname(STATE_PATH), { recursive: true });
   fs.writeFileSync(STATE_PATH, JSON.stringify(out));
   if (process.env.PING === "true") outbox.push(`✅ <b>Crypto RSI Radar</b> đã kết nối Telegram.\nVừa quét ${assets.length} mã (${rankSrc}) · ${picks.length} kèo đạt chuẩn · ${active.length} lệnh đang theo dõi.\nTừ giờ bot sẽ báo khi có kèo mới, chạm TP hoặc dính SL.` + link());
