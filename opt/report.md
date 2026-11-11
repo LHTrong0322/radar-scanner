@@ -1,11 +1,11 @@
-# Tối ưu tự động — vòng 5
+# Tối ưu tự động — vòng 6
 
 Đây là báo cáo để thảo luận. Bot thật KHÔNG bị thay đổi cho tới khi Trọng duyệt.
 
 Mỗi vòng: backtest toàn bộ dữ liệu (từ 2018, mọi nến, có phí + funding), đổi từng thông số một so với cấu hình tốt nhất hiện tại. Chỉ nhận thay đổi khi R/lệnh tăng ≥ 0.005R, KHÔNG xấu đi ở cả nửa đầu lẫn nửa sau dữ liệu, sụt vốn không tệ hơn 15%, số lệnh không giảm quá nửa.
 
 **Mốc ban đầu:** 1669 lệnh · win rate 30% · 0.055R/lệnh · tổng 92.39R · sụt vốn 65.43R
-**Cấu hình tốt nhất hiện tại:** 738 lệnh · win rate 34.8% · 0.334R/lệnh · tổng 246.38R · sụt vốn 34.05R
+**Cấu hình tốt nhất hiện tại:** 177 lệnh · win rate 38.4% · 0.489R/lệnh · tổng 86.55R · sụt vốn 15.43R
 
 ## Thông số khác với bot thật
 
@@ -108,3 +108,20 @@ Nhận: Trọng số phần Momentum (/100) 15 → 8
 | Điểm vùng: EMA 21 | 1 → 1.5 | 5.1 | 0.338 | 34.7% | 750 | 24.84 | 0.612 | 0.222 |  |
 
 Nhận: Điểm vùng: POC anchored 2 → 3
+
+### Vòng 6 — mốc: 0.489R/lệnh, win 38.4%, DD 15.43R, 177 lệnh
+
+| Thông số | Từ → Thử | Điểm 0–10 | R/lệnh | Win rate | Lệnh | Max DD | Nửa đầu | Nửa sau | Nhận? |
+|---|---|---|---|---|---|---|---|---|---|
+| Điểm vùng: Break mây Ichimoku | 2 → 1 | 5.6 | 0.519 | 39% | 182 | 12.79 | 0.721 | 0.427 |  |
+| Điểm vùng: Break mây Ichimoku | 2 → 3 | 2.5 | 0.365 | 36.9% | 176 | 15.86 | 0.464 | 0.317 |  |
+| Điểm vùng: Kháng cự cũ bị phá | 1.5 → 0.75 | 4.2 | 0.45 | 38.5% | 187 | 16.45 | 0.475 | 0.439 |  |
+| Điểm vùng: Kháng cự cũ bị phá | 1.5 → 2.25 | 3.4 | 0.408 | 37.7% | 167 | 13.41 | 0.597 | 0.318 |  |
+| Điểm vùng: Fib 0.618 sóng 2 | 2.5 → 1.25 | 4.9 | 0.484 | 39.2% | 176 | 15.43 | 0.517 | 0.47 |  |
+| Điểm vùng: Fib 0.618 sóng 2 | 2.5 → 3.75 | 4.5 | 0.464 | 38.1% | 176 | 15.43 | 0.531 | 0.431 |  |
+| Điểm vùng: Đỉnh sóng 1 (sàn sóng 4) | 2.5 → 1.25 | 3.4 | 0.41 | 38.5% | 169 | 15.43 | 0.558 | 0.335 |  |
+| Điểm vùng: Đỉnh sóng 1 (sàn sóng 4) | 2.5 → 3.75 | 4.8 | 0.478 | 37.1% | 175 | 15.43 | 0.52 | 0.458 |  |
+| Điểm vùng: Mức RSI 30/70 | 1 → 0.5 | 3.8 | 0.427 | 37.2% | 180 | 16.44 | 0.582 | 0.355 |  |
+| Điểm vùng: Mức RSI 30/70 | 1 → 1.5 | 6 | 0.538 | 39.7% | 156 | 13.35 | 0.743 | 0.429 |  |
+| Điểm vùng: Mức MACD | 1 → 0.5 | 5 | 0.49 | 38.2% | 173 | 14.43 | 0.494 | 0.488 |  |
+| Điểm vùng: Mức MACD | 1 → 1.5 | 3.6 | 0.42 | 37.2% | 172 | 14.38 | 0.515 | 0.373 |  |
