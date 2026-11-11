@@ -793,7 +793,7 @@ function volChg(c,tf=S.tf){
 }
 // Dow chỉ tính trên nến ĐÃ ĐÓNG: bỏ nến đang chạy (giá đang chạy không được tính). Backtest: mọi nến lịch sử đều đã đóng nên không đổi.
 const closedOnly=(c,tf)=>{ const ms=TFMS[tf], L=c.length-1; return ms&&L>0&&c[L].t+ms>Date.now()?c.slice(0,-1):c };
-function dow(c,k=5){
+function dow(c,k=4){
   const L=c.length-1; if(L<k*4) return null;
   const H=[],Lo=[];
   for(let i=k;i<=L-k;i++){
@@ -996,7 +996,7 @@ const PICK_MIN=70;   // điểm tối thiểu để thành kèo
 const MAX_TPS=2;
 const MIN_RR=2.5;     // R:R tối thiểu tới TP1 (TP1 phải ≥ 2.5R mới vào lệnh) — Trọng duyệt 11/11/2026
 const STRONG_MKT=6;   // điểm tối thiểu để VÀO NGAY (tín hiệu mạnh); thấp hơn thì đặt lệnh chờ — Trọng duyệt nâng 5 → 6 (11/11/2026, backtest xác nhận)
-const ADD_4H=0, ADD_1D=0, ADD_1W=0;   // cộng thêm vào ngưỡng điểm theo khung
+const ADD_4H=0, ADD_1D=5, ADD_1W=0;   // cộng thêm vào ngưỡng điểm theo khung
 const TF_ADD={"4h":ADD_4H,"1d":ADD_1D,"1w":ADD_1W};
 // Tham số riêng từng khung (null = dùng giá trị chung). Bot tối ưu dò từng khung; chỉ đổi khi Trọng duyệt.
 const RR_4H=null, RR_1D=null, RR_1W=null;          // R:R tối thiểu tới TP1 riêng từng khung
@@ -1057,8 +1057,8 @@ function vpAnchor(c,ew){
 }
 function vpLevels(c,ew){                                         // POC anchored là chính (2đ); POC fixed 250 nến và các HVN chỉ cộng nhẹ 0.5đ
   const L=c.length-1, out=[], fx=volProfile(c,L-249), an=volProfile(c,vpAnchor(c,ew));
-  if(an){ out.push([an.poc,"POC anchored VP",3]); an.hvn.forEach(v=>out.push([v,"HVN anchored VP",.5])) }
-  if(fx){ out.push([fx.poc,"POC volume profile 250 nến",.5]); fx.hvn.forEach(v=>out.push([v,"HVN volume profile 250 nến",.5])) }
+  if(an){ out.push([an.poc,"POC anchored VP",3]); an.hvn.forEach(v=>out.push([v,"HVN anchored VP",0.25])) }
+  if(fx){ out.push([fx.poc,"POC volume profile 250 nến",0.75]); fx.hvn.forEach(v=>out.push([v,"HVN volume profile 250 nến",0.25])) }
   return out;
 }
 // Mức giá của chỉ báo: giá đóng nến kế tiếp cần để RSI(14) chạm một ngưỡng, và giá để MACD cắt Signal
@@ -1175,7 +1175,7 @@ function planTrade(i){
   // ADX đo độ mạnh, +DI/-DI cho biết bên nào đang thắng; xét thêm ADX đang lên hay xuống và DI vừa cắt nhau chưa
   if(ad){ const up=ad.pdi>ad.mdi, A=ad.adx.toFixed(0);
     if(up&&ad.crossAgo!=null&&ad.crossAgo<=3) mom.push([`+DI vừa cắt lên -DI (${ad.crossAgo} nến trước), xu hướng tăng mới`,1.5]);
-    if(up&&ad.adx>=25) mom.push(ad.falling?[`ADX ${A} > 25, +DI trội nhưng ADX đang giảm (xu hướng tăng chậm lại)`,1]:[`ADX ${A} > 25, +DI trội${ad.rising?", ADX đang tăng":""}`,2]);
+    if(up&&ad.adx>=25) mom.push(ad.falling?[`ADX ${A} > 25, +DI trội nhưng ADX đang giảm (xu hướng tăng chậm lại)`,1]:[`ADX ${A} > 25, +DI trội${ad.rising?", ADX đang tăng":""}`,3]);
     else if(up&&ad.adx>=18&&ad.rising) mom.push([`ADX ${A} đang tăng, +DI trội (xu hướng tăng đang hình thành)`,1.5]);
     if(!up&&ad.adx>=25&&!ad.falling) mom.push([`ADX ${A}, -DI trội và chưa yếu đi (xu hướng giảm còn mạnh)`,-2]);
     if(!up&&ad.peak>=30&&ad.falling) mom.push([`ADX giảm từ đỉnh ${ad.peak.toFixed(0)}, -DI đang mất lực (ủng hộ đảo chiều)`,1]);
@@ -1197,7 +1197,7 @@ function planTrade(i){
   const cands=piv.filter(p=>p.tp==="L"&&p.v<entry-.5*atr).map(p=>p.v);
   if(e&&isMotive(e)&&e.dir>0&&e.inv!=null&&e.inv<entry) cands.push(e.inv);
   let stop, why, stopW=null;
-  if(zs&&zs.w>=2){ const sb=slBuf(i.tf); stop=zs.lo-sb*atr; why="dưới vùng "+zs.why+" (cách "+sb+" ATR tránh bị quét)"; stopW=zs.w }
+  if(zs&&zs.w>=3){ const sb=slBuf(i.tf); stop=zs.lo-sb*atr; why="dưới vùng "+zs.why+" (cách "+sb+" ATR tránh bị quét)"; stopW=zs.w }
   else { stop=cands.length?Math.max(...cands)-.5*atr:entry-2*atr; why=cands.length?"dưới đáy cấu trúc gần nhất":"2 ATR (chưa có đáy swing)" }
   if(entry-stop<1*atr){stop=entry-1*atr;why="tối thiểu 1 ATR"}
   if(entry-stop>5*atr){stop=entry-5*atr;why="giới hạn 5 ATR (đáy cấu trúc quá xa)"}
@@ -1268,7 +1268,7 @@ function buyScore(i){
   }
   // 7) Chất lượng SL: SL nằm dưới vùng hỗ trợ mạnh thì tốt; SL chỉ theo khoảng ATR tối thiểu/tối đa thì kém
   const SLq=!P?null:P.stopW!=null?clamp((P.stopW-3)/4):/ATR/.test(P.why)?-.5:0;
-  const parts=[["Trend",T,30],["Momentum",M,15],["Elliott",W,8],["Entry",En,30],["R:R",RR,30],["Divergence",D,10],["SL",SLq,5]];
+  const parts=[["Trend",T,30],["Momentum",M,15],["Elliott",W,8],["Entry",En,30],["R:R",RR,20],["Divergence",D,10],["SL",SLq,5]];
   const S=wavg(parts.map(([_,v,w])=>[v,w])); if(S==null) return null;
   let score=50+50*S; const notes=[];
   if(T>.5&&En>.4&&RR>.4){score+=6;notes.push("+6 cộng hưởng: chart khoẻ, entry đẹp, R:R tốt")}

@@ -11,7 +11,7 @@ const fmt = v => v === null ? "null" : String(v);
 // ---------- danh sách thông số được dò ----------
 // find: đoạn code gốc (phải có đúng 1 lần trong index.html) · tpl: đoạn thay thế, {v} = giá trị · c: các giá trị thử (theo thứ tự)
 // Giá trị bot thật đã đổi (Trọng duyệt) so với số viết trong danh sách dưới: đoạn code cần tìm được dựng lại từ tpl với giá trị mới
-const LIVE_NOW = { htf: .4, p_W: 8, p_En: 30, p_RR: 30, z_poc: 3, z_ema50: .75, z_fib2b: 3, z_fib4: 1.25 };   // áp 11/11/2026 21:10
+const LIVE_NOW = { htf: .4, p_W: 8, p_En: 30, p_RR: 20, z_poc: 3, z_ema50: .75, z_fib2b: 3, z_fib4: 1.25, add_1D: 5, slzone: 3, dowk: 4, adxw: 3, z_pocfix: .75, z_hvna: .25, z_hvnf: .25 };   // áp 12/11/2026 00:55 (cấu hình đã qua kiểm tra 2026, Trọng duyệt)   // áp 11/11/2026 21:10
 const W = (id, label, finds, cur, c, group) => {
   if (id in LIVE_NOW) { cur = LIVE_NOW[id]; finds = finds.map(([f, t]) => typeof f === "string" ? [t.split("{v}").join(String(cur)), t] : [f, t]); }
   return { id, label, finds, cur, c, group };
