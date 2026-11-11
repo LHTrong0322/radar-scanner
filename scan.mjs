@@ -34,7 +34,7 @@ function loadCore() {
     grab(/function simulate\([\s\S]*?\n\}/, "simulate"),
   ].join("\n");
   const S = { tf: "4h", win: 3, os: 30, ob: 70 };
-  return new Function("S", src + "\nreturn {TFMS,SETS,STOCKS,skipCoin,bucket,compute,trendOf,pickReasons,simulate,MAX_SL,clamp,swapTxt,PICK_MIN:typeof PICK_MIN!=='undefined'?PICK_MIN:70,MIN_RR:typeof MIN_RR!=='undefined'?MIN_RR:2,TF_ADD:typeof TF_ADD!=='undefined'?TF_ADD:{},HTF_MIN:typeof HTF_MIN!=='undefined'?HTF_MIN:null,REGIME:typeof REGIME!=='undefined'?REGIME:false,LOW_TF_ASSETS:typeof LOW_TF_ASSETS!=='undefined'?LOW_TF_ASSETS:[],ema};")(S);
+  return new Function("S", src + "\nreturn {TFMS,SETS,STOCKS,skipCoin,bucket,compute,trendOf,pickReasons,simulate,MAX_SL,clamp,swapTxt,PICK_MIN:typeof PICK_MIN!=='undefined'?PICK_MIN:70,MIN_RR:typeof MIN_RR!=='undefined'?MIN_RR:2,TF_ADD:typeof TF_ADD!=='undefined'?TF_ADD:{},HTF_MIN:typeof HTF_MIN!=='undefined'?HTF_MIN:null,REGIME:typeof REGIME!=='undefined'?REGIME:false,LOW_TF_ASSETS:typeof LOW_TF_ASSETS!=='undefined'?LOW_TF_ASSETS:[],LTF_CONFIRM:typeof LTF_CONFIRM!=='undefined'?LTF_CONFIRM:{},upClear:typeof upClear!=='undefined'?upClear:()=>true,ema};")(S);
 }
 const K = loadCore();
 
@@ -328,6 +328,7 @@ async function main() {
       const t = R[tf]; if (!t || !t.buy || !t.buy.plan || t.buy.plan.reject) return;
       const htf = TFA[k + 1] || null, hT = htf ? K.trendOf(R[htf]) : null;
       if (K.HTF_MIN != null && htf && (hT == null || hT < K.HTF_MIN)) return;
+      if (K.LTF_CONFIRM[tf] && !K.upClear(R[K.LTF_CONFIRM[tf]])) return;   // kèo W: khung D cũng phải tăng rõ
       let sc = t.buy.score; if (hT != null) { if (hT > .3) sc += 3; else if (hT < -.3) sc -= 5; }
       sc = K.clamp(sc, 0, 100);
       const rs = K.pickReasons(t.ind), why = SIDE === "short" ? { g: rs.g.map(K.swapTxt), w: rs.w.map(K.swapTxt) } : rs;
