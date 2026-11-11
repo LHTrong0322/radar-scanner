@@ -363,6 +363,13 @@ export async function hyperRun({ state, newIds, outbox, errors, esc, link, allow
   }
 }
 
+// tên mọi thị trường đang mở trên Hyperliquid (sàn chính + sàn HIP-3) — để radar chỉ quét những gì trade được (Trọng 12/11/2026)
+export async function hlTradable() {
+  const M = await loadMarkets(), S = new Set();
+  for (const m of M.values()) { const s = m.short; S.add(s); if (/^K[A-Z]/.test(s)) S.add(s.slice(1)); }
+  const has = (...names) => names.flat().filter(Boolean).map(x => String(x).toUpperCase()).some(n => S.has(n) || (ALIAS[n] || []).some(a => S.has(a)));
+  return { size: M.size, has };
+}
 export const _test = { signL1, fmtPx, fmtSz, wire, cloidOf, plan, libs, setWallet: w => { WALLET = w; } };
 
 /* ================= Chiến lược RSI khung D cho BTC (DCA kim tự tháp, LONG PERP x2 isolated) =================

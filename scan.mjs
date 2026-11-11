@@ -336,13 +336,19 @@ async function main() {
     }
     state.hlListed = (meta.universe || []).filter(u => !u.isDelisted).length; console.log(`Hyperliquid: ${state.hlListed} dự án đang niêm yết, thêm ${nHL} mã ngoài danh sách cũ`);
   } catch (e) { errors.push(`Không lấy được danh sách Hyperliquid: ${e.message}`); }
+  for (const [sym, label, name, ex] of K.STOCKS) assets.push({ kind: "stock", base: label, sym, ex });
+  // CHỈ giữ những gì đang có trên Hyperliquid (sàn chính + HIP-3): coin, cổ phiếu, hàng hoá (Trọng 12/11/2026)
+  try {
+    const { hlTradable } = await import(pathToFileURL(path.join(HERE, "hyper.mjs")).href), T = await hlTradable(), drop = [];
+    for (let i = assets.length - 1; i >= 0; i--) { const a = assets[i]; if (!T.has(a.base, a.sym)) { drop.push(a.base); assets.splice(i, 1); } }
+    console.log(`Hyperliquid có ${T.size} thị trường → bỏ ${drop.length} mã không trade được trên Hyperliquid: ${drop.slice(0, 40).join(", ")}${drop.length > 40 ? "…" : ""}`);
+  } catch (e) { errors.push(`Không đọc được danh sách thị trường Hyperliquid (giữ nguyên danh sách): ${e.message}`); }
   // loại dự án có vốn hoá dưới MIN_MCAP (mặc định 30 triệu USD) hoặc không tìm thấy vốn hoá (thường là dự án rất nhỏ)
   try {
     const MC = await mcapMap(); const drop = [];
     for (let i = assets.length - 1; i >= 0; i--) { const a = assets[i], mc = MC.get(a.base); if (a.kind === "crypto" && !(mc >= MIN_MCAP)) { drop.push(a.base); assets.splice(i, 1); } else a.mcap = mc; }
     state.mcapDropped = drop.length; console.log(`Bỏ ${drop.length} dự án vốn hoá < ${MIN_MCAP / 1e6} triệu USD (hoặc không rõ vốn hoá): ${drop.slice(0, 40).join(", ")}${drop.length > 40 ? "…" : ""}`);
   } catch (e) { errors.push(`Không lấy được vốn hoá thị trường (giữ nguyên danh sách): ${e.message}`); }
-  for (const [sym, label, name, ex] of K.STOCKS) assets.push({ kind: "stock", base: label, sym, ex });
 
   // 4.2 nến 3 khung + chấm điểm
   const ok = [], near = [], evals = new Map();
