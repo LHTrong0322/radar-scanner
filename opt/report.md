@@ -1,4 +1,4 @@
-# Tối ưu tự động (chạy liên tục) — vòng 29
+# Tối ưu tự động (chạy liên tục) — vòng 30
 
 Bot thật KHÔNG bị thay đổi cho tới khi Trọng duyệt. Backtest mọi nến 4H/1D/1W trong từ 01/2023 tới nay, có phí + funding, không tính BTC (BTC dành cho chiến lược RSI).
 
@@ -7,7 +7,7 @@ Chỉ chọn thông số trên **01/2023 → 12/2025** (Trọng chốt). **năm 
 Nhận thay đổi khi: chỉ số tăng ≥ 3%, tổng R không giảm quá 3%, win rate không giảm quá 0.5 điểm, sụt vốn MC95 không tệ hơn 5%, không xấu đi ở cả 2 nửa 2023–2025 (01/2023–06/2024 và 07/2024–12/2025), số lệnh không giảm quá 30%.
 ⚠️ Các thay đổi Trọng duyệt trước 11/11/2026 21:30 đã được chọn khi nhìn toàn bộ dữ liệu, kể cả giai đoạn kiểm tra kín → với chúng, phần kiểm tra kín không còn kín hoàn toàn.
 
-Chế độ dò hiện tại: **từng thông số** · đã thử 108 phương án.
+Chế độ dò hiện tại: **từng thông số** · đã thử 120 phương án.
 
 ## Bot thật so với cấu hình tốt nhất
 
@@ -15,42 +15,26 @@ Cấu hình mới chỉ đáng tin khi THẮNG bot thật ở phần kiểm tra 
 
 | | Lệnh 2023–2025 | Win rate | Tổng R | R/lệnh | Sụt vốn lớn nhất | Sụt vốn MC95 | Tổng R ÷ MC95 | Lệnh 2026 (kín) | Win rate | Tổng R | R/lệnh | Sụt vốn |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Bot thật | 214 | 37.9% | 53.86R | 0.252 | 12.91R | 19.5R | 2.76 | 47 | 23.4% | -7.55R | -0.161 | 14.93R |
-| **Tốt nhất** | 219 | 42.9% | 104.06R | 0.475 | 7.13R | 12.45R | 8.36 | 66 | 21.2% | -12.55R | -0.19 | 13.81R |
+| Bot thật | 222 | 46.4% | 46.16R | 0.208 | 9.99R | 15.7R | 2.94 | 48 | 41.7% | -0.49R | -0.01 | 10R |
+| **Tốt nhất** | 226 | 49.6% | 63.12R | 0.279 | 7.81R | 11.6R | 5.44 | 66 | 34.8% | -9.16R | -0.139 | 10.64R |
 
 ## Theo khung (cấu hình tốt nhất)
 
 | Khung | Lệnh 2023–2025 | Win rate | Tổng R | Lệnh 2026 (kiểm tra kín) | Win rate | Tổng R |
 |---|---|---|---|---|---|---|
-| 1D | 30 | 40% | 16.1R | 7 | 0% | -5.62R |
-| 1W | 10 | 50% | 2.45R | 2 | 0% | -2.04R |
-| 4H | 179 | 43% | 85.5R | 57 | 24.6% | -4.89R |
+| 1D | 34 | 47.1% | 5.44R | 7 | 0% | -4.58R |
+| 1W | 11 | 54.5% | 5.57R | 2 | 0% | -2.04R |
+| 4H | 181 | 49.7% | 52.12R | 57 | 40.4% | -2.54R |
 
 ## ✅ Cấu hình tốt nhất ĐÃ QUA kiểm tra 2026 (đề xuất để Trọng duyệt)
 
-Tìm thấy ở vòng 28 (Điểm vùng: MACD cắt lên Signal: 0.5 → 0.25).
-
-| | Lệnh 2023–2025 | Win rate | Tổng R | Sụt vốn MC95 | Chỉ số | Lệnh 2026 | Win rate | Tổng R 2026 |
-|---|---|---|---|---|---|---|---|---|
-| Bot thật | 214 | 37.9% | 53.86R | 19.5R | 2.76 | 47 | 23.4% | -7.55R |
-| **Đề xuất** | 230 | 42.2% | 103.34R | 13.36R | 7.74 | 68 | 23.5% | -6.25R |
-
-| Thông số | Bot thật | Đề xuất |
-|---|---|---|
-| Điểm tối thiểu của vùng đặt SL | 2 | **3** |
-| Số nến mỗi bên để xác định đỉnh/đáy Dow | 5 | **4** |
-| Lọc BTC trên EMA200 (crypto) | true | **false** |
-| Điểm ADX > 25 và +DI trội (Momentum) | 2 | **3** |
-| Trọng số phần R:R (/100) | 30 | **20** |
-| Điểm vùng: POC volume profile cố định | 0.5 | **0.75** |
-| Điểm vùng: HVN anchored | 0.5 | **0.25** |
-| Điểm vùng: HVN cố định | 0.5 | **0.25** |
-| Điểm vùng: MACD cắt lên Signal | 0.5 | **0.25** |
+Chưa có cấu hình nào vừa hơn bot thật ở 2023–2025 vừa hơn ở năm 2026.
 
 ## Thông số khác với bot thật
 
 | Thông số | Bot thật | Đề xuất |
 |---|---|---|
+| Cộng thêm ngưỡng điểm khung 1D | 0 | **5** |
 | Điểm tối thiểu của vùng đặt SL | 2 | **3** |
 | Số nến mỗi bên để xác định đỉnh/đáy Dow | 5 | **4** |
 | Lọc BTC trên EMA200 (crypto) | true | **false** |
@@ -64,6 +48,7 @@ Tìm thấy ở vòng 28 (Điểm vùng: MACD cắt lên Signal: 0.5 → 0.25).
 
 | Vòng | Thông số | Từ → Thành | Tổng R | Win rate | MC95 | Chỉ số |
 |---|---|---|---|---|---|---|
+| 30 | Cộng thêm ngưỡng điểm khung 1D | 0 → 5 | 65.24R | 50% | 11.32R | 5.76 |
 | 27 | Điểm vùng: POC volume profile cố định | 0.5 → 0.75 | 96.81R | 41.7% | 13.3R | 7.28 |
 | 27 | Điểm vùng: HVN anchored | 0.5 → 0.25 | 100.23R | 42.2% | 12.29R | 8.16 |
 | 27 | Điểm vùng: HVN cố định | 0.5 → 0.25 | 105.01R | 43.1% | 12.08R | 8.69 |
@@ -78,6 +63,25 @@ Tìm thấy ở vòng 28 (Điểm vùng: MACD cắt lên Signal: 0.5 → 0.25).
 | 19 (hoàn tác) | Ngưỡng điểm 'vào ngay' (tín hiệu mạnh) | 6 → 5 | 104.08R | 43.9% | 13.85R | 7.51 |
 
 ## 10 vòng gần nhất
+
+### Vòng 30 — từng thông số · mốc: tổng 63.12R, win 49.6%, MC95 11.6R, chỉ số 5.44
+
+| Phương án | Tổng R | Win rate | R/lệnh | MC95 | Chỉ số | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
+|---|---|---|---|---|---|---|---|---|---|
+| R:R tối thiểu riêng khung 4H: null → 2 | 97.97 | 46.8% | 0.216 | 13.84 | 7.08 | 0.226 | 0.207 | -17.79 |  |
+| Đệm SL riêng khung 4H (ATR): null → 0.3 | 126.65 | 42.9% | 0.286 | 21.9 | 5.78 | 0.225 | 0.351 | -9.47 |  |
+| Cộng thêm ngưỡng điểm khung 4H: 0 → -5 | 62.82 | 49.4% | 0.272 | 12.02 | 5.23 | 0.299 | 0.244 | -8.89 |  |
+| Cộng thêm ngưỡng điểm khung 4H: 0 → 5 | 53.38 | 48.8% | 0.248 | 12.29 | 4.34 | 0.269 | 0.227 | -8.98 |  |
+| R:R tối thiểu riêng khung 1D: null → 2 | 55.52 | 47.6% | 0.205 | 14.45 | 3.84 | 0.271 | 0.147 | -12.21 |  |
+| Đệm SL riêng khung 1D (ATR): null → 0.3 | 43.7 | 44.9% | 0.166 | 18.06 | 2.42 | 0.286 | 0.062 | -13.75 |  |
+| Cộng thêm ngưỡng điểm khung 1D: 0 → -5 | 56.92 | 49.3% | 0.253 | 11.82 | 4.82 | 0.234 | 0.272 | -9.16 |  |
+| Cộng thêm ngưỡng điểm khung 1D: 0 → 5 | 65.24 | 50% | 0.289 | 11.32 | 5.76 | 0.294 | 0.283 | -9.16 | ✅ |
+| R:R tối thiểu riêng khung 1W: null → 2 | 61.9 | 49.3% | 0.27 | 11.47 | 5.4 | 0.268 | 0.273 | -5.08 |  |
+| Đệm SL riêng khung 1W (ATR): null → 0.3 | 46.11 | 48.2% | 0.206 | 13.74 | 3.36 | 0.186 | 0.225 | -3.08 |  |
+| Cộng thêm ngưỡng điểm khung 1W: 0 → -5 | 63.12 | 49.6% | 0.279 | 11.6 | 5.44 | 0.294 | 0.264 | -8.38 |  |
+| Cộng thêm ngưỡng điểm khung 1W: 0 → 5 | 63.12 | 49.6% | 0.279 | 11.6 | 5.44 | 0.294 | 0.264 | -9.16 |  |
+
+Nhận: Cộng thêm ngưỡng điểm khung 1D 0 → 5
 
 ### Vòng 29 — từng thông số · mốc: tổng 104.06R, win 42.9%, MC95 12.45R, chỉ số 8.36
 
@@ -227,6 +231,3 @@ Nhận: Lọc BTC trên EMA200 (crypto) true → false · Điểm ADX > 25 và +
 | Số nến mỗi bên để xác định đỉnh/đáy Dow: 5 → 7 | 47.6 | 37.6% | 0.252 | 16.45 | 2.89 | 0.351 | 0.181 | -1.38 |  |
 
 Nhận: Số nến mỗi bên để xác định đỉnh/đáy Dow 5 → 4 · Điểm tối thiểu của vùng đặt SL 2 → 3
-
-### Vòng 20 — từng thông số
-Trọng chốt: tối ưu trên 01/2023 → 12/2025, kiểm tra kín năm 2026 → bắt đầu lại từ cấu hình bot thật
