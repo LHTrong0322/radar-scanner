@@ -235,12 +235,11 @@ async function mcapMap() {
   try {
     for (let p = 1; p <= 4; p++) {
       const j = await getJ(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=${p}`, CG_KEY ? { headers: { "x-cg-demo-api-key": CG_KEY } } : {});
-      for (const m of j) put(m.symbol, m.market_cap); if (j.length < 250) break; await sleep(1500);
+      for (const m of j) put(m.symbol, m.market_cap); if (j.length < 250) break; await sleep(2500);
     }
-    if (M.size > 500) return M;
-  } catch (e) { }
-  const j = await getJ("https://api.coinpaprika.com/v1/tickers?quotes=USD", {}, 30000);
-  for (const m of j) put(m.symbol, m.quotes && m.quotes.USD && m.quotes.USD.market_cap);
+  } catch (e) { }   // CoinGecko bản miễn phí hay bị giới hạn sau 1–2 trang → luôn gộp thêm CoinPaprika (đủ ~2500 dự án) để không loại nhầm coin hạng 300–1000
+  try { const j = await getJ("https://api.coinpaprika.com/v1/tickers?quotes=USD", {}, 30000); for (const m of j) put(m.symbol, m.quotes && m.quotes.USD && m.quotes.USD.market_cap); } catch (e) { }
+  if (M.size < 300) throw new Error("thiếu dữ liệu vốn hoá");
   return M;
 }
 
