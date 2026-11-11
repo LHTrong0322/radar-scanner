@@ -421,7 +421,7 @@ async function main() {
   if (process.env.HL_ADDRESS && process.env.HL_AGENT_KEY) {
     try { const { hyperRun } = await import(pathToFileURL(path.join(HERE, "hyper.mjs")).href); await hyperRun({ state, newIds, outbox, errors, esc, link, allowed: new Set(assets.map(a => a.base)) }); }
     catch (e) { errors.push(`Hyperliquid: ${e.message}`); }
-    // Chiến lược RSI khung D cho BTC (DCA kim tự tháp, 50% tài sản, mua spot) — chạy độc lập với bot chính
+    // Chiến lược RSI khung D cho BTC (DCA kim tự tháp, ký quỹ 50% tài sản, long perp x2 isolated) — chạy độc lập với bot chính
     try { const { rsiDcaRun } = await import(pathToFileURL(path.join(HERE, "hyper.mjs")).href); const bd = (await cryptoCandles("BTC", "1d", 500)).c; await rsiDcaRun({ state, daily: bd, outbox, errors, esc }); }
     catch (e) { errors.push(`RSI BTC: ${e.message}`); }
   } else if (process.env.ARCUS_ADDRESS && process.env.ARCUS_PRIVATE_KEY) {
