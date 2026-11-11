@@ -269,4 +269,70 @@ async function candleWatch() {
   console.log(`Nến tăng mạnh 24h: ${out.length}`);
 }
 
-if (MODE === "study") await study(); else if (MODE === "watch") await watch(); else if (MODE === "candle-study") await candleStudy(); else if (MODE === "candle-watch") await candleWatch();
+/* ---------- backtest luật vào lệnh từ nghiên cứu pump (như trade thật) ---------- */
+// Tín hiệu xác nhận ở nến D1 ĐÃ ĐÓNG → vào lệnh giá mở cửa nến sau. SL/TP cố định, giữ tối đa HOLD ngày.
+// Phí 0.045%×2 + trượt giá 0.05%×2 + funding ~0.03%/ngày. Ví 100 USD, 1R = 3 USD, tổng rủi ro mở ≤ 30% vốn, ngắt −3R/ngày, −6R/tuần (giờ VN).
+const RULES = {
+  breakout: { name: "Breakout: vượt đỉnh 60 ngày + volume gấp đôi", f: (x, p) => x.breakout },
+  combo1: { name: "Tiền vào ×2–4 + trên EMA200 20–50% + cách đỉnh năm 15–40%", f: x => x.volx >= 2 && x.volx < 4 && x.e200 >= .2 && x.e200 < .5 && x.dd365 <= -.15 && x.dd365 > -.4 },
+  strong: { name: "Tiền vào ×2 trở lên + mạnh hơn BTC >40%", f: x => x.volx >= 2 && x.rs30 > .4 },
+  candle: { name: "Nến volume gấp đôi + đóng cửa vượt đỉnh 20 nến", f: (x, p) => p && p.volspike && p.hi20 },
+  candleTrend: { name: "Nến volume gấp đôi + vượt đỉnh 20 nến + trên EMA200", f: (x, p) => p && p.volspike && p.hi20 && x.e200 > 0 },
+};
+function simTrade(c, i, sl, tp, hold) {
+  const e = c[i + 1].o * 1.0005, S = e * (1 - sl), T = e * (1 + tp);
+  for (let k = i + 1; k < Math.min(c.length, i + 1 + hold); k++) {
+    if (c[k].l <= S) return { exit: k, px: S * .9995 };
+    if (c[k].h >= T) return { exit: k, px: T * .9995 };
+  }
+  const k = Math.min(c.length - 1, i + hold); return k > i + 1 ? { exit: k, px: c[k].c * .9995, open: k === c.length - 1 } : null;
+}
+function portfolio(T) {
+  T.sort((a, b) => a.t0 - b.t0);
+  let eq = 100, peak = 100, dd = 0, open = [], dayR = {}, weekR = {}, took = [];
+  const vnDay = t => Math.floor((t + 7 * 36e5) / D), vnWeek = t => Math.floor((vnDay(t) + 3) / 7);
+  for (const t of T) {
+    for (const o of open.filter(o => o.t1 <= t.t0)) { eq += o.R * 3; peak = Math.max(peak, eq); dd = Math.max(dd, peak - eq); dayR[vnDay(o.t1)] = (dayR[vnDay(o.t1)] || 0) + o.R; weekR[vnWeek(o.t1)] = (weekR[vnWeek(o.t1)] || 0) + o.R; }
+    open = open.filter(o => o.t1 > t.t0);
+    if ((dayR[vnDay(t.t0)] || 0) <= -3 || (weekR[vnWeek(t.t0)] || 0) <= -6) continue;
+    if (open.some(o => o.b === t.b)) continue;
+    if ((open.length + 1) * 3 > eq * .3) continue;
+    open.push(t); took.push(t);
+  }
+  for (const o of open) { eq += o.R * 3; peak = Math.max(peak, eq); dd = Math.max(dd, peak - eq); }
+  return { took, eq, dd };
+}
+async function ruleBT() {
+  const list = universe(), btc = (await candles("BTC", "1d", FROM)).filter(x => x.t + D <= Date.now()), data = await loadTF(list, "1d", FROM);
+  const be = ema(btc.map(x => x.c), 200), stocks = new Set(list.filter(a => a.stock).map(a => a.b));
+  const SLS = [.08, .10, .15], L = ["# Backtest luật vào lệnh rút từ nghiên cứu pump (như trade thật)", "",
+    `Tạo lúc ${new Date().toISOString().slice(0, 16)} UTC · ${Object.keys(data).length} mã · khung D1 · tín hiệu ở nến đã đóng, vào lệnh giá mở cửa hôm sau.`,
+    "Đã tính phí, trượt giá, funding. Ví 100 USD, 1R = 3 USD, tổng rủi ro mở ≤ 30% vốn, ngắt −3R/ngày, −6R/tuần. TP = 3 lần SL (R:R 3), giữ tối đa 14 ngày.",
+    "Lọc thị trường như bot thật: coin chỉ vào khi BTC trên EMA200 ngày (cổ phiếu/hàng hoá luôn được).", "",
+    "Để so: bot hiện tại 2023–2025 = **+109.3R**, thắng 47.5%, rủi ro tụt vốn (95%) 9.3R · 2026 = **−15.0R**.", "",
+    "| Luật | SL | Lệnh 23–25 | Thắng | Tổng R 23–25 | Tụt vốn tối đa | Lệnh 2026 | Thắng | Tổng R 2026 | Ví cuối (100$) |", "|---|---|---|---|---|---|---|---|---|---|"];
+  const pre = {}; for (const [b, c] of Object.entries(data)) pre[b] = prep(c, btc);
+  const res = [];
+  for (const [id, R] of Object.entries(RULES)) for (const sl of SLS) {
+    const T = [];
+    for (const [b, c] of Object.entries(data)) for (let i = 210; i < c.length - 2; i++) {
+      if (c[i].t < START) continue;
+      const x = features(c, i, btc, pre[b]); if (!x) continue;
+      const p = patterns(c, i); if (!R.f(x, p)) continue;
+      if (!stocks.has(b)) { const bi = lastLE(btc, c[i].t); if (bi < 0 || !(btc[bi].c > be[bi])) continue; }
+      const s = simTrade(c, i, sl, sl * 3, HOLD); if (!s) continue;
+      const days = s.exit - i, r = (s.px / (c[i + 1].o * 1.0005) - 1) / sl - (.0009 + .0003 * days) / sl;
+      T.push({ b, t0: c[i + 1].t, t1: c[s.exit].t + D, R: r });
+    }
+    const pf = portfolio(T), tr = pf.took.filter(t => t.t0 < TEST), te = pf.took.filter(t => t.t0 >= TEST);
+    const sum = a => a.reduce((s, t) => s + t.R, 0), wr = a => a.length ? (a.filter(t => t.R > 0).length / a.length * 100).toFixed(0) + "%" : "–";
+    let pk = 0, cum = 0, mdd = 0; for (const t of tr.slice().sort((a, b) => a.t1 - b.t1)) { cum += t.R; pk = Math.max(pk, cum); mdd = Math.max(mdd, pk - cum); }
+    res.push({ id, sl, n0: tr.length, R0: sum(tr), n1: te.length, R1: sum(te) });
+    L.push(`| ${R.name} | ${sl * 100}% | ${tr.length} | ${wr(tr)} | **${sum(tr).toFixed(1)}R** | ${mdd.toFixed(1)}R | ${te.length} | ${wr(te)} | **${sum(te).toFixed(1)}R** | ${pf.eq.toFixed(0)}$ |`);
+    console.log(id, sl, tr.length, sum(tr).toFixed(1), te.length, sum(te).toFixed(1));
+  }
+  L.push("", "## Lưu ý trung thực", "- Danh sách mã là mã còn sống / đang có trên Hyperliquid → quá khứ hơi đẹp hơn thực tế.", "- Luật được chọn TỪ chính dữ liệu 2023–2025 → kết quả 2026 mới là thước đo thật.", "- Đây là chiến lược RIÊNG, chưa ghép với bot hiện tại. Nếu tốt, bước sau là thử dùng nó làm điểm cộng cho bot chính.");
+  fs.mkdirSync("pump", { recursive: true }); fs.writeFileSync("pump/rule-bt.md", L.join("\n")); fs.writeFileSync("pump/rule-bt.json", JSON.stringify(res, null, 1));
+}
+
+if (MODE === "study") await study(); else if (MODE === "watch") await watch(); else if (MODE === "candle-study") await candleStudy(); else if (MODE === "candle-watch") await candleWatch(); else if (MODE === "rule-bt") await ruleBT();
