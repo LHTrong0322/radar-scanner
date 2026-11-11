@@ -14,6 +14,8 @@ const DAYS_ARG = arg("days", "730"), DAYS = DAYS_ARG === "max" ? Math.floor((Dat
 const HTML = arg("html", "index.html"), HTML2 = arg("html2", ""), NAMES = arg("names", ""), LABEL = arg("label", ""), OUT = arg("out", "backtests");
 const TFS = ["4h", "1d", "1w"], LOWTFS = ["15m", "1h"], HTF = { "15m": "1h", "1h": "4h", "4h": "1d", "1d": "1w", "1w": null };
 const EXEC = { "15m": "15m", "1h": "1h", "4h": "1h", "1d": "1h", "1w": "1d" };   // chấm SL/TP bằng nến nhỏ hơn cho chính xác
+const FEE_TAKER = +arg("taker", .045), FEE_MAKER = +arg("maker", .015), FUND_APR = +arg("funding", 10), NOFEE = arg("fee", "1") === "0";   // phí Hyperliquid (%) và funding ước tính %/năm
+const PERTF = arg("pertf", "0") === "1";                     // 1: mỗi khung có vị thế riêng (đo từng khung độc lập); 0: 1 lệnh/mã như bot
 const LOW_DAYS = Math.min(DAYS, arg("lowdays", "730") === "max" ? DAYS : +arg("lowdays", "730")), LOWTF_ON = arg("lowtf", "1") !== "0";   // --lowtf 0: chỉ xét 4H/1D/1W     // BTC 15m/1h: chỉ xét 2 năm gần nhất cho nhẹ
 const STEP = { "15m": 1, "1h": 1, "4h": +arg("step4h", 1), "1d": 1, "1w": 1 };    // xét mọi nến (step 1) để kết quả không phụ thuộc thời điểm lấy mẫu
 const WIN = 400;                                             // số nến đưa vào thuật toán mỗi lần (giống bot)
@@ -155,48 +157,63 @@ function partial(htfBars, lowBars, upto, htf) {
   if (part.length) closed.push({ t: part[0].t, o: part[0].o, h: Math.max(...part.map(x => x.h)), l: Math.min(...part.map(x => x.l)), c: part.at(-1).c, v: part.reduce((a, x) => a + x.v, 0) });
   return closed;
 }
-function signals(K, D, startT, base, stock) {
+function signals(K, D, startT, base, stock, F) {
+  const bump = (tf, k) => { if (!F) return; const f = F[tf] = F[tf] || {}; f[k] = (f[k] || 0) + 1; };
   const out = [], low = LOWTF_ON && (K.LOW_TF_ASSETS || []).includes(base), tfs = low ? [...LOWTFS, ...TFS] : TFS, lowStart = Date.now() - LOW_DAYS * 864e5;
   for (const tf of tfs) {
     const bars = D[tf]; if (!bars || bars.length < 80) continue;
     const st0 = LOWTFS.includes(tf) ? Math.max(startT, lowStart) : startT;
     for (let i = Math.max(60, lastLE(bars, x => x.t < st0) + 1); i < bars.length - 1; i += STEP[tf]) {
       const w = bars.slice(Math.max(0, i - WIN + 1), i + 1), t = { src: "ex", c: w, tf, side: SIDE };
-      K.compute(t); const B = t.buy; if (!B || !B.plan || B.plan.reject) continue;
-      let sc = B.score; if (sc < K.PICK_MIN - 8) continue;
+      K.compute(t); const B = t.buy; bump(tf, "1 nến xét");
+      if (!B || !B.plan) { bump(tf, "2 không có plan (thiếu dữ liệu/ATR)"); continue; }
+      if (B.plan.reject) { bump(tf, "3 SL quá xa (> MAX_SL)"); continue; }
+      let sc = B.score;
+      if (sc < K.PICK_MIN - 8) { bump(tf, "4 điểm thấp"); for (const n of B.notes || []) { const m = String(n).match(/^trần \d+: [^(]*/); if (m) bump(tf, "4· " + m[0].trim()); } continue; }
       const htf = HTF[tf];
       if (htf && D[htf]) {
         const hc = partial(D[htf], bars, bars[i].t, htf).slice(-WIN);
         let hT = null;
         if (hc.length >= 60) { const h = { src: "ex", c: hc, tf: htf, side: SIDE }; K.compute(h); hT = K.trendOf(h); if (hT != null) { if (hT > .3) sc += 3; else if (hT < -.3) sc -= 5; } }
-        if (K.HTF_MIN != null && (hT == null || hT < K.HTF_MIN)) continue;
+        if (K.HTF_MIN != null && (hT == null || hT < K.HTF_MIN)) { bump(tf, "5 khung lớn không tăng"); continue; }
       }
-      if (K.REGIME && !stock && !regimeOK(bars[i].t + MS[tf])) continue;   // lọc BTC chỉ áp cho crypto
+      if (K.REGIME && !stock && !regimeOK(bars[i].t + MS[tf])) { bump(tf, "6 BTC dưới EMA200"); continue; }   // lọc BTC chỉ áp cho crypto
       const ltf = K.LTF_CONFIRM[tf];
       if (ltf && D[ltf]) {                                   // kèo W: cấu trúc khung D tại thời điểm đó cũng phải tăng rõ
         const end = bars[i].t + MS[tf], L = D[ltf]; let lo = 0, hi = L.length - 1, e = -1;
         while (lo <= hi) { const m = (lo + hi) >> 1; if (L[m].t + MS[ltf] <= end) { e = m; lo = m + 1; } else hi = m - 1; }
         const lc = L.slice(Math.max(0, e - WIN + 1), e + 1), lt = { src: "ex", c: lc, tf: ltf, side: SIDE }; if (lc.length >= 60) K.compute(lt);
-        if (!(K.ltfOK ? K.ltfOK(tf, lt) : K.upClear(lt))) continue;
+        if (!(K.ltfOK ? K.ltfOK(tf, lt) : K.upClear(lt))) { bump(tf, "7 khung nhỏ chưa xác nhận"); continue; }
       }
       sc = K.clamp(sc, 0, 100);
-      if (sc >= K.PICK_MIN + (K.TF_ADD[tf] || 0) && B.plan.rr1 >= K.MIN_RR) out.push({ t: bars[i].t + MS[tf], tf, sc, P: B.plan, parts: Object.fromEntries(B.parts.map(([n, v]) => [n, v == null ? null : +v.toFixed(3)])), rank: sc + Math.min(B.plan.rr1, 5) * 5 });
+      if (sc < K.PICK_MIN + (K.TF_ADD[tf] || 0)) { bump(tf, "8 điểm cuối < ngưỡng"); continue; }
+      if (B.plan.rr1 < K.MIN_RR) { bump(tf, "9 R:R TP1 < tối thiểu"); continue; }
+      bump(tf, "10 ĐẠT CHUẨN"); out.push({ t: bars[i].t + MS[tf], tf, sc, P: B.plan, parts: Object.fromEntries(B.parts.map(([n, v]) => [n, v == null ? null : +v.toFixed(3)])), rank: sc + Math.min(B.plan.rr1, 5) * 5 });
     }
   }
   return out.sort((a, b) => a.t - b.t || b.rank - a.rank);
 }
-function trades(K, D, base, startT, stock) {
-  const S = signals(K, D, startT, base, stock), res = []; let busy = 0;
+function trades(K, D, base, startT, stock, F) {
+  const S = signals(K, D, startT, base, stock, F), res = [], busyM = {};
   for (const s of S) {
-    if (s.t < busy) continue;
+    const bk = PERTF ? s.tf : "_", busy = busyM[bk] || 0;
+    if (s.t < busy) { if (F) { const f = F[s.tf] = F[s.tf] || {}; f["11 bỏ vì mã đang có lệnh"] = (f["11 bỏ vì mã đang có lệnh"] || 0) + 1; } continue; }
     const P = s.P, j = { side: SIDE, tf: s.tf, at: s.t, mode: P.mode, entry: P.entry, stop: P.stop, tp1: P.tp1, tp2: P.tp2, tps: P.tps, tpf: P.tpf };
     const et = [EXEC[s.tf], "4h", s.tf].find(x => D[x] && D[x].length && D[x][0].t <= s.t) || s.tf, E = D[et];   // nến nhỏ nhất có dữ liệu phủ thời điểm vào lệnh
     const ex = E.slice(Math.max(0, lastLE(E, k => k.t < s.t - MS[et]) + 1)), cur = ex.length ? ex.at(-1).c : null;
     const r = K.simulate(j, ex, cur);
     const end = r.exitAt || (r.status === "expired" ? s.t + 12 * MS[s.tf] : Infinity);
-    busy = end === Infinity ? Infinity : end + 1;
+    busyM[bk] = end === Infinity ? Infinity : end + 1;
+    // phí + funding (theo R): phí vào (limit = maker, market = taker) + phí ra (taker), funding cho thời gian giữ lệnh
+    let fee = 0;
+    if (!NOFEE && r.status !== "expired" && r.status !== "pending") {
+      const slPct = Math.abs(P.entry - P.stop) / P.entry, inF = P.mode === "Chờ hồi" ? FEE_MAKER : FEE_TAKER;
+      const hold = Math.max(0, ((r.exitAt || (ex.length ? ex.at(-1).t : s.t)) - (r.fillAt || s.t)) / (365 * 864e5));
+      fee = slPct > 0 ? ((inF + FEE_TAKER) / 100 + FUND_APR / 100 * hold) / slPct : 0;
+    }
+    r.r -= fee;
     res.push({ base, tf: s.tf, at: s.t, sc: Math.round(s.sc), mode: P.mode === "Chờ hồi" ? "limit" : "market", nTp: (P.tps || []).length, rr1: +P.rr1.toFixed(2),
-      st: r.status, r: +r.r.toFixed(3), exitAt: r.exitAt || null, hit: r.hit || 0, parts: s.parts, eWhy: P.ref || "", sWhy: P.why || "", tWhy: P.tp1Why || "" });
+      st: r.status, r: +r.r.toFixed(3), fee: +fee.toFixed(3), exitAt: r.exitAt || null, hit: r.hit || 0, parts: s.parts, eWhy: P.ref || "", sWhy: P.why || "", tWhy: P.tp1Why || "" });
   }
   return res;
 }
@@ -300,7 +317,7 @@ function regimeOK(t) {
 if (!isMainThread) {
   const KS = workerData.texts.map(t => loadCore(null, t)); REG = workerData.reg || [];
   parentPort.on("message", ({ id, vi, D, base, startT, stock }) => {
-    try { parentPort.postMessage({ id, T: trades(KS[vi], D, base, startT, stock) }); }
+    try { const F = vi === 0 ? {} : null; parentPort.postMessage({ id, T: trades(KS[vi], D, base, startT, stock, F), F }); }
     catch (e) { parentPort.postMessage({ id, T: [], err: e.message }); }
   });
 } else {
@@ -337,10 +354,11 @@ const from = { "15m": lowFrom - WIN * MS["15m"], "1h": startT - WIN * MS["4h"], 
 const NW = Math.max(1, Math.min(8, os.cpus().length));
 console.log(`Backtest ${uni.length} coin + ${STOCKS.length} cổ phiếu · ${DAYS} ngày · ${SIDE} · ${NW} luồng${V.length ? ` · so sánh ${V.length} phiên bản: ${V.map(v => v.name).join(", ")}` : ""}`);
 const texts = [mainText, ...V.map(v => v.text)];
-const A = [], B = [], miss = [];
+const A = [], B = [], miss = [], FUN = {};
+function addFunnel(F) { for (const tf in F) { const d = FUN[tf] = FUN[tf] || {}; for (const k in F[tf]) d[k] = (d[k] || 0) + F[tf][k]; } }
 if (MERGE) {
   for (const f of fs.readdirSync(MERGE).filter(f => /^shard-.*\.json$/.test(f))) {
-    const sh = JSON.parse(fs.readFileSync(path.join(MERGE, f), "utf8")); A.push(...sh.A); miss.push(...sh.miss);
+    const sh = JSON.parse(fs.readFileSync(path.join(MERGE, f), "utf8")); A.push(...sh.A); miss.push(...sh.miss); if (sh.FUN) addFunnel(sh.FUN);
     sh.V.forEach((t, i) => { if (V[i]) V[i].T.push(...t); });
   }
   console.log(`Gộp ${A.length} lệnh (main) từ các phần`);
@@ -349,7 +367,7 @@ try { const bd = await candles("BTC", "1d", Date.UTC(2017, 0, 1)), e = K1.ema(bd
 catch (e) { console.log("Không lấy được BTC cho bộ lọc thị trường"); }
 const workers = Array.from({ length: NW }, () => new Worker(new URL(import.meta.url), { workerData: { texts, reg: REG }, argv: process.argv.slice(2) }));
 const wait = new Map(); let seq = 0, rr = 0;
-for (const w of workers) w.on("message", m => { const f = wait.get(m.id); wait.delete(m.id); if (m.err) console.log("  lỗi luồng:", m.err); f(m.T); });
+for (const w of workers) w.on("message", m => { const f = wait.get(m.id); wait.delete(m.id); if (m.err) console.log("  lỗi luồng:", m.err); if (m.F) addFunnel(m.F); f(m.T); });
 const task = (vi, D, base, stock) => new Promise(res => { const id = ++seq; wait.set(id, res); workers[rr++ % NW].postMessage({ id, vi, D, base, startT, stock }); });
 const keep = setInterval(() => { }, 10000);                  // giữ tiến trình sống khi chờ mạng
 let done = 0;
@@ -365,7 +383,7 @@ let qi = 0; await Promise.all(Array.from({ length: 3 }, async () => { while (qi 
 clearInterval(keep); for (const w of workers) w.terminate();
 if (SHARD) {
   fs.mkdirSync(OUT, { recursive: true });
-  fs.writeFileSync(path.join(OUT, `shard-${SHARD.replace("/", "of")}.json`), JSON.stringify({ A, V: V.map(v => v.T), miss }));
+  fs.writeFileSync(path.join(OUT, `shard-${SHARD.replace("/", "of")}.json`), JSON.stringify({ A, V: V.map(v => v.T), miss, FUN }));
   console.log(`Phần ${SHARD} xong: ${A.length} lệnh · ${((Date.now() - t0) / 1000).toFixed(0)}s`); process.exit(0);
 }
 }
@@ -384,7 +402,11 @@ const cmp = V.length ? ["\n## So sánh các phiên bản\n", "| Phiên bản | �
   V.filter(v => v.desc).map(v => `- **${v.name}**: ${v.desc}`).join("\n") + (expSkip.length ? `\n\nThí nghiệm bị bỏ qua: ${expSkip.join("; ")}` : "") + "\n" : "";
 const name = `${new Date().toISOString().slice(0, 10)}-${SIDE}${LABEL ? "-" + LABEL.replace(/[^a-z0-9-]/gi, "") : ""}`;
 fs.mkdirSync(OUT, { recursive: true });
-const text = cmp + effectMd(effect(A)) + "\n" + md(`Backtest ${SIDE.toUpperCase()}${LABEL ? " · " + LABEL : ""}`, RA, RB) + (miss.length ? `\n\nKhông lấy được dữ liệu: ${miss.join(", ")}` : "");
+const funnelMd = () => { const tfs = Object.keys(FUN).sort((a, b) => MS[a] - MS[b]); if (!tfs.length) return "";
+  const keys = [...new Set(tfs.flatMap(t => Object.keys(FUN[t])))].sort((a, b) => parseFloat(a) - parseFloat(b) || a.localeCompare(b));
+  return ["\n## Phễu lọc kèo (thuật toán hiện tại) — mỗi nến được xét bị loại ở bước nào\n", `| Bước | ${tfs.map(t => t.toUpperCase()).join(" | ")} |`, `|---|${tfs.map(() => "---").join("|")}|`,
+    ...keys.map(k => `| ${k.replace(/^\d+·? ?/, m => m.includes("·") ? "  ↳ " : m)} | ${tfs.map(t => FUN[t][k] ?? 0).join(" | ")} |`)].join("\n") + "\n"; };
+const text = `Phí: ${NOFEE ? "KHÔNG tính" : `maker ${FEE_MAKER}% · taker ${FEE_TAKER}% · funding ${FUND_APR}%/năm (đã trừ vào R)`} · ${PERTF ? "mỗi khung vị thế riêng" : "1 lệnh/mã như bot"}\n` + funnelMd() + cmp + effectMd(effect(A)) + "\n" + md(`Backtest ${SIDE.toUpperCase()}${LABEL ? " · " + LABEL : ""}`, RA, RB) + (miss.length ? `\n\nKhông lấy được dữ liệu: ${miss.join(", ")}` : "");
 fs.writeFileSync(path.join(OUT, name + ".md"), text);
 const slim = T => T.map(({ parts, eWhy, sWhy, tWhy, ...x }) => x);
 fs.writeFileSync(path.join(OUT, name + ".json"), JSON.stringify({ at: Date.now(), days: DAYS, side: SIDE, label: LABEL, assets: uni.length, miss,

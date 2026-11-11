@@ -11,6 +11,12 @@ on:
       label:
         description: "tên ngắn cho lần chạy"
         default: "btc-da-khung"
+      pertf:
+        description: "1 = mỗi khung có vị thế riêng (đo từng khung độc lập), 0 = 1 lệnh/mã như bot"
+        default: "1"
+      fee:
+        description: "1 = trừ phí + funding, 0 = không tính phí"
+        default: "1"
 
 permissions:
   contents: write
@@ -25,7 +31,7 @@ jobs:
         with:
           node-version: 20
       - name: Backtest BTC
-        run: node bt.mjs --only BTC --stocks 0 --days max --lowdays max --side "${{ github.event.inputs.side }}" --label "${{ github.event.inputs.label }}"
+        run: node bt.mjs --only BTC --stocks 0 --days max --lowdays max --side "${{ github.event.inputs.side }}" --label "${{ github.event.inputs.label }}" --pertf "${{ github.event.inputs.pertf }}" --fee "${{ github.event.inputs.fee }}"
       - name: Lưu kết quả
         run: |
           git config user.name "radar-backtest"
