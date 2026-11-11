@@ -170,4 +170,103 @@ async function watch() {
   console.log(`Theo dõi: ${out.length} coin`);
 }
 
-if (MODE === "study") await study(); else await watch();
+/* ---------- nến tăng mạnh > 10% (H4 / D1): mô hình nến + mẫu hình giá ngay trước đó ---------- */
+const BIG = .10;
+// mô hình nến / mẫu hình giá tại nến k (nến ĐÃ ĐÓNG ngay trước cây nến tăng mạnh)
+function patterns(c, k) {
+  if (k < 60) return null;
+  const x = c[k], p = c[k - 1], body = Math.abs(x.c - x.o), rng = x.h - x.l || 1e-12, lo = Math.min(x.o, x.c) - x.l, up = x.h - Math.max(x.o, x.c);
+  const atr = (() => { let s = 0; for (let j = k - 13; j <= k; j++) s += Math.max(c[j].h - c[j].l, Math.abs(c[j].h - c[j - 1].c), Math.abs(c[j].l - c[j - 1].c)); return s / 14; })();
+  const hh = (a, b) => Math.max(...c.slice(a, b).map(z => z.h)), ll = (a, b) => Math.min(...c.slice(a, b).map(z => z.l));
+  const vol = (a, b) => c.slice(a, b).reduce((s, z) => s + (z.v || 0), 0) / Math.max(1, b - a);
+  const rngs = c.slice(k - 6, k + 1).map(z => z.h - z.l);
+  return {
+    hammer: lo >= 2 * body && up <= body ? 1 : 0,                                                    // búa: râu dưới dài ≥ 2 lần thân
+    engulf: x.c > x.o && p.c < p.o && x.c >= p.o && x.o <= p.c ? 1 : 0,                              // nhấn chìm tăng
+    inside: x.h < p.h && x.l > p.l ? 1 : 0,                                                          // nến nằm trong nến trước (nén)
+    doji: body <= .1 * rng ? 1 : 0,                                                                  // doji: thân rất nhỏ (lưỡng lự)
+    soldiers: c[k].c > c[k].o && c[k - 1].c > c[k - 1].o && c[k - 2].c > c[k - 2].o && c[k].c > c[k - 1].c && c[k - 1].c > c[k - 2].c ? 1 : 0,   // 3 nến xanh liên tiếp
+    longLower: lo >= .5 * rng ? 1 : 0,                                                               // râu dưới chiếm ≥ 50% cây nến (bị đạp nhưng mua lại)
+    nr7: rngs.at(-1) === Math.min(...rngs) ? 1 : 0,                                                  // biên độ hẹp nhất 7 nến (nén trước bùng nổ)
+    tight10: hh(k - 9, k + 1) - ll(k - 9, k + 1) < 2.5 * atr ? 1 : 0,                                // 10 nến đi ngang rất chặt (cờ / nền giá)
+    triangle: hh(k - 9, k + 1) < hh(k - 19, k - 9) && ll(k - 9, k + 1) > ll(k - 19, k - 9) ? 1 : 0, // đỉnh thấp dần + đáy cao dần (tam giác hội tụ)
+    dbottom: Math.abs(ll(k - 14, k + 1) / ll(k - 60, k - 20) - 1) < .03 && x.c > ll(k - 14, k + 1) * 1.03 ? 1 : 0,   // đáy đôi (đáy gần bằng đáy 20–60 nến trước)
+    hi20: x.c > hh(k - 20, k) ? 1 : 0,                                                               // vừa đóng cửa vượt đỉnh 20 nến
+    dryup: vol(k - 4, k + 1) < .7 * vol(k - 34, k - 4) ? 1 : 0,                                     // volume cạn (5 nến gần nhất < 70% trung bình 30 nến trước)
+    volspike: (x.v || 0) > 2 * vol(k - 30, k) ? 1 : 0,                                               // volume nến này gấp đôi trung bình
+    redprev: x.c < x.o ? 1 : 0,                                                                      // nến trước là nến đỏ
+  };
+}
+const PNAMES = { hammer: "Nến búa (râu dưới dài)", engulf: "Nhấn chìm tăng", inside: "Inside bar (nến nằm gọn trong nến trước)", doji: "Doji (thân rất nhỏ)", soldiers: "3 nến xanh tăng dần", longLower: "Râu dưới ≥ 50% cây nến",
+  nr7: "Biên độ hẹp nhất 7 nến (NR7)", tight10: "10 nến đi ngang rất chặt (nền giá / cờ)", triangle: "Tam giác hội tụ (đỉnh thấp dần, đáy cao dần)", dbottom: "Đáy đôi", hi20: "Vừa vượt đỉnh 20 nến",
+  dryup: "Volume cạn trước đó", volspike: "Volume nến trước gấp đôi", redprev: "Nến trước là nến đỏ" };
+const STOCK_SET = () => { try { return new Map(JSON.parse((fs.readFileSync("index.html", "utf8").match(/const STOCKS=(\[[\s\S]*?\]\]);/) || [])[1] || "[]").map(x => [x[1], x[0]])); } catch (e) { return new Map(); } };
+async function loadTF(list, tf, from) {
+  const out = {}; let k = 0;
+  await Promise.all(Array.from({ length: 6 }, async () => { while (k < list.length) { const a = list[k++]; try {
+    const c = (a.stock ? (await stockCandles(a.sym, tf)).filter(x => x.t >= from) : await candles(a.b, tf, from)).filter(x => x.t + MS[tf] <= Date.now());
+    if (c.length > 230) out[a.b] = c; } catch (e) { } } }));
+  return out;
+}
+async function candleStudy() {
+  const list = universe(), L = [`# Nến tăng mạnh > ${BIG * 100}% (H4 / D1): điểm chung ngay TRƯỚC cây nến`, "", `Tạo lúc ${new Date().toISOString().slice(0, 16)} UTC. Nến tăng mạnh = giá đóng cửa cao hơn giá đóng cửa nến trước ≥ ${BIG * 100}%. Đặc điểm đo ở nến ĐÃ ĐÓNG ngay trước đó. Hệ số = khả năng có nến tăng mạnh ngay sau ÷ khả năng bình thường (2.0 = gấp đôi). Chỉ tin cái cao ở CẢ 2023–2025 LẪN 2026.`, ""];
+  const model = { at: Date.now(), tf: {} };
+  for (const tf of ["1d", "4h"]) {
+    const btc = (await candles("BTC", tf, FROM)).filter(x => x.t + MS[tf] <= Date.now()), data = await loadTF(list, tf, FROM), rows = [];
+    for (const [b, c] of Object.entries(data)) { const pre = prep(c, btc); for (let k = 210; k < c.length - 1; k++) { if (c[k].t < START) continue;
+      const pt = patterns(c, k), f = features(c, k, btc, pre); if (!pt || !f) continue;
+      const y = c[k + 1].c / c[k].c - 1 >= BIG ? 1 : 0, fwd = y && c[k + 7] ? c[k + 7].c / c[k + 1].c - 1 : null;
+      rows.push({ b, t: c[k].t, y, pt, f, fwd }); } }
+    const tr = rows.filter(r => r.t < TEST), te = rows.filter(r => r.t >= TEST), base = a => a.length ? a.filter(r => r.y).length / a.length : 0, B0 = base(tr), B1 = base(te);
+    const ev = rows.filter(r => r.y);
+    L.push(`## Khung ${tf.toUpperCase()} — ${Object.keys(data).length} mã · ${ev.length} cây nến tăng ≥ ${BIG * 100}%`, "", `Khả năng bình thường: 2023–2025 **${(B0 * 100).toFixed(2)}%** mỗi nến · 2026 **${(B1 * 100).toFixed(2)}%**.`, "",
+      "### Mô hình nến / mẫu hình giá ngay trước", "", "| Mẫu | Lần xuất hiện 2023–25 | Hệ số | Lần xuất hiện 2026 | Hệ số |", "|---|---|---|---|---|");
+    const pr = [];
+    for (const p of Object.keys(PNAMES)) { const a = tr.filter(r => r.pt[p]), z = te.filter(r => r.pt[p]); pr.push({ p, n0: a.length, l0: B0 ? base(a) / B0 : 0, n1: z.length, l1: B1 ? base(z) / B1 : 0 }); }
+    pr.sort((x, y) => Math.min(y.l0, y.l1) - Math.min(x.l0, x.l1));
+    for (const x of pr) L.push(`| ${PNAMES[x.p]} | ${x.n0} | **${x.l0.toFixed(2)}** | ${x.n1} | **${x.l1.toFixed(2)}** |`);
+    // đặc điểm chung (như nghiên cứu pump) cho riêng các cây nến tăng mạnh
+    L.push("", "### Đặc điểm thị trường ngay trước (so với bình thường)", "", "| Đặc điểm | Mức | Hệ số 2023–25 | Hệ số 2026 |", "|---|---|---|---|");
+    const fr = [];
+    for (const f of Object.keys(BUCKETS)) for (const [, , name] of BUCKETS[f]) { const a = tr.filter(r => bucketOf(f, r.f[f]) === name), z = te.filter(r => bucketOf(f, r.f[f]) === name); if (a.length < 200 || z.length < 30) continue;
+      fr.push({ f, name, l0: B0 ? base(a) / B0 : 0, l1: B1 ? base(z) / B1 : 0 }); }
+    fr.sort((x, y) => Math.min(y.l0, y.l1) - Math.min(x.l0, x.l1));
+    for (const x of fr.slice(0, 15)) L.push(`| ${NAMES[x.f]} | ${x.name} | **${x.l0.toFixed(2)}** | **${x.l1.toFixed(2)}** |`);
+    // sau cây nến tăng mạnh: mua đuổi có lời không?
+    const fw = ev.filter(r => r.fwd != null), win = fw.filter(r => r.fwd > 0).length;
+    L.push("", `### Sau cây nến tăng mạnh: mua đuổi ở giá đóng cửa, giữ 7 nến`, "", `${fw.length} lần · tăng tiếp ${fw.length ? (win / fw.length * 100).toFixed(0) : 0}% số lần · lợi nhuận trung bình ${fw.length ? (fw.reduce((s, r) => s + r.fwd, 0) / fw.length * 100).toFixed(1) : 0}% (chưa trừ phí, chưa có SL).`, "",
+      "### Các cây nến tăng mạnh gần nhất", "", "| Thời điểm | Mã | Mẫu ngay trước |", "|---|---|---|",
+      ...ev.sort((a, b) => b.t - a.t).slice(0, 25).map(r => `| ${new Date(r.t + MS[tf]).toISOString().slice(0, 13).replace("T", " ")}h | ${r.b} | ${Object.keys(PNAMES).filter(p => r.pt[p]).map(p => PNAMES[p]).join(", ") || "–"} |`), "");
+    model.tf[tf] = { base: [B0, B1], top: pr.filter(x => x.n1 >= 20 && Math.min(x.l0, x.l1) > 1.3).map(x => x.p) };
+  }
+  L.push("## Lưu ý trung thực", "- Đây là tương quan để định hướng, chưa phải kèo. Mẫu nào có hệ số cao ở cả 2 giai đoạn mới được đem đi backtest như trade thật.", "- Danh sách mã là mã đang còn sống / đang có trên Hyperliquid → quá khứ hơi đẹp hơn thực tế.");
+  fs.mkdirSync("pump", { recursive: true }); fs.writeFileSync("pump/candles.md", L.join("\n")); fs.writeFileSync("pump/candles-model.json", JSON.stringify(model, null, 1));
+  console.log("Xong nghiên cứu nến tăng mạnh");
+}
+async function candleWatch() {
+  const list = universe(), out = [], since = Date.now() - 26 * 36e5;
+  for (const tf of ["4h", "1d"]) {
+    const data = await loadTF(list, tf, Date.now() - (tf === "4h" ? 120 : 420) * D);
+    for (const [b, c] of Object.entries(data)) for (let k = Math.max(61, c.length - 7); k < c.length; k++) {
+      const ch = c[k].c / c[k - 1].c - 1; if (ch < BIG || c[k].t + MS[tf] < since) continue;
+      const pt = patterns(c, k - 1); out.push({ b, tf, t: c[k].t + MS[tf], ch, vx: (c[k].v || 0) / (c.slice(k - 30, k).reduce((s, z) => s + (z.v || 0), 0) / 30 || 1), pats: pt ? Object.keys(PNAMES).filter(p => pt[p]) : [] });
+    }
+  }
+  out.sort((a, b) => b.ch - a.ch);
+  const L = [`# Nến tăng mạnh > ${BIG * 100}% trong 24 giờ qua (H4 / D1) — ${new Date().toISOString().slice(0, 16)} UTC`, "", "Danh sách để nghiên cứu điểm chung, CHƯA phải kèo vào lệnh.", "", "| Mã | Khung | Tăng | Volume × | Mẫu ngay trước |", "|---|---|---|---|---|",
+    ...out.map(x => `| ${x.b} | ${x.tf.toUpperCase()} | +${(x.ch * 100).toFixed(1)}% | ${x.vx.toFixed(1)} | ${x.pats.map(p => PNAMES[p]).join(", ") || "–"} |`)];
+  fs.mkdirSync("pump", { recursive: true }); fs.writeFileSync("pump/candles-watch.md", L.join("\n"));
+  // lưu lịch sử để tích luỹ dữ liệu theo thời gian
+  let hist = []; try { hist = JSON.parse(fs.readFileSync("pump/candles-history.json", "utf8")); } catch (e) { }
+  for (const x of out) if (!hist.some(h => h.b === x.b && h.tf === x.tf && h.t === x.t)) hist.push({ b: x.b, tf: x.tf, t: x.t, ch: +x.ch.toFixed(4), vx: +x.vx.toFixed(2), pats: x.pats });
+  fs.writeFileSync("pump/candles-history.json", JSON.stringify(hist.slice(-5000)));
+  const TG = process.env.TELEGRAM_BOT_TOKEN, CHAT = process.env.TELEGRAM_CHAT_ID;
+  if (TG && CHAT && out.length) {
+    const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+    const txt = `📈 <b>Nến tăng mạnh > ${BIG * 100}% trong 24h</b> (H4/D1) — để nghiên cứu, CHƯA phải kèo:\n` + out.slice(0, 20).map(x => `• <b>${esc(x.b)}</b> ${x.tf.toUpperCase()} +${(x.ch * 100).toFixed(1)}% · volume ×${x.vx.toFixed(1)}${x.pats.length ? " · trước đó: " + esc(x.pats.slice(0, 3).map(p => PNAMES[p]).join(", ")) : ""}`).join("\n");
+    try { await fetch(`https://api.telegram.org/bot${TG}/sendMessage`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ chat_id: CHAT, text: txt, parse_mode: "HTML", disable_web_page_preview: true }) }); } catch (e) { }
+  }
+  console.log(`Nến tăng mạnh 24h: ${out.length}`);
+}
+
+if (MODE === "study") await study(); else if (MODE === "watch") await watch(); else if (MODE === "candle-study") await candleStudy(); else if (MODE === "candle-watch") await candleWatch();

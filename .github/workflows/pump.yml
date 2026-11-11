@@ -1,16 +1,16 @@
 name: Nghiên cứu breakout / pump
 
-# study: nghiên cứu lại toàn bộ dữ liệu từ 2023 (mỗi Chủ nhật + chạy tay) → pump/report.md, pump/model.json
-# watch: mỗi sáng sau khi nến ngày đóng (7h giờ VN) → danh sách dự án đang breakout / khớp mẫu trước-pump → pump/watch.md + Telegram
+# Chỉ NGHIÊN CỨU (không quét hằng ngày): mỗi Chủ nhật làm lại với dữ liệu mới nhất
+# study: điểm chung trước các đợt pump → pump/report.md, pump/model.json
+# candle-study: điểm chung trước các nến tăng >10% H4/D1 + mô hình nến, mẫu hình giá → pump/candles.md
 on:
   schedule:
-    - cron: "13 0 * * *"      # 07:13 giờ VN hằng ngày: watch
-    - cron: "37 1 * * 0"      # 08:37 giờ VN Chủ nhật: study
+    - cron: "37 1 * * 0"      # 08:37 giờ VN Chủ nhật
   workflow_dispatch:
     inputs:
       mode:
-        description: "study hoặc watch"
-        default: "study"
+        description: "all, study, candle-study (watch/candle-watch chỉ chạy tay)"
+        default: "all"
 
 permissions:
   contents: write
@@ -34,9 +34,8 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           MODE="${{ github.event.inputs.mode }}"
-          if [ -z "$MODE" ]; then if [ "${{ github.event.schedule }}" = "37 1 * * 0" ]; then MODE=study; else MODE=watch; fi; fi
-          if [ "$MODE" = "watch" ] && [ ! -f pump/model.json ]; then node pump_study.mjs study; fi
-          node pump_study.mjs "$MODE"
+          if [ -z "$MODE" ]; then MODE=all; fi
+          if [ "$MODE" = "all" ]; then node pump_study.mjs study; node pump_study.mjs candle-study; else node pump_study.mjs "$MODE"; fi
       - name: Lưu kết quả
         run: |
           git config user.name "radar-pump"
