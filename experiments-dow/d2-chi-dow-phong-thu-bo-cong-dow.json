@@ -1,0 +1,142 @@
+{
+ "name": "d2-chi-dow-phong-thu-bo-cong-dow",
+ "desc": "Như d1 nhưng bỏ cổng Dow (trần 50)",
+ "patch": [
+  {
+   "find": "const dw=i.dow, dowOK=dw&&(dw.state===1||/^Gãy cấu trúc giảm/.test(dw.why||\"\"));",
+   "replace": "const dw=i.dow, dowOK=true;"
+  },
+  {
+   "find": "`ADX ${A} > 25, +DI trội${ad.rising?\", ADX đang tăng\":\"\"}`,3]",
+   "replace": "`ADX ${A} > 25, +DI trội${ad.rising?\", ADX đang tăng\":\"\"}`,0]"
+  },
+  {
+   "find": "xu hướng giảm cạn lực, ủng hộ đảo chiều`,1.5]",
+   "replace": "xu hướng giảm cạn lực, ủng hộ đảo chiều`,0]"
+  },
+  {
+   "find": "score+=3;notes.push(\"+3 phân kỳ dương ẩn",
+   "replace": "score+=0;notes.push(\"+3 phân kỳ dương ẩn"
+  },
+  {
+   "find": "[\"Momentum\",M,15]",
+   "replace": "[\"Momentum\",M,0]"
+  },
+  {
+   "find": "[\"Elliott\",W,8]",
+   "replace": "[\"Elliott\",W,0]"
+  },
+  {
+   "find": "[\"Divergence\",D,10]",
+   "replace": "[\"Divergence\",D,0]"
+  },
+  {
+   "find": "out.push([an.poc,\"POC anchored VP\",3])",
+   "replace": "out.push([an.poc,\"POC anchored VP\",0])"
+  },
+  {
+   "find": "add(e200,\"EMA 200\",2)",
+   "replace": "add(e200,\"EMA 200\",0)"
+  },
+  {
+   "find": "add(ev[200],\"EMA 200\",2)",
+   "replace": "add(ev[200],\"EMA 200\",0)"
+  },
+  {
+   "find": "add(ev[50],\"EMA 50\",0.75)",
+   "replace": "add(ev[50],\"EMA 50\",0)"
+  },
+  {
+   "find": "add(ev[21],\"EMA 21\",1)",
+   "replace": "add(ev[21],\"EMA 21\",0)"
+  },
+  {
+   "find": "add(ichi.top,\"đã break lên mây Ichimoku\",2)",
+   "replace": "add(ichi.top,\"đã break lên mây Ichimoku\",0)"
+  },
+  {
+   "find": "\"Fib 0.618 sóng 1 (vùng sóng 2)\",2.5]",
+   "replace": "\"Fib 0.618 sóng 1 (vùng sóng 2)\",0]"
+  },
+  {
+   "find": "out.push([v[1],\"đỉnh sóng 1 (sàn của sóng 4)\",2.5])",
+   "replace": "out.push([v[1],\"đỉnh sóng 1 (sàn của sóng 4)\",0])"
+  },
+  {
+   "find": "add(K.r70,\"RSI chạm 70 (quá mua)\",1)",
+   "replace": "add(K.r70,\"RSI chạm 70 (quá mua)\",0)"
+  },
+  {
+   "find": "add(K.r30,\"RSI chạm 30 (quá bán)\",1)",
+   "replace": "add(K.r30,\"RSI chạm 30 (quá bán)\",0)"
+  },
+  {
+   "find": "add(K.mf.px,\"MACD còn trên Signal\",1)",
+   "replace": "add(K.mf.px,\"MACD còn trên Signal\",0)"
+  },
+  {
+   "find": "out.push([fx.poc,\"POC volume profile 250 nến\",0.75])",
+   "replace": "out.push([fx.poc,\"POC volume profile 250 nến\",0])"
+  },
+  {
+   "find": "out.push([v,\"HVN anchored VP\",0.25])",
+   "replace": "out.push([v,\"HVN anchored VP\",0])"
+  },
+  {
+   "find": "out.push([v,\"HVN volume profile 250 nến\",0.25])",
+   "replace": "out.push([v,\"HVN volume profile 250 nến\",0])"
+  },
+  {
+   "find": "add(K.r45,\"RSI 45–55 (hỗ trợ)\",1)",
+   "replace": "add(K.r45,\"RSI 45–55 (hỗ trợ)\",0)"
+  },
+  {
+   "find": "add(K.r45,\"RSI 45–55 (kháng cự)\",1)",
+   "replace": "add(K.r45,\"RSI 45–55 (kháng cự)\",0)"
+  },
+  {
+   "find": "add(K.r55,\"RSI 45–55 (hỗ trợ)\",1)",
+   "replace": "add(K.r55,\"RSI 45–55 (hỗ trợ)\",0)"
+  },
+  {
+   "find": "add(K.r55,\"RSI 45–55 (kháng cự)\",1)",
+   "replace": "add(K.r55,\"RSI 45–55 (kháng cự)\",0)"
+  },
+  {
+   "find": "if(ichi&&ichi.bot!=null){ add(ichi.bot,\"đáy mây Ichimoku\",1.2); add(ichi.top,\"đỉnh mây Ichimoku\",1.2) }",
+   "replace": "if(ichi&&ichi.bot!=null){ add(ichi.bot,\"đáy mây Ichimoku\",0); add(ichi.top,\"đỉnh mây Ichimoku\",0) }"
+  },
+  {
+   "find": "if(ichi&&ichi.bot!=null){ add(ichi.bot,\"đáy mây Ichimoku\",1.2); add(ichi.top,\"đỉnh mây Ichimoku\",1.2);",
+   "replace": "if(ichi&&ichi.bot!=null){ add(ichi.bot,\"đáy mây Ichimoku\",0); add(ichi.top,\"đỉnh mây Ichimoku\",0);"
+  },
+  {
+   "find": "add(ew.inv,\"mức sai Elliott\",2)",
+   "replace": "add(ew.inv,\"mức sai Elliott\",0)"
+  },
+  {
+   "find": "add(K.mf.px,\"MACD cắt lên Signal\",.5)",
+   "replace": "add(K.mf.px,\"MACD cắt lên Signal\",0)"
+  },
+  {
+   "find": "\"Fib 0.5 sóng 1 (vùng sóng 2)\",3]",
+   "replace": "\"Fib 0.5 sóng 1 (vùng sóng 2)\",0]"
+  },
+  {
+   "find": "\"Fib 0.382 sóng 3 (sóng 2 sâu → sóng 4 nông)\",1.25]",
+   "replace": "\"Fib 0.382 sóng 3 (sóng 2 sâu → sóng 4 nông)\",0]"
+  },
+  {
+   "find": "\"Fib 0.618 sóng 3 (sóng 2 nông → sóng 4 sâu)\",1.25]",
+   "replace": "\"Fib 0.618 sóng 3 (sóng 2 nông → sóng 4 sâu)\",0]"
+  },
+  {
+   "find": "score+=3;notes.push(\"+3 sóng đẩy",
+   "replace": "score+=0;notes.push(\"+3 sóng đẩy"
+  },
+  {
+   "find": "score+=4;notes.push(\"+4 phân kỳ dương ở cuối sóng C",
+   "replace": "score+=0;notes.push(\"+4 phân kỳ dương ở cuối sóng C"
+  }
+ ]
+}
