@@ -1,4 +1,4 @@
-# Tối ưu tự động — vòng 7
+# Tối ưu tự động — vòng 8
 
 Đây là báo cáo để thảo luận. Bot thật KHÔNG bị thay đổi cho tới khi Trọng duyệt.
 
@@ -11,7 +11,7 @@ Mỗi vòng: backtest toàn bộ dữ liệu (từ 2018, mọi nến, có phí +
 
 | Thông số | Bot thật | Đề xuất |
 |---|---|---|
-| (chưa có) | | |
+| Khung lớn phải tăng (trend ≥) | 0.3 | **0.4** |
 
 ## Lịch sử các vòng
 
@@ -140,3 +140,20 @@ Trọng duyệt áp 5 thay đổi lên bot thật (TP1 30%, vào ngay 6, đệm 
 | Số nến mỗi bên để xác định đỉnh/đáy Dow | 5 → 7 | 4.9 | 0.33 | 38.9% | 422 | 11.51 | 0.471 | 0.243 |  |
 | Trần điểm khi chart yếu (Trend < x) | -0.3 → -0.6 | 5 | 0.335 | 40.5% | 454 | 17.82 | 0.65 | 0.173 |  |
 | Trần điểm khi chart yếu (Trend < x) | -0.3 → 0 | 5.1 | 0.342 | 40.4% | 453 | 17.82 | 0.642 | 0.189 |  |
+
+### Vòng 8 — mốc: 0.335R/lệnh, win 40.5%, DD 17.82R, 454 lệnh
+
+| Thông số | Từ → Thử | Điểm 0–10 | R/lệnh | Win rate | Lệnh | Max DD | Nửa đầu | Nửa sau | Nhận? |
+|---|---|---|---|---|---|---|---|---|---|
+| Khung lớn phải tăng (trend ≥) | 0.3 → 0.2 | 5 | 0.337 | 40.7% | 482 | 18.28 | 0.629 | 0.191 |  |
+| Khung lớn phải tăng (trend ≥) | 0.3 → 0.4 | 5.1 | 0.34 | 41% | 439 | 16.53 | 0.659 | 0.177 | ✅ |
+| Lọc BTC trên EMA200 (crypto) | true → false | 3.7 | 0.272 | 38.3% | 499 | 17.85 | 0.571 | 0.124 |  |
+| Xác nhận khung nhỏ (A2) | ON → W | 3.3 | 0.251 | 38.5% | 883 | 26.98 | 0.341 | 0.201 |  |
+| Cổng Dow | LỎNG → CHẶT | 4.5 | 0.31 | 40.4% | 374 | 14.46 | 0.626 | 0.124 |  |
+| Cổng Dow | LỎNG → TẮT | 4.1 | 0.292 | 38% | 707 | 22.83 | 0.538 | 0.162 |  |
+| Số TP tối đa | 2 → 1 | 5 | 0.335 | 40.5% | 454 | 17.82 | 0.65 | 0.173 |  |
+| Số TP tối đa | 2 → 3 | 4.9 | 0.329 | 40.4% | 453 | 17.82 | 0.64 | 0.17 |  |
+| Điểm ADX > 25 và +DI trội (Momentum) | 2 → 1 | 4.8 | 0.325 | 40.5% | 454 | 17.82 | 0.643 | 0.164 |  |
+| Điểm ADX > 25 và +DI trội (Momentum) | 2 → 3 | 5.1 | 0.339 | 40.5% | 439 | 16.71 | 0.618 | 0.203 |  |
+
+Nhận: Khung lớn phải tăng (trend ≥) 0.3 → 0.4

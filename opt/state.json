@@ -1,6 +1,6 @@
 {
- "round": 7,
- "ptr": 12,
+ "round": 8,
+ "ptr": 18,
  "best": {
   "pick": 70,
   "rr": 2.5,
@@ -13,7 +13,7 @@
   "exp": 8,
   "limz": 3,
   "weak": -0.3,
-  "htf": 0.3,
+  "htf": 0.4,
   "regime": true,
   "a2": "ON",
   "dow": "LỎNG",
@@ -325,6 +325,116 @@
    "tot": 154.72,
    "h1": 0.642,
    "h2": 0.189,
+   "score": 5.1
+  },
+  "htf=0.2": {
+   "round": 8,
+   "n": 482,
+   "exp": 0.337,
+   "win": 40.7,
+   "dd": 18.28,
+   "tot": 162.37,
+   "h1": 0.629,
+   "h2": 0.191,
+   "score": 5
+  },
+  "htf=0.4": {
+   "round": 8,
+   "n": 439,
+   "exp": 0.34,
+   "win": 41,
+   "dd": 16.53,
+   "tot": 149.08,
+   "h1": 0.659,
+   "h2": 0.177,
+   "score": 5.1
+  },
+  "regime=false": {
+   "round": 8,
+   "n": 499,
+   "exp": 0.272,
+   "win": 38.3,
+   "dd": 17.85,
+   "tot": 135.65,
+   "h1": 0.571,
+   "h2": 0.124,
+   "score": 3.7
+  },
+  "a2=W": {
+   "round": 8,
+   "n": 883,
+   "exp": 0.251,
+   "win": 38.5,
+   "dd": 26.98,
+   "tot": 221.5,
+   "h1": 0.341,
+   "h2": 0.201,
+   "score": 3.3
+  },
+  "dow=CHẶT": {
+   "round": 8,
+   "n": 374,
+   "exp": 0.31,
+   "win": 40.4,
+   "dd": 14.46,
+   "tot": 116.06,
+   "h1": 0.626,
+   "h2": 0.124,
+   "score": 4.5
+  },
+  "dow=TẮT": {
+   "round": 8,
+   "n": 707,
+   "exp": 0.292,
+   "win": 38,
+   "dd": 22.83,
+   "tot": 206.3,
+   "h1": 0.538,
+   "h2": 0.162,
+   "score": 4.1
+  },
+  "maxtps=1": {
+   "round": 8,
+   "n": 454,
+   "exp": 0.335,
+   "win": 40.5,
+   "dd": 17.82,
+   "tot": 152.12,
+   "h1": 0.65,
+   "h2": 0.173,
+   "score": 5
+  },
+  "maxtps=3": {
+   "round": 8,
+   "n": 453,
+   "exp": 0.329,
+   "win": 40.4,
+   "dd": 17.82,
+   "tot": 148.85,
+   "h1": 0.64,
+   "h2": 0.17,
+   "score": 4.9
+  },
+  "adxw=1": {
+   "round": 8,
+   "n": 454,
+   "exp": 0.325,
+   "win": 40.5,
+   "dd": 17.82,
+   "tot": 147.67,
+   "h1": 0.643,
+   "h2": 0.164,
+   "score": 4.8
+  },
+  "adxw=3": {
+   "round": 8,
+   "n": 439,
+   "exp": 0.339,
+   "win": 40.5,
+   "dd": 16.71,
+   "tot": 148.91,
+   "h1": 0.618,
+   "h2": 0.203,
    "score": 5.1
   }
  },
@@ -1691,17 +1801,190 @@
      "good": false
     }
    ]
+  },
+  {
+   "round": 8,
+   "base": {
+    "n": 454,
+    "exp": 0.335,
+    "win": 40.5,
+    "dd": 17.82,
+    "tot": 152.12,
+    "h1": 0.65,
+    "h2": 0.173
+   },
+   "accepted": [
+    {
+     "knob": "htf",
+     "label": "Khung lớn phải tăng (trend ≥)",
+     "from": 0.3,
+     "to": 0.4,
+     "exp": 0.34
+    }
+   ],
+   "rows": [
+    {
+     "knob": "htf",
+     "label": "Khung lớn phải tăng (trend ≥)",
+     "from": 0.3,
+     "to": "0.2",
+     "n": 482,
+     "exp": 0.337,
+     "win": 40.7,
+     "dd": 18.28,
+     "tot": 162.37,
+     "h1": 0.629,
+     "h2": 0.191,
+     "score": 5,
+     "good": false
+    },
+    {
+     "knob": "htf",
+     "label": "Khung lớn phải tăng (trend ≥)",
+     "from": 0.3,
+     "to": "0.4",
+     "n": 439,
+     "exp": 0.34,
+     "win": 41,
+     "dd": 16.53,
+     "tot": 149.08,
+     "h1": 0.659,
+     "h2": 0.177,
+     "score": 5.1,
+     "good": true
+    },
+    {
+     "knob": "regime",
+     "label": "Lọc BTC trên EMA200 (crypto)",
+     "from": true,
+     "to": "false",
+     "n": 499,
+     "exp": 0.272,
+     "win": 38.3,
+     "dd": 17.85,
+     "tot": 135.65,
+     "h1": 0.571,
+     "h2": 0.124,
+     "score": 3.7,
+     "good": false
+    },
+    {
+     "knob": "a2",
+     "label": "Xác nhận khung nhỏ (A2)",
+     "from": "ON",
+     "to": "W",
+     "n": 883,
+     "exp": 0.251,
+     "win": 38.5,
+     "dd": 26.98,
+     "tot": 221.5,
+     "h1": 0.341,
+     "h2": 0.201,
+     "score": 3.3,
+     "good": false
+    },
+    {
+     "knob": "dow",
+     "label": "Cổng Dow",
+     "from": "LỎNG",
+     "to": "CHẶT",
+     "n": 374,
+     "exp": 0.31,
+     "win": 40.4,
+     "dd": 14.46,
+     "tot": 116.06,
+     "h1": 0.626,
+     "h2": 0.124,
+     "score": 4.5,
+     "good": false
+    },
+    {
+     "knob": "dow",
+     "label": "Cổng Dow",
+     "from": "LỎNG",
+     "to": "TẮT",
+     "n": 707,
+     "exp": 0.292,
+     "win": 38,
+     "dd": 22.83,
+     "tot": 206.3,
+     "h1": 0.538,
+     "h2": 0.162,
+     "score": 4.1,
+     "good": false
+    },
+    {
+     "knob": "maxtps",
+     "label": "Số TP tối đa",
+     "from": 2,
+     "to": "1",
+     "n": 454,
+     "exp": 0.335,
+     "win": 40.5,
+     "dd": 17.82,
+     "tot": 152.12,
+     "h1": 0.65,
+     "h2": 0.173,
+     "score": 5,
+     "good": false
+    },
+    {
+     "knob": "maxtps",
+     "label": "Số TP tối đa",
+     "from": 2,
+     "to": "3",
+     "n": 453,
+     "exp": 0.329,
+     "win": 40.4,
+     "dd": 17.82,
+     "tot": 148.85,
+     "h1": 0.64,
+     "h2": 0.17,
+     "score": 4.9,
+     "good": false
+    },
+    {
+     "knob": "adxw",
+     "label": "Điểm ADX > 25 và +DI trội (Momentum)",
+     "from": 2,
+     "to": "1",
+     "n": 454,
+     "exp": 0.325,
+     "win": 40.5,
+     "dd": 17.82,
+     "tot": 147.67,
+     "h1": 0.643,
+     "h2": 0.164,
+     "score": 4.8,
+     "good": false
+    },
+    {
+     "knob": "adxw",
+     "label": "Điểm ADX > 25 và +DI trội (Momentum)",
+     "from": 2,
+     "to": "3",
+     "n": 439,
+     "exp": 0.339,
+     "win": 40.5,
+     "dd": 16.71,
+     "tot": 148.91,
+     "h1": 0.618,
+     "h2": 0.203,
+     "score": 5.1,
+     "good": false
+    }
+   ]
   }
  ],
- "stale": 12,
+ "stale": 0,
  "done": false,
  "batch": [
-  "tp1f",
-  "tpmin",
-  "exp",
-  "limz",
-  "dowk",
-  "weak"
+  "htf",
+  "regime",
+  "a2",
+  "dow",
+  "maxtps",
+  "adxw"
  ],
  "live": {
   "htf": 0.3,
