@@ -30,7 +30,7 @@ function loadCore(file, text) {
   const src = [grab(/const TFMS=[^\n]*/), grab(/const SETS=[^\n]*/), grab(/const SKIP=[^\n]*/), grab(/const STOCKS=[^\n]*/), js.slice(a, b),
     grab(/const trendOf=[^\n]*/), grab(/function simulate\([\s\S]*?\n\}/)].join("\n");
   const extra = (js.match(/const EXTRA_CRYPTO=(\[[^\]]*\])/) || [])[1];
-  const K = new Function("S", src + "\nreturn {compute,trendOf,simulate,clamp,TFMS,PICK_MIN:typeof PICK_MIN!=='undefined'?PICK_MIN:70,MIN_RR:typeof MIN_RR!=='undefined'?MIN_RR:2,TF_ADD:typeof TF_ADD!=='undefined'?TF_ADD:{},HTF_MIN:typeof HTF_MIN!=='undefined'?HTF_MIN:null,REGIME:typeof REGIME!=='undefined'?REGIME:false,LOW_TF_ASSETS:typeof LOW_TF_ASSETS!=='undefined'?LOW_TF_ASSETS:[],LTF_CONFIRM:typeof LTF_CONFIRM!=='undefined'?LTF_CONFIRM:{},upClear:typeof upClear!=='undefined'?upClear:()=>true,ltfOK:typeof ltfOK!=='undefined'?ltfOK:null,ema};")({ tf: "4h", win: 3, os: 30, ob: 70 });
+  const K = new Function("S", src + "\nreturn {compute,trendOf,simulate,clamp,TFMS,PICK_MIN:typeof PICK_MIN!=='undefined'?PICK_MIN:70,MIN_RR:typeof MIN_RR!=='undefined'?MIN_RR:2,TF_ADD:typeof TF_ADD!=='undefined'?TF_ADD:{},HTF_MIN:typeof HTF_MIN!=='undefined'?HTF_MIN:null,REGIME:typeof REGIME!=='undefined'?REGIME:false,LOW_TF_ASSETS:typeof LOW_TF_ASSETS!=='undefined'?LOW_TF_ASSETS:[],LOW_TFS:typeof LOW_TFS!=='undefined'?LOW_TFS:["15m","1h"],LTF_CONFIRM:typeof LTF_CONFIRM!=='undefined'?LTF_CONFIRM:{},upClear:typeof upClear!=='undefined'?upClear:()=>true,ltfOK:typeof ltfOK!=='undefined'?ltfOK:null,ema};")({ tf: "4h", win: 3, os: 30, ob: 70 });
   K.extra = extra ? JSON.parse(extra) : [];
   try { K.stocks = JSON.parse((js.match(/const STOCKS=(\[[\s\S]*?\]\]);/) || [])[1] || "[]"); } catch (e) { K.stocks = []; }
   K.lowAssets = K.LOW_TF_ASSETS || [];
@@ -159,7 +159,7 @@ function partial(htfBars, lowBars, upto, htf) {
 }
 function signals(K, D, startT, base, stock, F) {
   const bump = (tf, k) => { if (!F) return; const f = F[tf] = F[tf] || {}; f[k] = (f[k] || 0) + 1; };
-  const out = [], low = LOWTF_ON && (K.LOW_TF_ASSETS || []).includes(base), tfs = low ? [...LOWTFS, ...TFS] : TFS, lowStart = Date.now() - LOW_DAYS * 864e5;
+  const out = [], low = LOWTF_ON && (K.LOW_TF_ASSETS || []).includes(base), tfs = low ? [...(K.LOW_TFS || LOWTFS), ...TFS] : TFS, lowStart = Date.now() - LOW_DAYS * 864e5;
   for (const tf of tfs) {
     const bars = D[tf]; if (!bars || bars.length < 80) continue;
     const st0 = LOWTFS.includes(tf) ? Math.max(startT, lowStart) : startT;

@@ -34,7 +34,7 @@ function loadCore() {
     grab(/function simulate\([\s\S]*?\n\}/, "simulate"),
   ].join("\n");
   const S = { tf: "4h", win: 3, os: 30, ob: 70 };
-  return new Function("S", src + "\nreturn {TFMS,SETS,STOCKS,skipCoin,bucket,compute,trendOf,pickReasons,simulate,MAX_SL,clamp,swapTxt,PICK_MIN:typeof PICK_MIN!=='undefined'?PICK_MIN:70,MIN_RR:typeof MIN_RR!=='undefined'?MIN_RR:2,TF_ADD:typeof TF_ADD!=='undefined'?TF_ADD:{},HTF_MIN:typeof HTF_MIN!=='undefined'?HTF_MIN:null,REGIME:typeof REGIME!=='undefined'?REGIME:false,LOW_TF_ASSETS:typeof LOW_TF_ASSETS!=='undefined'?LOW_TF_ASSETS:[],LTF_CONFIRM:typeof LTF_CONFIRM!=='undefined'?LTF_CONFIRM:{},upClear:typeof upClear!=='undefined'?upClear:()=>true,ltfOK:typeof ltfOK!=='undefined'?ltfOK:()=>true,ema};")(S);
+  return new Function("S", src + "\nreturn {TFMS,SETS,STOCKS,skipCoin,bucket,compute,trendOf,pickReasons,simulate,MAX_SL,clamp,swapTxt,PICK_MIN:typeof PICK_MIN!=='undefined'?PICK_MIN:70,MIN_RR:typeof MIN_RR!=='undefined'?MIN_RR:2,TF_ADD:typeof TF_ADD!=='undefined'?TF_ADD:{},HTF_MIN:typeof HTF_MIN!=='undefined'?HTF_MIN:null,REGIME:typeof REGIME!=='undefined'?REGIME:false,LOW_TF_ASSETS:typeof LOW_TF_ASSETS!=='undefined'?LOW_TF_ASSETS:[],LOW_TFS:typeof LOW_TFS!=='undefined'?LOW_TFS:["1h"],LTF_CONFIRM:typeof LTF_CONFIRM!=='undefined'?LTF_CONFIRM:{},upClear:typeof upClear!=='undefined'?upClear:()=>true,ltfOK:typeof ltfOK!=='undefined'?ltfOK:()=>true,ema};")(S);
 }
 const K = loadCore();
 
@@ -313,7 +313,7 @@ async function main() {
   // 4.2 nến 3 khung + chấm điểm
   const ok = [], near = [], evals = new Map();
   await pool(assets, 6, async a => {
-    const R = {}, why = [], TFA = a.kind !== "stock" && K.LOW_TF_ASSETS.includes(a.base) ? ["15m", "1h", ...PICK_TFS] : PICK_TFS;   // BTC: thêm khung 15m, 1h
+    const R = {}, why = [], TFA = a.kind !== "stock" && K.LOW_TF_ASSETS.includes(a.base) ? [...K.LOW_TFS, ...PICK_TFS] : PICK_TFS;   // BTC: thêm khung nhỏ (1H)
     const FETCH = [...new Set([...TFA, ...TFA.map(x => K.LTF_CONFIRM[x]).filter(Boolean)])];   // thêm khung nhỏ để xác nhận (A2)
     for (const tf of FETCH) {
       try {
