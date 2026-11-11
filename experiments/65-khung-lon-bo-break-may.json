@@ -1,0 +1,14 @@
+{
+ "name": "65-khung-lon-bo-break-may",
+ "desc": "Khung lớn ≥ 0.3 + bỏ điểm break mây",
+ "patch": [
+  {
+   "find": "const HTF_MIN=null;",
+   "replace": "const HTF_MIN=0.3;"
+  },
+  {
+   "find": "if(ichi.state===1) add(ichi.top,\"đã break lên mây Ichimoku\",2)",
+   "replace": ""
+  }
+ ]
+}

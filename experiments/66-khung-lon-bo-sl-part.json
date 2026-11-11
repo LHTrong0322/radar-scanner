@@ -1,0 +1,14 @@
+{
+ "name": "66-khung-lon-bo-sl-part",
+ "desc": "Khung lớn ≥ 0.3 + bỏ phần SL khỏi /100",
+ "patch": [
+  {
+   "find": "const HTF_MIN=null;",
+   "replace": "const HTF_MIN=0.3;"
+  },
+  {
+   "find": "const parts=[[\"Trend\",T,30],[\"Momentum\",M,15],[\"Elliott\",W,15],[\"Entry\",En,20],[\"R:R\",RR,20],[\"Divergence\",D,10],[\"SL\",SLq,5]];",
+   "replace": "const parts=[[\"Trend\",T,30],[\"Momentum\",M,15],[\"Elliott\",W,15],[\"Entry\",En,20],[\"R:R\",RR,20],[\"Divergence\",D,10],[\"SL\",SLq,0]];"
+  }
+ ]
+}

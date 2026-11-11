@@ -27,3 +27,7 @@ Vòng 2: 40–48 + 30-gop-v1.
 ## Kết quả vòng 2 (nhãn vong2) — main −15.5R (−0.017R/lệnh)
 30-gop-v1 5.6 ⚠️ (+8.3R, năm1 +4.5 / năm2 +3.8, DD 75) · 40 4H +10đ 4.2 ❌ · 41 bỏ 4H 6.0 ⚠️ (208 lệnh, +6.6R, DD 36) · 42 bỏ mức RSI/MACD 4.3 ⚠️ · 43 bỏ break mây 5.4 ✅ · 44 kháng cự cũ 3đ 5.2 ⚠️ · 45 POC anchored 3đ 4.3 ❌ · 46 TP1 xa hơn 4.1 ⚠️ (DD 228!) · 47 trọng số mới 4.3 ❌ · 48 chỉ limit 4.7 ⚠️
 Nhận xét: chênh lệch giữa các bản cỡ ±0.04R/lệnh ≈ sai số thống kê (~800 lệnh) → tinh chỉnh nhỏ chưa đủ; vòng 3 thử bộ lọc lớn: xu hướng chặt, khung lớn bắt buộc, BTC trên EMA200 (thêm hằng HTF_MIN, REGIME mặc định tắt).
+
+## Kết quả vòng 3 (nhãn vong3) — main −15.5R
+52 khung lớn tăng (HTF ≥ 0.3) **8.0 ✅** 544 lệnh, +72.5R, 0.133R/lệnh, PF 1.28, DD 33, năm1 +51.9 / năm2 +20.6 · 58 gộp v4 (v2 + HTF ≥ 0.3) 7.8 ✅ +64.1R, DD 40, năm1 +34 / năm2 +30 · 53 HTF ≥ 0 6.9 ✅ · 59 BTC + trend 6.8 ✅ · 54 BTC>EMA200 6.7 ✅ · 56 gộp v2 5.8 ⚠️ · 30 gộp v1 5.6 ⚠️ · 57 gộp v3 5.2 ⚠️ · 50/51 trend chặt 4.9 · 55 bỏ 4H + break mây 3.8
+Phát hiện lớn: bắt buộc khung lớn đang tăng là bộ lọc hiệu quả nhất. Vòng 4: dò ngưỡng HTF 0.2–0.5 và kết hợp.

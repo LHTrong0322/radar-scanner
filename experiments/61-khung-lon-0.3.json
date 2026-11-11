@@ -1,0 +1,10 @@
+{
+ "name": "61-khung-lon-0.3",
+ "desc": "Khung lớn trend ≥ 0.3 (= 52, chạy lại để xác nhận)",
+ "patch": [
+  {
+   "find": "const HTF_MIN=null;",
+   "replace": "const HTF_MIN=0.3;"
+  }
+ ]
+}

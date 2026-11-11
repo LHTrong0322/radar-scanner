@@ -1,0 +1,14 @@
+{
+ "name": "64-khung-lon-va-btc",
+ "desc": "Khung lớn ≥ 0.3 + BTC trên EMA200",
+ "patch": [
+  {
+   "find": "const HTF_MIN=null;",
+   "replace": "const HTF_MIN=0.3;"
+  },
+  {
+   "find": "const REGIME=false;",
+   "replace": "const REGIME=true;"
+  }
+ ]
+}
