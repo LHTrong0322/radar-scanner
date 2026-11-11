@@ -1,0 +1,62 @@
+{
+ "name": "b-truoc-13-thay-doi",
+ "desc": "Thuật toán trước cả 5 thay đổi lúc 18:00 (TP1 50%, vào ngay 5, đệm SL 0.5 ATR, chờ 12 nến, vùng chờ ≥2) và 8 thay đổi lúc 21:10",
+ "patch": [
+  {
+   "find": "const HTF_MIN=0.4;",
+   "replace": "const HTF_MIN=.3;"
+  },
+  {
+   "find": "[\"Elliott\",W,8]",
+   "replace": "[\"Elliott\",W,15]"
+  },
+  {
+   "find": "[\"Entry\",En,30]",
+   "replace": "[\"Entry\",En,20]"
+  },
+  {
+   "find": "[\"R:R\",RR,30]",
+   "replace": "[\"R:R\",RR,20]"
+  },
+  {
+   "find": "out.push([an.poc,\"POC anchored VP\",3])",
+   "replace": "out.push([an.poc,\"POC anchored VP\",2])"
+  },
+  {
+   "find": "add(ev[50],\"EMA 50\",0.75)",
+   "replace": "add(ev[50],\"EMA 50\",1.5)"
+  },
+  {
+   "find": "\"Fib 0.5 sóng 1 (vùng sóng 2)\",3]",
+   "replace": "\"Fib 0.5 sóng 1 (vùng sóng 2)\",2]"
+  },
+  {
+   "find": "\"Fib 0.382 sóng 3 (sóng 2 sâu → sóng 4 nông)\",1.25]",
+   "replace": "\"Fib 0.382 sóng 3 (sóng 2 sâu → sóng 4 nông)\",2.5]"
+  },
+  {
+   "find": "\"Fib 0.618 sóng 3 (sóng 2 nông → sóng 4 sâu)\",1.25]",
+   "replace": "\"Fib 0.618 sóng 3 (sóng 2 nông → sóng 4 sâu)\",2.5]"
+  },
+  {
+   "find": "const tpFrac=n=>n<=1?[1]:[.3,...Array(n-1).fill(.7/(n-1))];",
+   "replace": "const tpFrac=n=>n<=1?[1]:[.5,...Array(n-1).fill(.5/(n-1))];"
+  },
+  {
+   "find": "const STRONG_MKT=6;",
+   "replace": "const STRONG_MKT=5;"
+  },
+  {
+   "find": "const SL_BUF=1;",
+   "replace": "const SL_BUF=.5;"
+  },
+  {
+   "find": "const expiry=j.at+8*TFMS[j.tf];",
+   "replace": "const expiry=j.at+12*TFMS[j.tf];"
+  },
+  {
+   "find": "const below=best(SZ.filter(z=>z.hi<px-.6*atr&&z.hi>=px-3*atr&&z.w>=3));",
+   "replace": "const below=best(SZ.filter(z=>z.hi<px-.6*atr&&z.hi>=px-3*atr&&z.w>=2));"
+  }
+ ]
+}
