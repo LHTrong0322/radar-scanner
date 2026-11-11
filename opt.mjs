@@ -240,8 +240,8 @@ function update() {
     S.rounds.push(R); S.rounds = S.rounds.slice(-40); save(S); report(S); fs.writeFileSync("opt/continue", "1"); console.log(R.note); return;
   }
   const res = (S.pending || []).filter(p => p.name.startsWith("c-")).map(p => ({ p, m: metric(V[p.name]) }));
-  // "đã qua kiểm tra 2026": hơn bot thật ở CẢ 2023–2025 (chỉ số) LẪN năm 2026 (tổng R) → mới đáng đem ra duyệt
-  const passes = m => m && liveM && fit(m) > fit(liveM) * 1.03 && m.tot >= liveM.tot && m.test.tot > liveM.test.tot + 1 && m.test.n >= liveM.test.n * .6;
+  // "đã qua kiểm tra 2026": hơn bot thật rõ ở 2023–2025 (lời ÷ rủi ro +3%, tổng R không thấp hơn) và năm 2026 không tệ hơn quá 5R → đáng đem ra duyệt
+  const passes = m => m && liveM && fit(m) > fit(liveM) * 1.03 && m.tot >= liveM.tot && m.test.tot >= liveM.test.tot - 5 && m.test.n >= liveM.test.n * .6;   // Trọng 12/11: ưu tiên 2023–2025; 2026 được phép kém hơn bot thật tối đa 5R (≈ độ nhiễu)
   const cands = [{ m: base, cfg: { ...S.best }, desc: "Cấu hình tốt nhất vòng " + S.round }, ...res.map(({ p, m }) => ({ m, cfg: { ...S.best, ...(p.delta || {}) }, desc: p.desc }))];
   for (const c of cands) if (passes(c.m) && (!S.verified || fit(c.m) + c.m.test.tot / 10 > fit(S.verified.m) + S.verified.m.test.tot / 10))
     S.verified = { round: S.round, desc: c.desc, cfg: c.cfg, m: c.m };
@@ -277,7 +277,7 @@ function report(S) {
     "Nhận thay đổi khi: Lời ÷ rủi ro tăng ít nhất 3%, tổng R không giảm quá 3%, win rate không giảm quá 0.5 điểm, rủi ro tụt vốn (95%) không tăng quá 5%, không xấu đi ở cả 2 nửa 2023–2025 (01/2023–06/2024 và 07/2024–12/2025), số lệnh không giảm quá 30%.",
     "⚠️ Các thay đổi Trọng duyệt trước 11/11/2026 21:30 đã được chọn khi nhìn toàn bộ dữ liệu, kể cả giai đoạn kiểm tra kín → với chúng, phần kiểm tra kín không còn kín hoàn toàn.", "",
     `Chế độ dò hiện tại: **${MODE_VI[S.mode]}** · đã thử ${S.tested} phương án.`, "",
-    "## Bot thật so với cấu hình tốt nhất", "", "Cấu hình mới chỉ đáng tin khi THẮNG bot thật ở phần kiểm tra kín (năm 2026). Thua ở đó thì bỏ, dù phần huấn luyện đẹp đến đâu.", "",
+    "## Bot thật so với cấu hình tốt nhất", "", "Trọng chốt (12/11): ưu tiên 2023–2025. Cấu hình mới được đề xuất khi tốt hơn bot thật ở 2023–2025 và năm 2026 không tệ hơn quá 5R (mức nhiễu của backtest).", "",
     "| | Lệnh 2023–2025 | Tỷ lệ thắng | Tổng R | R/lệnh | Tụt vốn lớn nhất (thực tế) | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | Lệnh 2026 (kín) | Tỷ lệ thắng | Tổng R | R/lệnh | Tụt vốn |",
     "|---|---|---|---|---|---|---|---|---|---|---|---|---|", row("Bot thật", lv), row("**Tốt nhất**", b), ""];
   if (b && b.tf) { const tfs = Object.keys({ ...b.tf, ...b.tfTest });
@@ -285,7 +285,7 @@ function report(S) {
       ...tfs.map(t => { const a = b.tf[t] || {}, c = b.tfTest[t] || {}; return `| ${t.toUpperCase()} | ${a.n ?? 0} | ${a.win ?? "–"}% | ${a.tot ?? 0}R | ${c.n ?? 0} | ${c.win ?? "–"}% | ${c.tot ?? 0}R |`; }), ""); }
   { const V2 = S.verified;
     L.push("## ✅ Cấu hình tốt nhất ĐÃ QUA kiểm tra 2026 (đề xuất để Trọng duyệt)", "");
-    if (!V2) L.push("Chưa có cấu hình nào vừa hơn bot thật ở 2023–2025 vừa hơn ở năm 2026.", "");
+    if (!V2) L.push("Chưa có cấu hình nào tốt hơn bot thật ở 2023–2025 mà năm 2026 không tệ hơn quá 5R.", "");
     else { const dv = KNOBS.filter(k => !eq(V2.cfg[k.id], live[k.id]));
       L.push(`Tìm thấy ở vòng ${V2.round} (${V2.desc}).`, "", "| | Lệnh 2023–2025 | Tỷ lệ thắng | Tổng R | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | Lệnh 2026 | Tỷ lệ thắng | Tổng R 2026 |", "|---|---|---|---|---|---|---|---|---|",
         ...[["Bot thật", lv], ["**Đề xuất**", V2.m]].map(([n, m]) => m ? `| ${n} | ${m.n} | ${m.win}% | ${m.tot}R | ${m.dd95}R | ${fit(m).toFixed(2)} | ${m.test.n} | ${f2(m.test.win)}% | ${m.test.tot}R |` : `| ${n} | – |`), "",
