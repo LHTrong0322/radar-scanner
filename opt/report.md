@@ -1,11 +1,11 @@
-# Tối ưu tự động — vòng 2
+# Tối ưu tự động — vòng 3
 
 Đây là báo cáo để thảo luận. Bot thật KHÔNG bị thay đổi cho tới khi Trọng duyệt.
 
 Mỗi vòng: backtest toàn bộ dữ liệu (từ 2018, mọi nến, có phí + funding), đổi từng thông số một so với cấu hình tốt nhất hiện tại. Chỉ nhận thay đổi khi R/lệnh tăng ≥ 0.005R, KHÔNG xấu đi ở cả nửa đầu lẫn nửa sau dữ liệu, sụt vốn không tệ hơn 15%, số lệnh không giảm quá nửa.
 
 **Mốc ban đầu:** 1669 lệnh · win rate 30% · 0.055R/lệnh · tổng 92.39R · sụt vốn 65.43R
-**Cấu hình tốt nhất hiện tại:** 737 lệnh · win rate 32.7% · 0.203R/lệnh · tổng 149.26R · sụt vốn 38R
+**Cấu hình tốt nhất hiện tại:** 610 lệnh · win rate 33.8% · 0.259R/lệnh · tổng 158.02R · sụt vốn 39.72R
 
 ## Thông số khác với bot thật
 
@@ -16,7 +16,7 @@ Mỗi vòng: backtest toàn bộ dữ liệu (từ 2018, mọi nến, có phí +
 | % chốt ở TP1 | 0.5 | **0.33** |
 | Lệnh chờ hết hạn sau (nến) | 12 | **8** |
 | Điểm tối thiểu vùng đặt lệnh chờ | 2 | **3** |
-| Số nến mỗi bên để xác định đỉnh/đáy Dow | 5 | **undefined** |
+| Trọng số phần Momentum (/100) | 15 | **8** |
 
 ## Lịch sử các vòng
 
@@ -56,3 +56,19 @@ Nhận: R:R tối thiểu tới TP1 2 → 2.5 · Ngưỡng điểm 'vào ngay' (
 | Trần điểm khi chart yếu (Trend < x) | -0.3 → 0 | 4.9 | 0.2 | 32.6% | 736 | 38 | 0.506 | 0.065 |  |
 
 Nhận: % chốt ở TP1 0.5 → 0.33 · Lệnh chờ hết hạn sau (nến) 12 → 8 · Điểm tối thiểu vùng đặt lệnh chờ 2 → 3
+
+### Vòng 3 — mốc: 0.259R/lệnh, win 33.8%, DD 39.72R, 610 lệnh
+
+| Thông số | Từ → Thử | Điểm 0–10 | R/lệnh | Win rate | Lệnh | Max DD | Nửa đầu | Nửa sau | Nhận? |
+|---|---|---|---|---|---|---|---|---|---|
+| Khung lớn phải tăng (trend ≥) | 0.3 → 0.2 | 4.7 | 0.243 | 33.4% | 652 | 42.32 | 0.576 | 0.097 |  |
+| Khung lớn phải tăng (trend ≥) | 0.3 → 0.4 | 4.4 | 0.23 | 33.3% | 592 | 42.96 | 0.583 | 0.074 |  |
+| Lọc BTC trên EMA200 (crypto) | true → false | 4.6 | 0.238 | 32.7% | 666 | 40.8 | 0.582 | 0.087 |  |
+| Xác nhận khung nhỏ (A2) | ON → W | 1.6 | 0.09 | 30.8% | 1255 | 76.19 | 0.182 | 0.043 |  |
+| Cổng Dow | CHẶT → LỎNG | 6.4 | 0.329 | 34.6% | 740 | 34.06 | 0.604 | 0.211 |  |
+| Trọng số phần Trend (/100) | 30 → 15 | 4.8 | 0.248 | 33.2% | 602 | 37.43 | 0.599 | 0.089 |  |
+| Trọng số phần Trend (/100) | 30 → 45 | 5.2 | 0.267 | 34.1% | 604 | 37.66 | 0.606 | 0.111 |  |
+| Trọng số phần Momentum (/100) | 15 → 23 | 4.9 | 0.253 | 33.6% | 608 | 39.56 | 0.606 | 0.091 |  |
+| Trọng số phần Momentum (/100) | 15 → 8 | 5.1 | 0.266 | 34% | 606 | 38.69 | 0.631 | 0.099 | ✅ |
+
+Nhận: Trọng số phần Momentum (/100) 15 → 8
