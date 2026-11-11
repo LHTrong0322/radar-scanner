@@ -46,7 +46,7 @@ jobs:
           node-version: 20
       - name: Chạy backtest
         env:
-          DAYS: ${{ github.event.inputs.days || '730' }}
+          DAYS: ${{ github.event.inputs.days || '2023' }}
           SIDE: ${{ github.event.inputs.side || 'long' }}
           REF: ${{ github.event.inputs.compare_ref || '' }}
           LABEL: ${{ github.event.inputs.label || '' }}
@@ -60,7 +60,7 @@ jobs:
             [ -z "$LABEL" ] && LABEL="$REF"
           fi
           if [ "$EXPS" != "none" ] && [ -d experiments ] && ls experiments/*.json >/dev/null 2>&1; then EXTRA="$EXTRA --exp experiments"; fi
-          node bt.mjs --days "$DAYS" --side "$SIDE" --label "$LABEL" $EXTRA
+          node bt.mjs --days "$DAYS" --side "$SIDE" --label "$LABEL" --lowtf 0 --skip BTC $EXTRA   # chuẩn hiện tại: từ 2023, không BTC, có quản lý rủi ro như bot thật
       - name: Lưu kết quả
         run: |
           git config user.name "radar-backtest"
