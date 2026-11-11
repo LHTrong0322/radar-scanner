@@ -439,21 +439,35 @@ if (SHARD) {
 // ---- quản lý rủi ro cấp danh mục, như bot thật (hyper.mjs) ----
 // cầu dao: lỗ thực tế ≥ DAY_STOP R trong ngày (giờ VN) → không mở lệnh mới tới hết ngày; ≥ WEEK_STOP R trong tuần (từ thứ Hai) → nghỉ tới tuần sau
 // trần rủi ro: tổng số lệnh đang mở + lệnh chờ ≤ MAXR (bot thật: tổng rủi ro ≤ 30% tài sản ÷ 1R; mặc định giả định 10R)
-const DAY_STOP = +arg("daystop", "3"), WEEK_STOP = +arg("weekstop", "6"), MAXR = +arg("maxrisk", "10"), RISK_ON = arg("risk", "1") === "1";
+const DAY_STOP = +arg("daystop", "3"), WEEK_STOP = +arg("weekstop", "6"), MAXR = +arg("maxrisk", "0"), RISK_ON = arg("risk", "1") === "1";
+// mô phỏng ví như thời gian thực: vốn ban đầu EQ0 USD, mỗi lệnh rủi ro RISK_USD (1R, cố định như bot thật) hoặc RISK_PCT % tài sản (lãi kép, --riskpct)
+// trần rủi ro như bot thật: tổng số R đang mở/chờ ≤ floor(tài sản × MAX_RISK_PCT% ÷ 1R) → ví dày lên thì được mở nhiều lệnh hơn
+const EQ0 = +arg("equity", "100"), RISK_USD = +arg("riskusd", "3"), RISK_PCT = +arg("riskpct", "0"), MAX_RISK_PCT = +arg("maxriskpct", "30");
+let PF = null;   // kết quả mô phỏng ví của thuật toán hiện tại
 function portfolio(T) {
   if (!RISK_ON) return 0;
   const CL = new Set(["tp2", "trail", "tp1_be", "struct", "sl"]), open = [], acc = []; let skipped = 0;
+  const why = { day: 0, week: 0, maxrisk: 0 }; let maxOpen = 0;
+  const eqAt = t => { let e = EQ0; for (const c of acc) if (CL.has(c.st) && c.exitAt && c.exitAt <= t) e += c.r * c.usd; return e; };
   for (const x of [...T].sort((a, b) => a.at - b.at)) {
     const t = x.at;
     for (let i = open.length - 1; i >= 0; i--) { const o = open[i], end = o.exitAt || (o.st === "expired" ? o.at + EXP_BARS * MS[o.tf] : Infinity); if (end <= t) open.splice(i, 1); }
     const vn = t + 7 * 36e5, dayStart = Math.floor(vn / 864e5) * 864e5 - 7 * 36e5, weekStart = dayStart - ((new Date(vn).getUTCDay() + 6) % 7) * 864e5;
     let dR = 0, wR = 0; for (const c of acc) if (CL.has(c.st) && c.exitAt && c.exitAt <= t) { if (c.exitAt >= weekStart) wR += c.r; if (c.exitAt >= dayStart) dR += c.r; }
-    if (dR <= -DAY_STOP || wR <= -WEEK_STOP || open.length >= MAXR) { x.st0 = x.st; x.st = "skip_risk"; x.riskWhy = dR <= -DAY_STOP ? "day" : wR <= -WEEK_STOP ? "week" : "maxrisk"; skipped++; continue; }
-    open.push(x); acc.push(x);
+    const eq = eqAt(t), usd = RISK_PCT > 0 ? eq * RISK_PCT / 100 : RISK_USD, cap = MAXR > 0 ? MAXR : Math.max(1, Math.floor(eq * MAX_RISK_PCT / 100 / usd + 1e-9));
+    if (eq <= 0 || dR <= -DAY_STOP || wR <= -WEEK_STOP || open.length >= cap) { x.st0 = x.st; x.st = "skip_risk"; x.riskWhy = dR <= -DAY_STOP ? "day" : wR <= -WEEK_STOP ? "week" : "maxrisk"; why[x.riskWhy]++; skipped++; continue; }
+    x.usd = usd; open.push(x); acc.push(x); maxOpen = Math.max(maxOpen, open.length);
   }
-  return skipped;
+  // đường vốn theo thời gian thực (cộng lời/lỗ USD ở thời điểm đóng lệnh)
+  const ex = acc.filter(c => CL.has(c.st) && c.exitAt).sort((a, b) => a.exitAt - b.exitAt);
+  let e = EQ0, pk = EQ0, dd = 0, ddPct = 0; const month = {};
+  for (const c of ex) { e += c.r * c.usd; pk = Math.max(pk, e); dd = Math.max(dd, pk - e); ddPct = Math.max(ddPct, pk > 0 ? (pk - e) / pk * 100 : 0);
+    const k = new Date(c.exitAt + 7 * 36e5).toISOString().slice(0, 7); month[k] = month[k] || { n: 0, usd: 0, end: 0 }; month[k].n++; month[k].usd += c.r * c.usd; month[k].end = e; }
+  return { skipped, why, maxOpen, equity0: EQ0, final: +e.toFixed(2), profit: +(e - EQ0).toFixed(2), maxDDusd: +dd.toFixed(2), maxDDpct: +ddPct.toFixed(1),
+    month: Object.fromEntries(Object.entries(month).map(([k, v]) => [k, { n: v.n, usd: +v.usd.toFixed(2), end: +v.end.toFixed(2) }])) };
 }
-{ const n = portfolio(A); V.forEach(v => portfolio(v.T)); if (RISK_ON) console.log(`Quản lý rủi ro (cầu dao −${DAY_STOP}R/ngày, −${WEEK_STOP}R/tuần, tối đa ${MAXR} lệnh cùng lúc): bỏ ${n} kèo của thuật toán hiện tại`); }
+{ PF = portfolio(A); V.forEach(v => { v.pf = portfolio(v.T); });
+  if (PF) console.log(`Mô phỏng ví: vốn ${EQ0} USD, 1R = ${RISK_PCT > 0 ? RISK_PCT + "% tài sản" : RISK_USD + " USD"}, trần rủi ro ${MAXR > 0 ? MAXR + " lệnh" : MAX_RISK_PCT + "% tài sản"}, cầu dao −${DAY_STOP}R/ngày −${WEEK_STOP}R/tuần → cuối kỳ ${PF.final} USD (${PF.profit >= 0 ? "+" : ""}${PF.profit}), tụt vốn lớn nhất ${PF.maxDDusd} USD (${PF.maxDDpct}%), tối đa ${PF.maxOpen} lệnh cùng lúc, bỏ ${PF.skipped} kèo (cầu dao ngày ${PF.why.day}, tuần ${PF.why.week}, hết hạn mức ${PF.why.maxrisk})`); }
 if (K2) B.push(...V[0].T);
 const RA = report(A), RB = K2 ? report(B) : null;
 // bảng so sánh nhiều phiên bản
@@ -495,7 +509,7 @@ const text = `Phí: ${NOFEE ? "KHÔNG tính" : `maker ${FEE_MAKER}% · taker ${F
 fs.writeFileSync(path.join(OUT, name + ".md"), text);
 const slim = T => T.map(({ parts, eWhy, sWhy, tWhy, ...x }) => x);
 fs.writeFileSync(path.join(OUT, name + ".json"), JSON.stringify({ at: Date.now(), days: DAYS, side: SIDE, label: LABEL, assets: uni.length, miss,
-  A: RA, variants: V.map(v => ({ name: v.name, desc: v.desc || "", R: report(v.T), half1: half(v.T, true), half2: half(v.T, false), seg: seg(v.T) })), half1: half(A, true), half2: half(A, false), tradesA: A }));
+  A: RA, variants: V.map(v => ({ name: v.name, desc: v.desc || "", R: report(v.T), half1: half(v.T, true), half2: half(v.T, false), seg: seg(v.T), pf: v.pf || null })), pf: PF, half1: half(A, true), half2: half(A, false), tradesA: A }));
 console.log(text);
 console.log(`\nXong sau ${((Date.now() - t0) / 1000).toFixed(0)}s → ${OUT}/${name}.md`);
 }
