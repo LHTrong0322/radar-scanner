@@ -16,6 +16,7 @@ const HTML = arg("html", "index.html"), HTML2 = arg("html2", ""), NAMES = arg("n
 const TFS = ["4h", "1d", "1w"], LOWTFS = ["15m", "1h"], HTF = { "15m": "1h", "1h": "4h", "4h": "1d", "1d": "1w", "1w": null };
 const EXEC = { "15m": "15m", "1h": "1h", "4h": "1h", "1d": "1h", "1w": "1d" };   // chấm SL/TP bằng nến nhỏ hơn cho chính xác
 const FEE_TAKER = +arg("taker", .045), FEE_MAKER = +arg("maker", .015), FUND_APR = +arg("funding", 10), NOFEE = arg("fee", "1") === "0";   // phí Hyperliquid (%) và funding ước tính %/năm
+const LOWALL = arg("lowall", "0") === "1";   // 1: xét khung 1H cho MỌI coin (không chỉ BTC), 2 năm gần nhất
 const PERTF = arg("pertf", "0") === "1";                     // 1: mỗi khung có vị thế riêng (đo từng khung độc lập); 0: 1 lệnh/mã như bot
 const LOW_DAYS = Math.min(DAYS, arg("lowdays", "730") === "max" ? DAYS : +arg("lowdays", "730")), LOWTF_ON = arg("lowtf", "1") !== "0";   // --lowtf 0: chỉ xét 4H/1D/1W     // BTC 15m/1h: chỉ xét 2 năm gần nhất cho nhẹ
 const STEP = { "15m": 1, "1h": 1, "4h": +arg("step4h", 1), "1d": 1, "1w": 1 };    // xét mọi nến (step 1) để kết quả không phụ thuộc thời điểm lấy mẫu
@@ -161,7 +162,7 @@ function partial(htfBars, lowBars, upto, htf) {
 }
 function signals(K, D, startT, base, stock, F) {
   const bump = (tf, k) => { if (!F) return; const f = F[tf] = F[tf] || {}; f[k] = (f[k] || 0) + 1; };
-  const out = [], low = LOWTF_ON && (K.LOW_TF_ASSETS || []).includes(base), tfs = low ? [...(K.LOW_TFS || LOWTFS), ...TFS] : TFS, lowStart = Date.now() - LOW_DAYS * 864e5;
+  const out = [], low = LOWTF_ON && (LOWALL ? !stock : (K.LOW_TF_ASSETS || []).includes(base)), tfs = low ? [...(K.LOW_TFS || LOWTFS), ...TFS] : TFS, lowStart = Date.now() - LOW_DAYS * 864e5;
   for (const tf of tfs) {
     const bars = D[tf]; if (!bars || bars.length < 80) continue;
     const st0 = LOWTFS.includes(tf) ? Math.max(startT, lowStart) : startT;
@@ -420,7 +421,7 @@ const task = (vi, D, base, stock) => new Promise(res => { const id = ++seq; wait
 const keep = setInterval(() => { }, 10000);                  // giữ tiến trình sống khi chờ mạng
 let done = 0;
 async function runOne({ b, sym, stock }) {
-  const D = {}, low = LOWTF_ON && (K1.lowAssets || []).includes(b) && !stock;
+  const D = {}, low = LOWTF_ON && (LOWALL || (K1.lowAssets || []).includes(b)) && !stock;
   for (const tf of [...TFS, "1h", ...(low ? ["15m"] : [])]) { try { D[tf] = stock ? await stockCandles(sym, tf) : await candles(b, tf, from[tf]); } catch (e) { } }   // 1h: xác nhận + chấm SL/TP
   if (!D["4h"] || !D["1d"]) { miss.push(b); return; }
   const R = await Promise.all(texts.map((_, vi) => task(vi, D, b, !!stock)));
