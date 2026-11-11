@@ -1,0 +1,10 @@
+{
+ "name": "h1-ema-va-dow-1d",
+ "desc": "Giữ EMA200 VÀ thêm BTC 1D có cấu trúc Dow tăng",
+ "patch": [
+  {
+   "find": "const REGIME_SRC=\"ema\";",
+   "replace": "const REGIME_SRC=\"ema+dow1d\";"
+  }
+ ]
+}
