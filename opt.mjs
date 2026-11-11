@@ -11,7 +11,7 @@ const fmt = v => v === null ? "null" : String(v);
 // ---------- danh sách thông số được dò ----------
 // find: đoạn code gốc (phải có đúng 1 lần trong index.html) · tpl: đoạn thay thế, {v} = giá trị · c: các giá trị thử (theo thứ tự)
 // Giá trị bot thật đã đổi (Trọng duyệt) so với số viết trong danh sách dưới: đoạn code cần tìm được dựng lại từ tpl với giá trị mới
-const LIVE_NOW = { z_kccu: 3, htf: .4, p_W: 8, p_En: 30, p_RR: 30, z_poc: 3, z_ema50: .75, z_fib2b: 3, z_fib4: 1.25 };   // áp 11/11/2026 21:10
+const LIVE_NOW = { htf: .4, p_W: 8, p_En: 30, p_RR: 30, z_poc: 3, z_ema50: .75, z_fib2b: 3, z_fib4: 1.25 };   // áp 11/11/2026 21:10
 const W = (id, label, finds, cur, c, group) => {
   if (id in LIVE_NOW) { cur = LIVE_NOW[id]; finds = finds.map(([f, t]) => typeof f === "string" ? [t.split("{v}").join(String(cur)), t] : [f, t]); }
   return { id, label, finds, cur, c, group };
@@ -60,12 +60,12 @@ const KNOBS = [
     ["z_kccu", "Kháng cự cũ bị phá", [['add(c[i].h,"kháng cự cũ đã bị phá",1.5)', 'add(c[i].h,"kháng cự cũ đã bị phá",{v})']], 1.5],
     ["z_fib2", "Fib 0.618 sóng 2", [['"Fib 0.618 sóng 1 (vùng sóng 2)",2.5]', '"Fib 0.618 sóng 1 (vùng sóng 2)",{v}]']], 2.5],
     ["z_w1", "Đỉnh sóng 1 (sàn sóng 4)", [['out.push([v[1],"đỉnh sóng 1 (sàn của sóng 4)",2.5])', 'out.push([v[1],"đỉnh sóng 1 (sàn của sóng 4)",{v}])']], 2.5],
-    ["z_rsi", "Mức RSI 70 (kháng cự / TP)", [['add(K.r70,"RSI chạm 70 (quá mua)",1)', 'add(K.r70,"RSI chạm 70 (quá mua)",{v})']], 1],
+    ["z_rsi", "Mức RSI 30/70", [['add(K.r70,"RSI chạm 70 (quá mua)",1)', 'add(K.r70,"RSI chạm 70 (quá mua)",{v})'], ['add(K.r30,"RSI chạm 30 (quá bán)",1)', 'add(K.r30,"RSI chạm 30 (quá bán)",{v})']], 1],
     ["z_macd", "Mức MACD", [['add(K.mf.px,"MACD còn trên Signal",1)', 'add(K.mf.px,"MACD còn trên Signal",{v})']], 1],
     ["z_pocfix", "POC volume profile cố định", [["out.push([fx.poc,\"POC volume profile 250 nến\",.5])", "out.push([fx.poc,\"POC volume profile 250 nến\",{v}])"]], 0.5],
     ["z_hvna", "HVN anchored", [["out.push([v,\"HVN anchored VP\",.5])", "out.push([v,\"HVN anchored VP\",{v}])"]], 0.5],
     ["z_hvnf", "HVN cố định", [["out.push([v,\"HVN volume profile 250 nến\",.5])", "out.push([v,\"HVN volume profile 250 nến\",{v}])"]], 0.5],
-    ["z_rsi45", "Vùng RSI 45–55 (kháng cự / TP)", [["add(K.r45,\"RSI 45–55 (kháng cự)\",1)", "add(K.r45,\"RSI 45–55 (kháng cự)\",{v})"], ["add(K.r55,\"RSI 45–55 (kháng cự)\",1)", "add(K.r55,\"RSI 45–55 (kháng cự)\",{v})"]], 1],
+    ["z_rsi45", "Vùng RSI 45–55", [["add(K.r45,\"RSI 45–55 (hỗ trợ)\",1)", "add(K.r45,\"RSI 45–55 (hỗ trợ)\",{v})"], ["add(K.r45,\"RSI 45–55 (kháng cự)\",1)", "add(K.r45,\"RSI 45–55 (kháng cự)\",{v})"], ["add(K.r55,\"RSI 45–55 (hỗ trợ)\",1)", "add(K.r55,\"RSI 45–55 (hỗ trợ)\",{v})"], ["add(K.r55,\"RSI 45–55 (kháng cự)\",1)", "add(K.r55,\"RSI 45–55 (kháng cự)\",{v})"]], 1],
     ["z_ichi", "Biên mây Ichimoku", [["if(ichi&&ichi.bot!=null){ add(ichi.bot,\"đáy mây Ichimoku\",1.2); add(ichi.top,\"đỉnh mây Ichimoku\",1.2) }", "if(ichi&&ichi.bot!=null){ add(ichi.bot,\"đáy mây Ichimoku\",{v}); add(ichi.top,\"đỉnh mây Ichimoku\",{v}) }"], ["if(ichi&&ichi.bot!=null){ add(ichi.bot,\"đáy mây Ichimoku\",1.2); add(ichi.top,\"đỉnh mây Ichimoku\",1.2);", "if(ichi&&ichi.bot!=null){ add(ichi.bot,\"đáy mây Ichimoku\",{v}); add(ichi.top,\"đỉnh mây Ichimoku\",{v});"]], 1.2],
     ["z_ewinv", "Mức sai Elliott (cho SL)", [["add(ew.inv,\"mức sai Elliott\",2)", "add(ew.inv,\"mức sai Elliott\",{v})"]], 2],
     ["z_htc", "Hỗ trợ cũ bị phá (thành kháng cự)", [["add(c[i].l,\"hỗ trợ cũ đã bị phá\",1)", "add(c[i].l,\"hỗ trợ cũ đã bị phá\",{v})"]], 1],
@@ -74,8 +74,8 @@ const KNOBS = [
     ["z_fib4", "Fib sóng 4", [["\"Fib 0.382 sóng 3 (sóng 2 sâu → sóng 4 nông)\",2.5]", "\"Fib 0.382 sóng 3 (sóng 2 sâu → sóng 4 nông)\",{v}]"], ["\"Fib 0.618 sóng 3 (sóng 2 nông → sóng 4 sâu)\",2.5]", "\"Fib 0.618 sóng 3 (sóng 2 nông → sóng 4 sâu)\",{v}]"]], 2.5],
   ].map(([id, label, finds, w]) => W(id, `Điểm vùng: ${label}`, finds, w, [0, +(w / 2).toFixed(2), w, +(w * 1.5).toFixed(2), w * 2], "Điểm vùng giá")),
 ];
-// Các quyết định Trọng chốt (11/11/2026 21:45) → không cho bot tối ưu đổi lại: tắt vào ngay, tắt khung 1W, Ichimoku không dùng chọn vùng Entry/SL
-const FIXED_BY_TRONG = new Set(["mkt", "add_1W", "rr_1W", "slb_1W", "z_break", "z_ichi"]);
+// Các quyết định Trọng chốt, bot tối ưu không được đổi lại (hiện không có)
+const FIXED_BY_TRONG = new Set([]);   // 11/11 22:00: Trọng hoàn tác 5 thay đổi lúc 21:45 (kiểm chứng cho thấy tệ hơn) → bot tối ưu được dò lại tất cả
 for (let i = KNOBS.length - 1; i >= 0; i--) if (FIXED_BY_TRONG.has(KNOBS[i].id)) KNOBS.splice(i, 1);
 const SPECIAL = {
   a2: { OFF: "{}", W: '{"1w":"1d"}', ON: '{"1w":"1d","1d":"4h","4h":"1h","1h":"15m"}' },
