@@ -1,4 +1,4 @@
-# Tối ưu tự động (chạy liên tục) — vòng 24
+# Tối ưu tự động (chạy liên tục) — vòng 25
 
 Bot thật KHÔNG bị thay đổi cho tới khi Trọng duyệt. Backtest mọi nến 4H/1D/1W trong từ 01/2023 tới nay, có phí + funding, không tính BTC (BTC dành cho chiến lược RSI).
 
@@ -7,7 +7,7 @@ Chỉ chọn thông số trên **01/2023 → 12/2025** (Trọng chốt). **năm 
 Nhận thay đổi khi: chỉ số tăng ≥ 3%, tổng R không giảm quá 3%, win rate không giảm quá 0.5 điểm, sụt vốn MC95 không tệ hơn 5%, không xấu đi ở cả 2 nửa 2023–2025 (01/2023–06/2024 và 07/2024–12/2025), số lệnh không giảm quá 30%.
 ⚠️ Các thay đổi Trọng duyệt trước 11/11/2026 21:30 đã được chọn khi nhìn toàn bộ dữ liệu, kể cả giai đoạn kiểm tra kín → với chúng, phần kiểm tra kín không còn kín hoàn toàn.
 
-Chế độ dò hiện tại: **từng thông số** · đã thử 60 phương án.
+Chế độ dò hiện tại: **từng thông số** · đã thử 72 phương án.
 
 ## Bot thật so với cấu hình tốt nhất
 
@@ -15,16 +15,16 @@ Cấu hình mới chỉ đáng tin khi THẮNG bot thật ở phần kiểm tra 
 
 | | Lệnh 2023–2025 | Win rate | Tổng R | R/lệnh | Sụt vốn lớn nhất | Sụt vốn MC95 | Tổng R ÷ MC95 | Lệnh 2026 (kín) | Win rate | Tổng R | R/lệnh | Sụt vốn |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Bot thật | 215 | 37.7% | 52.84R | 0.246 | 12.91R | 19.3R | 2.74 | 47 | 23.4% | -7.54R | -0.16 | 14.92R |
-| **Tốt nhất** | 220 | 40.9% | 91.95R | 0.418 | 7.78R | 14.12R | 6.51 | 67 | 22.4% | -12.31R | -0.184 | 13.98R |
+| Bot thật | 215 | 37.7% | 52.84R | 0.246 | 12.91R | 19.32R | 2.73 | 47 | 23.4% | -7.54R | -0.16 | 14.92R |
+| **Tốt nhất** | 218 | 41.3% | 92.96R | 0.426 | 7.77R | 13.64R | 6.82 | 68 | 22.1% | -13.09R | -0.193 | 13.98R |
 
 ## Theo khung (cấu hình tốt nhất)
 
 | Khung | Lệnh 2023–2025 | Win rate | Tổng R | Lệnh 2026 (kiểm tra kín) | Win rate | Tổng R |
 |---|---|---|---|---|---|---|
-| 1D | 28 | 32.1% | 12.21R | 6 | 0% | -4.83R |
+| 1D | 28 | 32.1% | 11.64R | 7 | 0% | -5.62R |
 | 1W | 9 | 44.4% | -0.58R | 2 | 0% | -2.04R |
-| 4H | 183 | 42.1% | 80.33R | 59 | 25.4% | -5.43R |
+| 4H | 181 | 42.5% | 81.9R | 59 | 25.4% | -5.43R |
 
 ## Thông số khác với bot thật
 
@@ -35,11 +35,17 @@ Cấu hình mới chỉ đáng tin khi THẮNG bot thật ở phần kiểm tra 
 | Lọc BTC trên EMA200 (crypto) | true | **false** |
 | Điểm ADX > 25 và +DI trội (Momentum) | 2 | **3** |
 | Trọng số phần R:R (/100) | 30 | **20** |
+| Điểm vùng: POC anchored | 3 | **4** |
+| Điểm vùng: EMA 200 | 2 | **1** |
+| Điểm vùng: EMA 21 | 1 | **1.5** |
 
 ## Các thay đổi đã nhận (mới nhất trước)
 
 | Vòng | Thông số | Từ → Thành | Tổng R | Win rate | MC95 | Chỉ số |
 |---|---|---|---|---|---|---|
+| 25 | Điểm vùng: EMA 21 | 1 → 1.5 | 95.44R | 41.5% | 13.13R | 7.27 |
+| 25 | Điểm vùng: EMA 200 | 2 → 1 | 99.68R | 41.9% | 12.98R | 7.68 |
+| 25 | Điểm vùng: POC anchored | 3 → 4 | 103.58R | 42.5% | 13.04R | 7.94 |
 | 24 | Trọng số phần R:R (/100) | 30 → 20 | 92.96R | 41.3% | 13.64R | 6.82 |
 | 22 | Điểm ADX > 25 và +DI trội (Momentum) | 2 → 3 | 82.86R | 40.3% | 14.81R | 5.59 |
 | 22 | Lọc BTC trên EMA200 (crypto) | true → false | 83.22R | 40.4% | 14.66R | 5.68 |
@@ -48,6 +54,25 @@ Cấu hình mới chỉ đáng tin khi THẮNG bot thật ở phần kiểm tra 
 | 19 (hoàn tác) | Ngưỡng điểm 'vào ngay' (tín hiệu mạnh) | 6 → 5 | 104.08R | 43.9% | 13.85R | 7.51 |
 
 ## 10 vòng gần nhất
+
+### Vòng 25 — từng thông số · mốc: tổng 92.96R, win 41.3%, MC95 13.64R, chỉ số 6.82
+
+| Phương án | Tổng R | Win rate | R/lệnh | MC95 | Chỉ số | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
+|---|---|---|---|---|---|---|---|---|---|
+| Điểm vùng: POC anchored: 3 → 2 | 84.09 | 41.3% | 0.377 | 14.42 | 5.83 | 0.321 | 0.439 | -10.85 |  |
+| Điểm vùng: POC anchored: 3 → 4 | 103.58 | 42.5% | 0.458 | 13.04 | 7.94 | 0.419 | 0.498 | -11.06 | ✅ |
+| Điểm vùng: EMA 200: 2 → 1 | 99.68 | 41.9% | 0.449 | 12.98 | 7.68 | 0.437 | 0.461 | -17.94 | ✅ |
+| Điểm vùng: EMA 200: 2 → 3 | 79.1 | 41% | 0.373 | 13.91 | 5.69 | 0.312 | 0.437 | -12.85 |  |
+| Điểm vùng: EMA 50: 0.75 → 0 | 89.82 | 41.6% | 0.42 | 12.97 | 6.93 | 0.438 | 0.401 | -10.28 |  |
+| Điểm vùng: EMA 50: 0.75 → 1.5 | 95.5 | 39.1% | 0.406 | 14.53 | 6.57 | 0.348 | 0.47 | -18.57 |  |
+| Điểm vùng: EMA 21: 1 → 0.5 | 92.9 | 42.3% | 0.436 | 13.35 | 6.96 | 0.402 | 0.472 | -16.34 |  |
+| Điểm vùng: EMA 21: 1 → 1.5 | 95.44 | 41.5% | 0.426 | 13.13 | 7.27 | 0.408 | 0.445 | -14.8 | ✅ |
+| Điểm vùng: Break mây Ichimoku: 2 → 1 | 100.38 | 41.8% | 0.446 | 13.28 | 7.56 | 0.478 | 0.414 | -17.55 |  |
+| Điểm vùng: Break mây Ichimoku: 2 → 3 | 69.94 | 38% | 0.305 | 16.61 | 4.21 | 0.211 | 0.406 | -15.54 |  |
+| Điểm vùng: Kháng cự cũ bị phá: 1.5 → 0.75 | 79.84 | 39.8% | 0.353 | 15.39 | 5.19 | 0.288 | 0.423 | -14.98 |  |
+| Điểm vùng: Kháng cự cũ bị phá: 1.5 → 2.25 | 71.57 | 39.4% | 0.328 | 15.63 | 4.58 | 0.284 | 0.375 | -13.4 |  |
+
+Nhận: Điểm vùng: POC anchored 3 → 4 · Điểm vùng: EMA 200 2 → 1 · Điểm vùng: EMA 21 1 → 1.5
 
 ### Vòng 24 — từng thông số · mốc: tổng 91.95R, win 40.9%, MC95 14.12R, chỉ số 6.51
 
