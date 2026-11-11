@@ -345,7 +345,8 @@ export async function hyperRun({ state, newIds, outbox, errors, esc, link, allow
       if (free < P.margin * 1.1 + 1) { skip(`không đủ tiền ký quỹ (cần ~${(P.margin * 1.1 + 1).toFixed(1)} USDC)`); continue; }
       const sz = fmtSz(P.notional / entry, m.szDecimals), szN = parseFloat(sz);
       if (!(szN > 0) || szN * entry < MIN_NOTIONAL) { skip(`khối lượng ~${(szN * entry).toFixed(1)} USD nhỏ hơn mức tối thiểu 10 USD của sàn (SL quá xa)`); continue; }
-      const half = fmtSz(szN / 2, m.szDecimals), part = parseFloat(half) * tp1 >= MIN_NOTIONAL * 1.05;
+      const f1 = Array.isArray(j.tpf) && j.tpf.length > 1 && j.tpf[0] > 0 && j.tpf[0] < 1 ? j.tpf[0] : .5;   // tỷ lệ chốt ở TP1 theo thuật toán (hiện 30%)
+      const half = fmtSz(szN * f1, m.szDecimals), part = parseFloat(half) * tp1 >= MIN_NOTIONAL * 1.05 && (szN - parseFloat(half)) * entry >= MIN_NOTIONAL;
       await setLeverage(m, P.lev, false);
       const cid = cloidOf("r" + j.id + "e" + (j.rev || ""));          // rev: kèo đã được dời mức → cloid mới
       const ent = limit ? limitO(m, !sh, fmtPx(entry, m.szDecimals, sh ? "up" : "down"), sz, "Gtc", cid)
@@ -354,7 +355,7 @@ export async function hyperRun({ state, newIds, outbox, errors, esc, link, allow
       j.hl = { st: "placed", coin, mult, cid, part, at: Date.now(), kind: limit ? "limit" : "market" };
       nLive++; riskR++; free -= P.margin; taken.add(coin);
       const vol = szN * entry;
-      say(`${sh ? (limit ? "Đặt lệnh chờ SHORT" : "SHORT") : (limit ? "Đặt lệnh chờ mua" : "Mua")}${late ? " (vào muộn kèo cũ)" : ""} <b>${esc(j.base)}</b>${m.short !== (j.src === "st" ? j.sym : j.base).toUpperCase() || m.dex ? ` (trên sàn: ${esc(m.name)})` : ""} (${j.tf.toUpperCase()}) · Entry ${limit ? j.entry : "market"} · SL ${j.stop} (${sh ? "+" : "-"}${(P.sl * 100).toFixed(1)}%) · TP1 ${j.tp1}${part ? " (50%)" : " (đóng hết, lệnh quá nhỏ để chia đôi)"} · TP2 ${j.tp2}${Array.isArray(j.tps) && j.tps.length > 2 ? " · " + j.tps.slice(2).map((x, i) => `TP${i + 3} ${x}`).join(" · ") + " (phần còn lại chia đều các TP sau TP1)" : ""}\n` +
+      say(`${sh ? (limit ? "Đặt lệnh chờ SHORT" : "SHORT") : (limit ? "Đặt lệnh chờ mua" : "Mua")}${late ? " (vào muộn kèo cũ)" : ""} <b>${esc(j.base)}</b>${m.short !== (j.src === "st" ? j.sym : j.base).toUpperCase() || m.dex ? ` (trên sàn: ${esc(m.name)})` : ""} (${j.tf.toUpperCase()}) · Entry ${limit ? j.entry : "market"} · SL ${j.stop} (${sh ? "+" : "-"}${(P.sl * 100).toFixed(1)}%) · TP1 ${j.tp1}${part ? ` (${Math.round(f1 * 100)}%)` : " (đóng hết, lệnh quá nhỏ để chia nhiều phần)"} · TP2 ${j.tp2}${Array.isArray(j.tps) && j.tps.length > 2 ? " · " + j.tps.slice(2).map((x, i) => `TP${i + 3} ${x}`).join(" · ") + " (phần còn lại chia đều các TP sau TP1)" : ""}\n` +
         (RISK > 0 ? `Rủi ro 1R = ${RISK} USDC · khối lượng ~${vol.toFixed(0)} USDC · đòn bẩy ${P.lev}x isolated · ký quỹ ~${P.margin.toFixed(1)} USDC · giá thanh lý ~${(P.liq / mult).toPrecision(5)} (SL dùng ${(P.share * 100).toFixed(0)}% khoảng cách)` : `~${vol.toFixed(0)} USDC, đòn bẩy 1x`) + link());
     } catch (e) { j.hl = { st: "fail", why: e.message.slice(0, 140), coin, at: Date.now() }; errors.push(`${TAG} ${j.base}: ${e.message}`); say(`Lỗi khi vào lệnh <b>${esc(j.base)}</b>: ${esc(e.message.slice(0, 160))}`); }
   }
