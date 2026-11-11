@@ -1,4 +1,4 @@
-# Tối ưu tự động (chạy liên tục) — vòng 19
+# Tối ưu tự động (chạy liên tục) — vòng 20
 
 Bot thật KHÔNG bị thay đổi cho tới khi Trọng duyệt. Backtest mọi nến 4H/1D/1W trong 6 năm gần nhất (từ 11/2020), có phí + funding, không tính BTC (BTC dành cho chiến lược RSI).
 
@@ -15,7 +15,7 @@ Cấu hình mới chỉ đáng tin khi THẮNG bot thật ở phần kiểm tra 
 
 | | Lệnh (huấn luyện) | Win rate | Tổng R | R/lệnh | Sụt vốn lớn nhất | Sụt vốn MC95 | Tổng R ÷ MC95 | Lệnh (kiểm tra kín) | Win rate | Tổng R | R/lệnh | Sụt vốn |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Bot thật | 208 | 44.2% | 99.17R | 0.477 | 12.91R | 13.75R | 7.21 | 132 | 33.3% | 5.32R | 0.04 | 14.92R |
+| Bot thật | 40 | 37.5% | 6.87R | 0.172 | 5.14R | 9.11R | 0.75 | 30 | 30% | 1.88R | 0.063 | 8.9R |
 | **Tốt nhất** | 208 | 44.2% | 99.17R | 0.477 | 12.91R | 13.75R | 7.21 | 132 | 33.3% | 5.32R | 0.04 | 14.92R |
 
 ## Theo khung (cấu hình tốt nhất)
@@ -30,15 +30,18 @@ Cấu hình mới chỉ đáng tin khi THẮNG bot thật ở phần kiểm tra 
 
 | Thông số | Bot thật | Đề xuất |
 |---|---|---|
-| Ngưỡng điểm 'vào ngay' (tín hiệu mạnh) | 6 | **5** |
+| Điểm vùng: Kháng cự cũ bị phá | 3 | **1.5** |
 
 ## Các thay đổi đã nhận (mới nhất trước)
 
 | Vòng | Thông số | Từ → Thành | Tổng R | Win rate | MC95 | Chỉ số |
 |---|---|---|---|---|---|---|
-| 19 | Ngưỡng điểm 'vào ngay' (tín hiệu mạnh) | 6 → 5 | 104.08R | 43.9% | 13.85R | 7.51 |
+| 19 (hoàn tác) | Ngưỡng điểm 'vào ngay' (tín hiệu mạnh) | 6 → 5 | 104.08R | 43.9% | 13.85R | 7.51 |
 
 ## 10 vòng gần nhất
+
+### Vòng 20 — từng thông số · mốc: tổng 7.61R, win 40%, MC95 10.4R, chỉ số 0.73
+Gộp các thay đổi vòng 19 làm chỉ số giảm (7.21 → 0.73) → hoàn tác
 
 ### Vòng 19 — từng thông số · mốc: tổng 99.17R, win 44.2%, MC95 13.75R, chỉ số 7.21
 
