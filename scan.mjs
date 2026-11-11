@@ -228,6 +228,22 @@ async function topCoins() {
   }
 }
 
+// vốn hoá thị trường theo mã (USD) — để loại dự án quá nhỏ (Trọng 12/11/2026: dưới 30 triệu USD thì bỏ)
+const MIN_MCAP = +(process.env.MIN_MCAP_USD || 30e6);
+async function mcapMap() {
+  const M = new Map(), put = (s, v) => { s = String(s || "").toUpperCase().replace(/[^A-Z0-9]/g, ""); if (s && isFinite(v) && v > (M.get(s) || 0)) M.set(s, v); };
+  try {
+    for (let p = 1; p <= 4; p++) {
+      const j = await getJ(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=${p}`, CG_KEY ? { headers: { "x-cg-demo-api-key": CG_KEY } } : {});
+      for (const m of j) put(m.symbol, m.market_cap); if (j.length < 250) break; await sleep(1500);
+    }
+    if (M.size > 500) return M;
+  } catch (e) { }
+  const j = await getJ("https://api.coinpaprika.com/v1/tickers?quotes=USD", {}, 30000);
+  for (const m of j) put(m.symbol, m.quotes && m.quotes.USD && m.quotes.USD.market_cap);
+  return M;
+}
+
 /* ---------- 3. Telegram ---------- */
 const fp = p => { if (!isFinite(p)) return "–"; const a = Math.abs(p), d = a >= 1000 ? 2 : a >= 1 ? 3 : a >= 0.01 ? 5 : a >= 0.0001 ? 7 : 9; return p.toLocaleString("en-US", { minimumFractionDigits: Math.min(d, 2), maximumFractionDigits: d }); };
 const pct = (v, b) => { const x = (v / b - 1) * 100; return (x >= 0 ? "+" : "") + x.toFixed(1) + "%"; };
@@ -320,6 +336,12 @@ async function main() {
     }
     state.hlListed = (meta.universe || []).filter(u => !u.isDelisted).length; console.log(`Hyperliquid: ${state.hlListed} dự án đang niêm yết, thêm ${nHL} mã ngoài danh sách cũ`);
   } catch (e) { errors.push(`Không lấy được danh sách Hyperliquid: ${e.message}`); }
+  // loại dự án có vốn hoá dưới MIN_MCAP (mặc định 30 triệu USD) hoặc không tìm thấy vốn hoá (thường là dự án rất nhỏ)
+  try {
+    const MC = await mcapMap(); const drop = [];
+    for (let i = assets.length - 1; i >= 0; i--) { const a = assets[i], mc = MC.get(a.base); if (a.kind === "crypto" && !(mc >= MIN_MCAP)) { drop.push(a.base); assets.splice(i, 1); } else a.mcap = mc; }
+    state.mcapDropped = drop.length; console.log(`Bỏ ${drop.length} dự án vốn hoá < ${MIN_MCAP / 1e6} triệu USD (hoặc không rõ vốn hoá): ${drop.slice(0, 40).join(", ")}${drop.length > 40 ? "…" : ""}`);
+  } catch (e) { errors.push(`Không lấy được vốn hoá thị trường (giữ nguyên danh sách): ${e.message}`); }
   for (const [sym, label, name, ex] of K.STOCKS) assets.push({ kind: "stock", base: label, sym, ex });
 
   // 4.2 nến 3 khung + chấm điểm

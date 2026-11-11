@@ -366,6 +366,13 @@ try {   // + mọi dự án đang niêm yết perp trên Hyperliquid (như bot t
   const meta = await r.json(); for (const u of meta.universe || []) if (!u.isDelisted) uni.push(/^k[A-Z]/.test(u.name) ? u.name.slice(1) : u.name);
 } catch (e) { console.log("Không lấy được danh sách Hyperliquid:", e.message); }
 uni = [...new Set([...uni, ...K1.extra])].filter(b => /^[A-Z0-9]{2,12}$/.test(b)).slice(0, MAX);
+try {   // loại dự án vốn hoá HIỆN TẠI dưới 30 triệu USD (như bot thật). Lưu ý: dùng vốn hoá hiện tại cho cả quá khứ (không có dữ liệu vốn hoá lịch sử)
+  const MC = new Map(), put = (s, v) => { s = String(s || "").toUpperCase().replace(/[^A-Z0-9]/g, ""); if (s && isFinite(v) && v > (MC.get(s) || 0)) MC.set(s, v); };
+  try { const r = await fetch("https://api.coinpaprika.com/v1/tickers?quotes=USD"); const j = await r.json(); for (const m of j) put(m.symbol, m.quotes && m.quotes.USD && m.quotes.USD.market_cap); } catch (e) { }   // 1 lần gọi, nhiều máy chạy song song vẫn ổn
+  if (MC.size < 500) for (let p = 1; p <= 4; p++) { const r = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=${p}`); if (!r.ok) break; const j = await r.json(); for (const m of j) put(m.symbol, m.market_cap); await new Promise(z => setTimeout(z, 2500)); }
+  if (MC.size < 500) throw new Error("thiếu dữ liệu vốn hoá");
+  const minMc = +arg("minmcap", "30000000"), before = uni.length; uni = uni.filter(b => MC.get(b) >= minMc); console.log(`Vốn hoá: bỏ ${before - uni.length} mã < ${minMc / 1e6} triệu USD`);
+} catch (e) { console.log("Không lọc được theo vốn hoá:", e.message); }
 const STOCKS = arg("stocks", "1") === "1" ? K1.stocks.filter(x => !arg("only", "") || arg("only", "").toUpperCase().split(",").includes(x[1])) : [];   // cổ phiếu (Yahoo): 4H/1H tối đa 2 năm, 1D/1W tối đa 10 năm
 const ONLY = arg("only", "") ? arg("only", "").toUpperCase().split(",") : null;
 if (ONLY) uni = uni.filter(b => ONLY.includes(b)).concat(ONLY.filter(b => !uni.includes(b) && !K1.stocks.some(x => x[1] === b)));
