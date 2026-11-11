@@ -1,0 +1,22 @@
+{
+ "name": "r6-luat-cu",
+ "desc": "Bộ luật cũ trước 11/11 (không xác nhận khung nhỏ, không lọc BTC, Dow lỏng, vào ngay dễ)",
+ "patch": [
+  {
+   "find": "const REGIME=true;   // crypto: chỉ LONG khi BTC 1D trên EMA200 (SHORT: dưới) — Trọng bật 11/11/2026 (A3); cổ phiếu không áp dụng   // điểm cộng thêm vào ngưỡng theo khung (để thử nghiệm)     // số TP tối đa (backtest 2 năm: 2 TP tốt hơn 3–4 TP)   // stop loss spot tối đa 35% tính từ Entry",
+   "replace": "const REGIME=false;"
+  },
+  {
+   "find": "const LTF_CONFIRM={\"1w\":\"1d\",\"1d\":\"4h\",\"4h\":\"1h\",\"1h\":\"15m\"};",
+   "replace": "const LTF_CONFIRM={};"
+  },
+  {
+   "find": "const dw=i.dow, dowOK=!!dw&&dw.state===1;",
+   "replace": "const dw=i.dow, dowOK=dw&&(dw.state===1||/^Gãy cấu trúc giảm/.test(dw.why||\"\"));"
+  },
+  {
+   "find": "const STRONG_MKT=5;",
+   "replace": "const STRONG_MKT=3;"
+  }
+ ]
+}

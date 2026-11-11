@@ -1,0 +1,10 @@
+{
+ "name": "s19-vao-ngay-nguong-4",
+ "desc": "Ngưỡng 'vào ngay' 4 điểm (thay 5)",
+ "patch": [
+  {
+   "find": "const STRONG_MKT=5;",
+   "replace": "const STRONG_MKT=4;"
+  }
+ ]
+}

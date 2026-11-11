@@ -1,0 +1,10 @@
+{
+ "name": "r1-them-khung-lon-tang",
+ "desc": "Thêm lại 'khung lớn phải tăng' (trend khung lớn ≥ 0.3)",
+ "patch": [
+  {
+   "find": "const HTF_MIN=null;  // khung lớn hơn KHÔNG bắt buộc phải tăng — backtest: khi đã có xác nhận khung nhỏ (A2) thì luật này cắt mất kèo tốt (+32.7R → +66.4R khi bỏ). Trọng duyệt bỏ 11/11/2026",
+   "replace": "const HTF_MIN=.3;"
+  }
+ ]
+}

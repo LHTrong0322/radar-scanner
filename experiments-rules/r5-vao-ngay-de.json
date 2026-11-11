@@ -1,0 +1,10 @@
+{
+ "name": "r5-vao-ngay-de",
+ "desc": "Vào ngay dễ như cũ (ngưỡng 3, có tín hiệu mới là vào)",
+ "patch": [
+  {
+   "find": "const STRONG_MKT=5;",
+   "replace": "const STRONG_MKT=3;"
+  }
+ ]
+}

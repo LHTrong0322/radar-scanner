@@ -1,0 +1,10 @@
+{
+ "name": "s20-vao-ngay-nguong-7",
+ "desc": "Ngưỡng 'vào ngay' 7 điểm",
+ "patch": [
+  {
+   "find": "const STRONG_MKT=5;",
+   "replace": "const STRONG_MKT=7;"
+  }
+ ]
+}
