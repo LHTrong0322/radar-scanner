@@ -4,7 +4,7 @@
 //   node pump_study.mjs watch   → hằng ngày: dự án đang breakout mạnh + dự án khớp mẫu "trước pump" → pump/watch.md (+ Telegram nếu có)
 // Định nghĩa "pump đánh được": từ giá đóng cửa ngày đó, trong 14 ngày tới giá chạm +30% TRƯỚC khi chạm −10%.
 import fs from "node:fs";
-import { candles, MS } from "./data.mjs";
+import { candles, stockCandles, MS } from "./data.mjs";
 
 const MODE = process.argv[2] || "study", D = 864e5, FROM = Date.UTC(2022, 5, 1), START = Date.UTC(2023, 0, 1), TEST = Date.UTC(2026, 0, 1);
 const UP = .30, DOWN = .10, HOLD = 14;
@@ -59,14 +59,19 @@ function label(c, i) {
 }
 
 /* ---------- danh sách coin ---------- */
+// mọi mã bot đang quét: coin + BTC + cổ phiếu + hàng hoá (Trọng 12/11/2026)
 function universe() {
   let st = {}; try { st = JSON.parse(fs.readFileSync("state.json", "utf8")); } catch (e) { }
   const set = Array.isArray(st.scanSet) && st.scanSet.length ? st.scanSet : Object.keys(st.universe || {});
-  return set.filter(b => !STOCK_LABELS.has(b) && b !== "BTC" && /^[A-Z0-9]{2,12}$/.test(b));
+  let stocks = []; try { stocks = JSON.parse((fs.readFileSync("index.html", "utf8").match(/const STOCKS=(\[[\s\S]*?\]\]);/) || [])[1] || "[]"); } catch (e) { }
+  const sym = Object.fromEntries(stocks.map(x => [x[1], x[0]]));
+  const out = set.filter(b => /^[A-Z0-9]{2,12}$/.test(b)).map(b => ({ b, stock: !!sym[b], sym: sym[b] }));
+  if (!out.some(x => x.b === "BTC")) out.push({ b: "BTC", stock: false });
+  return out;
 }
 async function loadAll(list) {
   const out = {}; let k = 0;
-  await Promise.all(Array.from({ length: 6 }, async () => { while (k < list.length) { const b = list[k++]; try { const c = await candles(b, "1d", FROM); if (c.length > 260) out[b] = c.filter(x => x.t + D <= Date.now()); } catch (e) { } } }));
+  await Promise.all(Array.from({ length: 6 }, async () => { while (k < list.length) { const a = list[k++]; try { const c = a.stock ? (await stockCandles(a.sym, "1d")).filter(x => x.t >= FROM) : await candles(a.b, "1d", FROM); if (c.length > 230) out[a.b] = c.filter(x => x.t + D <= Date.now()); } catch (e) { } } }));
   return out;
 }
 
@@ -99,9 +104,10 @@ async function study() {
   } }
   const tr = rows.filter(r => r.t < TEST), te = rows.filter(r => r.t >= TEST), base = a => a.length ? a.filter(r => r.y).length / a.length : 0;
   const B0 = base(tr), B1 = base(te);
-  const L = [`# Nghiên cứu dự án pump / breakout mạnh`, "", `Tạo lúc ${new Date().toISOString().slice(0, 16)} UTC · ${Object.keys(data).length} coin (danh sách bot đang quét, không tính BTC và cổ phiếu) · dữ liệu ngày từ 01/2023, chỉ dùng nến đã đóng.`, "",
+  const L = [`# Nghiên cứu dự án pump / breakout mạnh`, "", `Tạo lúc ${new Date().toISOString().slice(0, 16)} UTC · ${Object.keys(data).length} coin (mọi mã bot đang quét: coin, BTC, cổ phiếu, hàng hoá) · dữ liệu ngày từ 01/2023, chỉ dùng nến đã đóng.`, "",
     `**"Pump đánh được"** = từ giá đóng cửa hôm đó, trong ${HOLD} ngày tới giá chạm **+${UP * 100}%** TRƯỚC khi chạm **−${DOWN * 100}%** (tức là mua lúc đó, đặt SL −10%, chốt +30% thì thắng).`,
     `**Tỷ lệ nền** (ngày bất kỳ): 2023–2025 là **${(B0 * 100).toFixed(1)}%** (${tr.length} mẫu) · năm 2026 là **${(B1 * 100).toFixed(1)}%** (${te.length} mẫu).`,
+    `Tỷ lệ nền theo nhóm (2023–2025): coin ${(base(tr.filter(r => !STOCK_LABELS.has(r.b))) * 100).toFixed(1)}% · cổ phiếu/hàng hoá ${(base(tr.filter(r => STOCK_LABELS.has(r.b))) * 100).toFixed(1)}% (cổ phiếu ít khi tăng 30% trong 14 ngày nên tỷ lệ thấp là bình thường).`,
     `**Hệ số báo trước** = tỷ lệ pump khi có đặc điểm ÷ tỷ lệ nền. Ví dụ 2.0 = khả năng pump gấp đôi ngày bình thường. Chỉ tin những gì cao ở CẢ 2023–2025 LẪN 2026.`, ""];
   const model = { at: Date.now(), up: UP, down: DOWN, hold: HOLD, base: { train: B0, test: B1 }, single: [], combos: [] };
   for (const f of Object.keys(BUCKETS)) {
@@ -142,7 +148,7 @@ async function watch() {
   let model = null; try { model = JSON.parse(fs.readFileSync("pump/model.json", "utf8")); } catch (e) { }
   const list = universe(), btc = await candles("BTC", "1d", Date.now() - 400 * D).then(c => c.filter(x => x.t + D <= Date.now()));
   const data = {}; let k = 0;
-  await Promise.all(Array.from({ length: 6 }, async () => { while (k < list.length) { const b = list[k++]; try { const c = (await candles(b, "1d", Date.now() - 420 * D)).filter(x => x.t + D <= Date.now()); if (c.length > 230) data[b] = c; } catch (e) { } } }));
+  await Promise.all(Array.from({ length: 6 }, async () => { while (k < list.length) { const a = list[k++]; try { const c = (a.stock ? (await stockCandles(a.sym, "1d")).filter(x => x.t >= Date.now() - 420 * D) : await candles(a.b, "1d", Date.now() - 420 * D)).filter(x => x.t + D <= Date.now()); if (c.length > 230) data[a.b] = c; } catch (e) { } } }));
   const out = [];
   for (const [b, c] of Object.entries(data)) {
     const i = c.length - 1, f = features(c, i, btc); if (!f) continue;
