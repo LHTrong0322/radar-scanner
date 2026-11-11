@@ -6,8 +6,8 @@ on:
   workflow_dispatch:
     inputs:
       days:
-        description: "Số ngày quá khứ (mặc định 2190 = 6 năm gần nhất, Trọng yêu cầu 11/11/2026), hoặc max"
-        default: "2190"
+        description: "Số ngày quá khứ, hoặc năm bắt đầu (mặc định 2020 = từ 01/01/2020 tới nay, Trọng chốt), hoặc max"
+        default: "2020"
       side:
         description: "long hoặc short"
         default: "long"

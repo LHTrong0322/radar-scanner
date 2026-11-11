@@ -10,7 +10,8 @@ import os from "node:os";
 import { Worker, isMainThread, parentPort, workerData } from "node:worker_threads";
 
 const arg = (k, d) => { const i = process.argv.indexOf("--" + k); return i > 0 ? process.argv[i + 1] : d; };
-const DAYS_ARG = arg("days", "730"), DAYS = DAYS_ARG === "max" ? Math.floor((Date.now() - Date.UTC(2018, 0, 1)) / 864e5) : +DAYS_ARG, MAX = +arg("max", 200), SIDE = arg("side", "long") === "short" ? "short" : "long";
+// --days 2020 = từ 01/01/2020 tới nay · --days max = từ 2018 · --days 730 = 730 ngày gần nhất
+const DAYS_ARG = arg("days", "730"), DAYS = DAYS_ARG === "max" ? Math.floor((Date.now() - Date.UTC(2018, 0, 1)) / 864e5) : /^\d{4}$/.test(DAYS_ARG) ? Math.floor((Date.now() - Date.UTC(+DAYS_ARG, 0, 1)) / 864e5) : +DAYS_ARG, MAX = +arg("max", 200), SIDE = arg("side", "long") === "short" ? "short" : "long";
 const HTML = arg("html", "index.html"), HTML2 = arg("html2", ""), NAMES = arg("names", ""), LABEL = arg("label", ""), OUT = arg("out", "backtests");
 const TFS = ["4h", "1d", "1w"], LOWTFS = ["15m", "1h"], HTF = { "15m": "1h", "1h": "4h", "4h": "1d", "1d": "1w", "1w": null };
 const EXEC = { "15m": "15m", "1h": "1h", "4h": "1h", "1d": "1h", "1w": "1d" };   // chấm SL/TP bằng nến nhỏ hơn cho chính xác
