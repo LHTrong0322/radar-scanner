@@ -1,4 +1,4 @@
-# Tối ưu tự động (chạy liên tục) — vòng 38
+# Tối ưu tự động (chạy liên tục) — vòng 39
 
 Bot thật KHÔNG bị thay đổi cho tới khi Trọng duyệt. Backtest mọi nến 4H/1D/1W trong từ 01/2023 tới nay, có phí + funding, không tính BTC (BTC dành cho chiến lược RSI).
 
@@ -7,37 +7,44 @@ Chỉ chọn thông số trên **01/2023 → 12/2025** (Trọng chốt). **năm 
 Nhận thay đổi khi: Lời ÷ rủi ro tăng ít nhất 3%, tổng R không giảm quá 3%, win rate không giảm quá 0.5 điểm, rủi ro tụt vốn (95%) không tăng quá 5%, không xấu đi ở cả 2 nửa 2023–2025 (01/2023–06/2024 và 07/2024–12/2025), số lệnh không giảm quá 30%.
 ⚠️ Các thay đổi Trọng duyệt trước 11/11/2026 21:30 đã được chọn khi nhìn toàn bộ dữ liệu, kể cả giai đoạn kiểm tra kín → với chúng, phần kiểm tra kín không còn kín hoàn toàn.
 
-Chế độ dò hiện tại: **từng thông số** · đã thử 205 phương án.
+Chế độ dò hiện tại: **từng thông số** · đã thử 217 phương án.
 
 ## Bot thật so với cấu hình tốt nhất
 
-Cấu hình mới chỉ đáng tin khi THẮNG bot thật ở phần kiểm tra kín (năm 2026). Thua ở đó thì bỏ, dù phần huấn luyện đẹp đến đâu.
+Trọng chốt (12/11): ưu tiên 2023–2025. Cấu hình mới được đề xuất khi tốt hơn bot thật ở 2023–2025 và năm 2026 không tệ hơn quá 5R (mức nhiễu của backtest).
 
 | | Lệnh 2023–2025 | Tỷ lệ thắng | Tổng R | R/lệnh | Tụt vốn lớn nhất (thực tế) | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | Lệnh 2026 (kín) | Tỷ lệ thắng | Tổng R | R/lệnh | Tụt vốn |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Bot thật | 332 | 33.7% | 70.61R | 0.213 | 13.13R | 23.36R | 3.02 | 74 | 25.7% | -1.54R | -0.021 | 10.61R |
-| **Tốt nhất** | 218 | 43.1% | 107.97R | 0.495 | 7.13R | 12R | 9.00 | 66 | 21.2% | -12.55R | -0.19 | 13.81R |
+| Bot thật | 160 | 47.5% | 109.32R | 0.683 | 6.53R | 9.3R | 11.75 | 33 | 12.1% | -15.02R | -0.455 | 15.02R |
+| **Tốt nhất** | 267 | 44.6% | 151R | 0.566 | 6.53R | 11.91R | 12.68 | 76 | 18.4% | -18.75R | -0.247 | 18.75R |
 
 ## Theo khung (cấu hình tốt nhất)
 
 | Khung | Lệnh 2023–2025 | Tỷ lệ thắng | Tổng R | Lệnh 2026 (kiểm tra kín) | Tỷ lệ thắng | Tổng R |
 |---|---|---|---|---|---|---|
-| 1D | 29 | 41.4% | 20.01R | 7 | 0% | -5.62R |
-| 1W | 10 | 50% | 2.45R | 2 | 0% | -2.04R |
-| 4H | 179 | 43% | 85.5R | 57 | 24.6% | -4.89R |
+| 1D | 42 | 42.9% | 34.3R | 8 | 0% | -5.84R |
+| 1W | 9 | 66.7% | 12.03R | 3 | 0% | -3.29R |
+| 4H | 216 | 44% | 104.67R | 65 | 21.5% | -9.62R |
 
 ## ✅ Cấu hình tốt nhất ĐÃ QUA kiểm tra 2026 (đề xuất để Trọng duyệt)
 
-Chưa có cấu hình nào vừa hơn bot thật ở 2023–2025 vừa hơn ở năm 2026.
+Tìm thấy ở vòng 39 (Điểm vùng: Fib 0.5 / 0.382 sóng 2: 3 → 2).
+
+| | Lệnh 2023–2025 | Tỷ lệ thắng | Tổng R | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | Lệnh 2026 | Tỷ lệ thắng | Tổng R 2026 |
+|---|---|---|---|---|---|---|---|---|
+| Bot thật | 160 | 47.5% | 109.32R | 9.3R | 11.75 | 33 | 12.1% | -15.02R |
+| **Đề xuất** | 268 | 44.4% | 150.03R | 11.68R | 12.85 | 74 | 18.9% | -16.93R |
+
+| Thông số | Bot thật | Đề xuất |
+|---|---|---|
+| Lọc BTC trên EMA200 (crypto) | true | **false** |
+| Điểm vùng: Fib 0.5 / 0.382 sóng 2 | 3 | **2** |
 
 ## Thông số khác với bot thật
 
 | Thông số | Bot thật | Đề xuất |
 |---|---|---|
 | Lọc BTC trên EMA200 (crypto) | true | **false** |
-| Cổng Dow | LỎNG | **TẮT** |
-| Nguồn lọc thị trường BTC (EMA / cấu trúc Dow 4H / 1D) | ema+dow1d | **undefined** |
-| Lọc Dow BTC: tính cả lúc vừa vượt đỉnh thấp hơn | false | **undefined** |
 
 ## Các thay đổi đã nhận (mới nhất trước)
 
@@ -60,6 +67,23 @@ Chưa có cấu hình nào vừa hơn bot thật ở 2023–2025 vừa hơn ở 
 | 19 (hoàn tác) | Ngưỡng điểm 'vào ngay' (tín hiệu mạnh) | 6 → 5 | 104.08R | 43.9% | 13.85R | 7.51 |
 
 ## 10 vòng gần nhất
+
+### Vòng 39 — từng thông số · mốc: tổng 151R, win 44.6%, rủi ro tụt vốn 11.91R, lời÷rủi ro 12.68
+
+| Phương án | Tổng R | Tỷ lệ thắng | R/lệnh | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
+|---|---|---|---|---|---|---|---|---|---|
+| Điểm vùng: Fib 0.5 / 0.382 sóng 2: 3 → 2 | 150.03 | 44.4% | 0.56 | 11.68 | 12.85 | 0.491 | 0.642 | -16.93 |  |
+| Điểm vùng: Fib 0.5 / 0.382 sóng 2: 3 → 4 | 148.74 | 44% | 0.555 | 11.95 | 12.45 | 0.491 | 0.632 | -24.48 |  |
+| Điểm vùng: Fib sóng 4: 1.25 → 0 | 148.83 | 44.2% | 0.557 | 11.96 | 12.44 | 0.481 | 0.647 | -18.75 |  |
+| Điểm vùng: Fib sóng 4: 1.25 → 2.5 | 147.9 | 44.1% | 0.548 | 12.57 | 11.77 | 0.472 | 0.638 | -20.5 |  |
+| Ngưỡng điểm vào kèo: 70 → 65 | 148.43 | 44.2% | 0.542 | 12.38 | 11.99 | 0.529 | 0.557 | -11.53 |  |
+| Ngưỡng điểm vào kèo: 70 → 75 | 143.5 | 44.7% | 0.563 | 11.79 | 12.17 | 0.49 | 0.645 | -18.57 |  |
+| R:R tối thiểu tới TP1: 2.5 → 2 | 131.53 | 38.5% | 0.256 | 18.02 | 7.3 | 0.215 | 0.294 | -21.53 |  |
+| R:R tối thiểu tới TP1: 2.5 → 3 | 116.03 | 44.8% | 0.703 | 11.22 | 10.34 | 0.682 | 0.725 | -9.03 |  |
+| Ngưỡng điểm 'vào ngay' (tín hiệu mạnh): 6 → 5 | 149.69 | 43% | 0.554 | 12.75 | 11.74 | 0.462 | 0.666 | -17.42 |  |
+| Ngưỡng điểm 'vào ngay' (tín hiệu mạnh): 6 → 7 | 138.02 | 44.8% | 0.511 | 12.24 | 11.28 | 0.449 | 0.581 | -14.63 |  |
+| SL tối đa (% Entry): 0.35 → 0.2 | 140.87 | 44.5% | 0.575 | 12.32 | 11.43 | 0.493 | 0.672 | -17.35 |  |
+| SL tối đa (% Entry): 0.35 → 0.5 | 141.74 | 43.8% | 0.535 | 12.11 | 11.7 | 0.476 | 0.605 | -18.75 |  |
 
 ### Vòng 38 — từng thông số · mốc: tổng 83.74R, win 34.5%, rủi ro tụt vốn 21.83R, lời÷rủi ro 3.84
 Gộp các thay đổi vòng 37 làm chỉ số giảm (9.00 → 3.84) → hoàn tác
@@ -204,20 +228,3 @@ Nhận: Điểm vùng: HVN anchored 0.25 → 0.5 · Điểm vùng: POC volume pr
 | Cộng thêm ngưỡng điểm khung 1W: 0 → 5 | 63.12 | 49.6% | 0.279 | 11.6 | 5.44 | 0.294 | 0.264 | -9.16 |  |
 
 Nhận: Cộng thêm ngưỡng điểm khung 1D 0 → 5
-
-### Vòng 29 — từng thông số · mốc: tổng 104.06R, win 42.9%, rủi ro tụt vốn 12.45R, lời÷rủi ro 8.36
-
-| Phương án | Tổng R | Tỷ lệ thắng | R/lệnh | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
-|---|---|---|---|---|---|---|---|---|---|
-| Điểm vùng: Fib sóng 4: 1.25 → 0 | 101.54 | 42.6% | 0.47 | 12.47 | 8.14 | 0.403 | 0.541 | -12.55 |  |
-| Điểm vùng: Fib sóng 4: 1.25 → 2.5 | 102.24 | 42.3% | 0.461 | 12.54 | 8.15 | 0.412 | 0.511 | -13.28 |  |
-| Ngưỡng điểm vào kèo: 70 → 65 | 96.7 | 42.2% | 0.434 | 12.82 | 7.54 | 0.372 | 0.497 | -12.74 |  |
-| Ngưỡng điểm vào kèo: 70 → 75 | 98.57 | 42.8% | 0.474 | 12.21 | 8.07 | 0.405 | 0.547 | -12.37 |  |
-| R:R tối thiểu tới TP1: 2.5 → 2 | 105.83 | 37.7% | 0.233 | 19.2 | 5.51 | 0.262 | 0.208 | -6.86 |  |
-| R:R tối thiểu tới TP1: 2.5 → 3 | 67.03 | 41.3% | 0.486 | 13.01 | 5.15 | 0.365 | 0.606 | -4.01 |  |
-| Ngưỡng điểm 'vào ngay' (tín hiệu mạnh): 6 → 5 | 99.08 | 41.6% | 0.452 | 13.51 | 7.33 | 0.406 | 0.504 | -12.25 |  |
-| Ngưỡng điểm 'vào ngay' (tín hiệu mạnh): 6 → 7 | 98.29 | 43.4% | 0.445 | 12.51 | 7.86 | 0.377 | 0.52 | -12.84 |  |
-| SL tối đa (% Entry): 0.35 → 0.2 | 103.2 | 43.2% | 0.501 | 12.25 | 8.42 | 0.453 | 0.552 | -11.78 |  |
-| SL tối đa (% Entry): 0.35 → 0.5 | 98.63 | 42.9% | 0.454 | 12.53 | 7.87 | 0.382 | 0.532 | -12.55 |  |
-| Đệm SL dưới vùng hỗ trợ (ATR): 1 → 0.8 | 131.27 | 41% | 0.49 | 14.46 | 9.08 | 0.476 | 0.504 | -10.2 |  |
-| Đệm SL dưới vùng hỗ trợ (ATR): 1 → 1.2 | 68.91 | 41.2% | 0.379 | 12.86 | 5.36 | 0.305 | 0.461 | -4.11 |  |
