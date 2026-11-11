@@ -309,12 +309,23 @@ async function main() {
   // coin ngoài top 100 vẫn muốn quét (khai báo EXTRA_CRYPTO trong index.html)
   const extra = ((fs.readFileSync(path.join(ROOT, "index.html"), "utf8").match(/const EXTRA_CRYPTO=(\[[^\]]*\])/) || [])[1]);
   try { for (const b of JSON.parse(extra || "[]")) if (!assets.some(a => a.base === b)) assets.push({ kind: "crypto", base: b, rank: 0 }); } catch (e) { }
+  // mọi dự án đang niêm yết perp trên Hyperliquid (Trọng yêu cầu 12/11/2026) — bot đặt lệnh trên HL nên quét đủ những gì trade được
+  try {
+    const r = await fetch("https://api.hyperliquid.xyz/info", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "meta" }), signal: AbortSignal.timeout(15000) });
+    const meta = await r.json(); let nHL = 0;
+    for (const u of meta.universe || []) {
+      if (u.isDelisted) continue; const b = /^k[A-Z]/.test(u.name) ? u.name.slice(1) : u.name;   // kPEPE = 1000 PEPE → quét theo PEPE
+      if (!/^[A-Z0-9]{2,12}$/.test(b)) continue;
+      if (!assets.some(x => x.base === b)) { assets.push({ kind: "crypto", base: b, rank: 0, hl: true }); nHL++; }
+    }
+    state.hlListed = (meta.universe || []).filter(u => !u.isDelisted).length; console.log(`Hyperliquid: ${state.hlListed} dự án đang niêm yết, thêm ${nHL} mã ngoài danh sách cũ`);
+  } catch (e) { errors.push(`Không lấy được danh sách Hyperliquid: ${e.message}`); }
   for (const [sym, label, name, ex] of K.STOCKS) assets.push({ kind: "stock", base: label, sym, ex });
 
   // 4.2 nến 3 khung + chấm điểm
   const ok = [], near = [], evals = new Map();
   let BTC1D = null; if (K.RS_DAYS != null) { try { BTC1D = (await cryptoCandles("BTC", "1d", 400)).c; } catch (e) { } }   // cho bộ lọc sức mạnh tương đối
-  await pool(assets, 6, async a => {
+  await pool(assets, 10, async a => {   // nhiều mã hơn (thêm toàn bộ Hyperliquid) → tăng số luồng để giữ thời gian quét
     const R = {}, why = [], TFA = a.kind !== "stock" && K.LOW_TF_ASSETS.includes(a.base) ? [...K.LOW_TFS, ...PICK_TFS] : PICK_TFS;   // BTC: thêm khung nhỏ (1H)
     const FETCH = [...new Set([...TFA, ...TFA.map(x => K.LTF_CONFIRM[x]).filter(Boolean)])];   // thêm khung nhỏ để xác nhận (A2)
     for (const tf of FETCH) {

@@ -11,7 +11,7 @@ import { Worker, isMainThread, parentPort, workerData } from "node:worker_thread
 
 const arg = (k, d) => { const i = process.argv.indexOf("--" + k); return i > 0 ? process.argv[i + 1] : d; };
 // --days 2020 = từ 01/01/2020 tới nay · --days max = từ 2018 · --days 730 = 730 ngày gần nhất
-const DAYS_ARG = arg("days", "730"), DAYS = DAYS_ARG === "max" ? Math.floor((Date.now() - Date.UTC(2018, 0, 1)) / 864e5) : /^\d{4}$/.test(DAYS_ARG) ? Math.floor((Date.now() - Date.UTC(+DAYS_ARG, 0, 1)) / 864e5) : +DAYS_ARG, MAX = +arg("max", 200), SIDE = arg("side", "long") === "short" ? "short" : "long";
+const DAYS_ARG = arg("days", "730"), DAYS = DAYS_ARG === "max" ? Math.floor((Date.now() - Date.UTC(2018, 0, 1)) / 864e5) : /^\d{4}$/.test(DAYS_ARG) ? Math.floor((Date.now() - Date.UTC(+DAYS_ARG, 0, 1)) / 864e5) : +DAYS_ARG, MAX = +arg("max", 400), SIDE = arg("side", "long") === "short" ? "short" : "long";
 const HTML = arg("html", "index.html"), HTML2 = arg("html2", ""), NAMES = arg("names", ""), LABEL = arg("label", ""), OUT = arg("out", "backtests");
 const TFS = ["4h", "1d", "1w"], LOWTFS = ["15m", "1h"], HTF = { "15m": "1h", "1h": "4h", "4h": "1d", "1d": "1w", "1w": null };
 const EXEC = { "15m": "15m", "1h": "1h", "4h": "1h", "1d": "1h", "1w": "1d" };   // chấm SL/TP bằng nến nhỏ hơn cho chính xác
@@ -361,6 +361,10 @@ if (EXP) {
 const K2 = V.length === 1 && !EXP;
 let uni = [];
 try { const st = JSON.parse(fs.readFileSync("state.json", "utf8")); uni = Object.keys(st.universe || {}); if (!uni.length) uni = [...new Set((st.journal || []).filter(j => j.src !== "st").map(j => j.base))]; } catch (e) { }
+try {   // + mọi dự án đang niêm yết perp trên Hyperliquid (như bot thật)
+  const r = await fetch("https://api.hyperliquid.xyz/info", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "meta" }) });
+  const meta = await r.json(); for (const u of meta.universe || []) if (!u.isDelisted) uni.push(/^k[A-Z]/.test(u.name) ? u.name.slice(1) : u.name);
+} catch (e) { console.log("Không lấy được danh sách Hyperliquid:", e.message); }
 uni = [...new Set([...uni, ...K1.extra])].filter(b => /^[A-Z0-9]{2,12}$/.test(b)).slice(0, MAX);
 const STOCKS = arg("stocks", "1") === "1" ? K1.stocks.filter(x => !arg("only", "") || arg("only", "").toUpperCase().split(",").includes(x[1])) : [];   // cổ phiếu (Yahoo): 4H/1H tối đa 2 năm, 1D/1W tối đa 10 năm
 const ONLY = arg("only", "") ? arg("only", "").toUpperCase().split(",") : null;
