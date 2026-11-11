@@ -1,0 +1,10 @@
+{
+ "name": "t5-sau-tp1-sl-len-1.5R",
+ "desc": "Sau TP1: dời SL lên Entry + 1.5R",
+ "patch": [
+  {
+   "find": "sl=hit===1?E:T[hit-2]",
+   "replace": "sl=hit===1?E+1.5*R0:T[hit-2]"
+  }
+ ]
+}
