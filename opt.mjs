@@ -25,6 +25,7 @@ const KNOBS = [
   W("tpmin", "Khoảng cách tối thiểu TP1 (ATR)", [["z.lo>from+.3*atr&&(z.lo>from+.75*atr||z.w>=3)", "z.lo>from+.3*atr&&(z.lo>from+{v}*atr||z.w>=3)"]], .75, [.5, .75, 1, 1.5, 2], "TP"),
   W("exp", "Lệnh chờ hết hạn sau (nến)", [["const expiry=j.at+12*TFMS[j.tf];", "const expiry=j.at+{v}*TFMS[j.tf];"]], 12, [4, 6, 8, 12, 18, 24, 36], "Entry"),
   W("limz", "Điểm tối thiểu vùng đặt lệnh chờ", [["const below=best(SZ.filter(z=>z.hi<px-.6*atr&&z.hi>=px-3*atr&&z.w>=2));", "const below=best(SZ.filter(z=>z.hi<px-.6*atr&&z.hi>=px-3*atr&&z.w>={v}));"]], 2, [1, 2, 3, 4, 5], "Entry"),
+  W("dowk", "Số nến mỗi bên để xác định đỉnh/đáy Dow", [["function dow(c,k=5){", "function dow(c,k={v}){"]], 5, [2, 3, 4, 5, 7, 10], "Bộ lọc"),
   W("weak", "Trần điểm khi chart yếu (Trend < x)", [["if(T!=null&&T<-.3){score=Math.min(score,45);", "if(T!=null&&T<{v}){score=Math.min(score,45);"]], -.3, [-.6, -.3, 0, .2], "Ngưỡng"),
   // bộ lọc (bật/tắt)
   W("htf", "Khung lớn phải tăng (trend ≥)", [[/const HTF_MIN=[^;]*;/, "const HTF_MIN={v};"]], .3, [null, 0, .2, .3, .4, .5], "Bộ lọc"),

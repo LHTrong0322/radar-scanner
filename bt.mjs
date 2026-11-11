@@ -18,7 +18,7 @@ const FEE_TAKER = +arg("taker", .045), FEE_MAKER = +arg("maker", .015), FUND_APR
 const PERTF = arg("pertf", "0") === "1";                     // 1: mỗi khung có vị thế riêng (đo từng khung độc lập); 0: 1 lệnh/mã như bot
 const LOW_DAYS = Math.min(DAYS, arg("lowdays", "730") === "max" ? DAYS : +arg("lowdays", "730")), LOWTF_ON = arg("lowtf", "1") !== "0";   // --lowtf 0: chỉ xét 4H/1D/1W     // BTC 15m/1h: chỉ xét 2 năm gần nhất cho nhẹ
 const STEP = { "15m": 1, "1h": 1, "4h": +arg("step4h", 1), "1d": 1, "1w": 1 };    // xét mọi nến (step 1) để kết quả không phụ thuộc thời điểm lấy mẫu
-const WIN = 400;                                             // số nến đưa vào thuật toán mỗi lần (giống bot)
+const WIN = 500;                                             // số nến đưa vào thuật toán mỗi lần (GIỐNG HỆT bot thật: 500 nến)
 const MS = { "15m": 9e5, "1h": 36e5, "4h": 144e5, "1d": 864e5, "1w": 6048e5 };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 let K1s = [];   // nhãn các mã cổ phiếu (để tách thống kê crypto / cổ phiếu)
