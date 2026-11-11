@@ -3,6 +3,10 @@ name: Backtest BTC chỉ dùng RSI
 # Vào khi RSI(14) nến D < 30 (chia vốn DCA nhiều cách), bán khi RSI(14) nến D ≥ 70. Không đặt lệnh thật.
 on:
   workflow_dispatch:
+    inputs:
+      script:
+        description: "rsi_btc.mjs hoặc rsi_lev.mjs"
+        default: rsi_btc.mjs
 
 permissions:
   contents: write
@@ -15,7 +19,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: node rsi_btc.mjs
+      - run: node ${{ inputs.script || 'rsi_btc.mjs' }}
       - name: Lưu kết quả
         run: |
           git config user.name "radar-backtest"
