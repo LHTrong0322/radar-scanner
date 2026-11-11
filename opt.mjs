@@ -45,6 +45,8 @@ const KNOBS = [
   W("adxlow", "Điểm ADX < 13 cạn lực giảm (Momentum)", [["xu hướng giảm cạn lực, ủng hộ đảo chiều`,1.5]", "xu hướng giảm cạn lực, ủng hộ đảo chiều`,{v}]"]], 1.5, [0, .75, 1.5, 2.5], "Điểm phụ"),
   W("hdiv", "Cộng điểm phân kỳ dương ẩn", [["score+=3;notes.push(\"+3 phân kỳ dương ẩn", "score+={v};notes.push(\"+3 phân kỳ dương ẩn"]], 3, [0, 1.5, 3, 5, 8], "Điểm phụ"),
   // thuật toán mới (nghiên cứu 11/11/2026) — mặc định tắt
+  W("regsrc", "Nguồn lọc thị trường BTC (EMA / cấu trúc Dow 4H / 1D)", [[/const REGIME_SRC="[^"]*";/, 'const REGIME_SRC="{v}";']], "ema", ["ema", "dow4h", "dow1d", "ema+dow4h", "ema+dow1d"], "Thuật toán mới"),
+  W("regloose", "Lọc Dow BTC: tính cả lúc vừa vượt đỉnh thấp hơn", [[/const REGIME_DOW_LOOSE=(true|false);/, "const REGIME_DOW_LOOSE={v};"]], false, [false, true], "Thuật toán mới"),
   W("regema", "Lọc BTC: giá trên EMA bao nhiêu ngày", [[/const REGIME_EMA=\d+;/, "const REGIME_EMA={v};"]], 200, [50, 100, 150, 200], "Thuật toán mới"),
   W("rsd", "Coin phải mạnh hơn BTC trong N ngày", [["const RS_DAYS=null;", "const RS_DAYS={v};"]], null, [null, 14, 30, 60, 90], "Thuật toán mới"),
   W("volx", "Bỏ kèo khi biến động > N lần bình thường", [["const VOL_X=null;", "const VOL_X={v};"]], null, [null, 1.5, 2, 2.5, 3], "Thuật toán mới"),
