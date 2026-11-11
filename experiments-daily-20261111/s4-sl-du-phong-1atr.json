@@ -1,0 +1,10 @@
+{
+ "name": "s4-sl-du-phong-1atr",
+ "desc": "SL: khi không có vùng ≥3 điểm, SL dưới đáy cấu trúc 1 ATR (thay vì 0.5 ATR)",
+ "patch": [
+  {
+   "find": "stop=cands.length?Math.max(...cands)-.5*atr:entry-2*atr;",
+   "replace": "stop=cands.length?Math.max(...cands)-1*atr:entry-2*atr;"
+  }
+ ]
+}

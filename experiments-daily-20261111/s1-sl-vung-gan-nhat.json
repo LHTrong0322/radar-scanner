@@ -1,0 +1,10 @@
+{
+ "name": "s1-sl-vung-gan-nhat",
+ "desc": "SL: đặt dưới vùng hỗ trợ ≥3 điểm GẦN Entry nhất (thay vì vùng nhiều điểm nhất)",
+ "patch": [
+  {
+   "find": "const e=i.ew, zs=best((i.lv.supSL||SZ).filter(z=>z.lo<entry-.2*atr&&z.lo>=entry-5*atr));",
+   "replace": "const e=i.ew, zs=(i.lv.supSL||SZ).filter(z=>z.lo<entry-.2*atr&&z.lo>=entry-5*atr).sort((a,b)=>b.lo-a.lo).find(z=>z.w>=3)||null;"
+  }
+ ]
+}

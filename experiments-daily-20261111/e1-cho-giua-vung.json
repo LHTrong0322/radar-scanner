@@ -1,0 +1,10 @@
+{
+ "name": "e1-cho-giua-vung",
+ "desc": "ENTRY: lệnh chờ đặt ở GIỮA vùng hỗ trợ thay vì mép trên vùng",
+ "patch": [
+  {
+   "find": "else if(below){ entry=below.hi;",
+   "replace": "else if(below){ entry=(below.lo+below.hi)/2;"
+  }
+ ]
+}

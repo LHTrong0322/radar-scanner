@@ -1,0 +1,10 @@
+{
+ "name": "e2-vung-cho-2atr",
+ "desc": "ENTRY: chỉ tìm vùng đặt lệnh chờ trong 0.6–2 ATR dưới giá (thay vì 0.6–3 ATR)",
+ "patch": [
+  {
+   "find": "z.hi>=px-3*atr&&z.w>=3",
+   "replace": "z.hi>=px-2*atr&&z.w>=3"
+  }
+ ]
+}

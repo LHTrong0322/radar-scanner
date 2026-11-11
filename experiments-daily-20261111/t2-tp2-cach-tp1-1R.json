@@ -1,0 +1,10 @@
+{
+ "name": "t2-tp2-cach-tp1-1R",
+ "desc": "TP: TP2 phải cách TP1 ít nhất 1R (thay vì 0.5 ATR)",
+ "patch": [
+  {
+   "find": "const z2=Z.find(z=>z.lo>tp1+.5*atr&&z.w>=2)||Z.find(z=>z.lo>tp1+.5*atr);",
+   "replace": "const z2=Z.find(z=>z.lo>tp1+Math.max(.5*atr,risk)&&z.w>=2)||Z.find(z=>z.lo>tp1+Math.max(.5*atr,risk));"
+  }
+ ]
+}

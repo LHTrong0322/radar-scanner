@@ -1,0 +1,10 @@
+{
+ "name": "t1-tp-vung-2diem",
+ "desc": "TP: chỉ dùng vùng kháng cự ≥2 điểm làm TP (thay vì ≥1.5)",
+ "patch": [
+  {
+   "find": "(res||[]).filter(z=>z.w>=1.5&&",
+   "replace": "(res||[]).filter(z=>z.w>=2&&"
+  }
+ ]
+}

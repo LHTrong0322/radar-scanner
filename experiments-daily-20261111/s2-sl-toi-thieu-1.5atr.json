@@ -1,0 +1,10 @@
+{
+ "name": "s2-sl-toi-thieu-1.5atr",
+ "desc": "SL: khoảng cách SL tối thiểu 1.5 ATR (thay vì 1 ATR)",
+ "patch": [
+  {
+   "find": "if(entry-stop<1*atr){stop=entry-1*atr;why=\"tối thiểu 1 ATR\"}",
+   "replace": "if(entry-stop<1.5*atr){stop=entry-1.5*atr;why=\"tối thiểu 1.5 ATR\"}"
+  }
+ ]
+}

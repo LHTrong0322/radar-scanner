@@ -1,0 +1,10 @@
+{
+ "name": "e3-vung-cho-4atr",
+ "desc": "ENTRY: tìm vùng đặt lệnh chờ xa hơn, 0.6–4 ATR dưới giá",
+ "patch": [
+  {
+   "find": "z.hi>=px-3*atr&&z.w>=3",
+   "replace": "z.hi>=px-4*atr&&z.w>=3"
+  }
+ ]
+}

@@ -1,0 +1,10 @@
+{
+ "name": "s3-sl-toi-da-4atr",
+ "desc": "SL: SL xa nhất 4 ATR (thay vì 5 ATR)",
+ "patch": [
+  {
+   "find": "if(entry-stop>5*atr){stop=entry-5*atr;",
+   "replace": "if(entry-stop>4*atr){stop=entry-4*atr;"
+  }
+ ]
+}
