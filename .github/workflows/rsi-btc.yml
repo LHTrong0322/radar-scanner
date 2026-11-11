@@ -1,0 +1,29 @@
+name: Backtest BTC chỉ dùng RSI
+
+# Vào khi RSI(14) nến D < 30 (chia vốn DCA nhiều cách), bán khi RSI(14) nến D ≥ 70. Không đặt lệnh thật.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  rsi:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node rsi_btc.mjs
+      - name: Lưu kết quả
+        run: |
+          git config user.name "radar-backtest"
+          git config user.email "radar-backtest@users.noreply.github.com"
+          git add backtests
+          git commit -m "backtest RSI BTC $(date -u +%Y-%m-%d)" || exit 0
+          for i in 1 2 3 4 5; do
+            git pull --rebase -X theirs origin main && git push origin HEAD:main && exit 0
+            sleep $((i * 5))
+          done
+          exit 1
