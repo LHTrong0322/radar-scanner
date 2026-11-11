@@ -44,6 +44,12 @@ const KNOBS = [
   W("adxw", "Điểm ADX > 25 và +DI trội (Momentum)", [["`ADX ${A} > 25, +DI trội${ad.rising?\", ADX đang tăng\":\"\"}`,2]", "`ADX ${A} > 25, +DI trội${ad.rising?\", ADX đang tăng\":\"\"}`,{v}]"]], 2, [0, 1, 2, 3, 4], "Điểm phụ"),
   W("adxlow", "Điểm ADX < 13 cạn lực giảm (Momentum)", [["xu hướng giảm cạn lực, ủng hộ đảo chiều`,1.5]", "xu hướng giảm cạn lực, ủng hộ đảo chiều`,{v}]"]], 1.5, [0, .75, 1.5, 2.5], "Điểm phụ"),
   W("hdiv", "Cộng điểm phân kỳ dương ẩn", [["score+=3;notes.push(\"+3 phân kỳ dương ẩn", "score+={v};notes.push(\"+3 phân kỳ dương ẩn"]], 3, [0, 1.5, 3, 5, 8], "Điểm phụ"),
+  // thuật toán mới (nghiên cứu 11/11/2026) — mặc định tắt
+  W("regema", "Lọc BTC: giá trên EMA bao nhiêu ngày", [[/const REGIME_EMA=\d+;/, "const REGIME_EMA={v};"]], 200, [50, 100, 150, 200], "Thuật toán mới"),
+  W("rsd", "Coin phải mạnh hơn BTC trong N ngày", [["const RS_DAYS=null;", "const RS_DAYS={v};"]], null, [null, 14, 30, 60, 90], "Thuật toán mới"),
+  W("volx", "Bỏ kèo khi biến động > N lần bình thường", [["const VOL_X=null;", "const VOL_X={v};"]], null, [null, 1.5, 2, 2.5, 3], "Thuật toán mới"),
+  W("tstop", "Thoát lệnh ì sau N nến chưa tới TP1", [["const TIME_STOP=null;", "const TIME_STOP={v};"]], null, [null, 3, 5, 8, 12, 20], "Thuật toán mới"),
+  W("trail", "Sau TP1: SL bám giá cao nhất − N×R", [["const TRAIL_R=null;", "const TRAIL_R={v};"]], null, [null, .5, 1, 1.5, 2, 3], "Thuật toán mới"),
   // trọng số /100
   ...[["Trend", "T", 30], ["Momentum", "M", 15], ["Elliott", "W", 15], ["Entry", "En", 20], ["R:R", "RR", 20], ["Divergence", "D", 10], ["SL", "SLq", 5]].map(([n, vn, w]) =>
     W("p_" + vn, `Trọng số phần ${n} (/100)`, [[`["${n}",${vn},${w}]`, `["${n}",${vn},{v}]`]], w, [0, Math.round(w / 2), w, Math.round(w * 1.5), w * 2], "Điểm /100")),
@@ -232,6 +238,12 @@ function update() {
     S.rounds.push(R); S.rounds = S.rounds.slice(-40); save(S); report(S); fs.writeFileSync("opt/continue", "1"); console.log(R.note); return;
   }
   const res = (S.pending || []).filter(p => p.name.startsWith("c-")).map(p => ({ p, m: metric(V[p.name]) }));
+  // "đã qua kiểm tra 2026": hơn bot thật ở CẢ 2023–2025 (chỉ số) LẪN năm 2026 (tổng R) → mới đáng đem ra duyệt
+  const passes = m => m && liveM && fit(m) > fit(liveM) * 1.03 && m.tot >= liveM.tot && m.test.tot > liveM.test.tot + 1 && m.test.n >= liveM.test.n * .6;
+  const cands = [{ m: base, cfg: { ...S.best }, desc: "Cấu hình tốt nhất vòng " + S.round }, ...res.map(({ p, m }) => ({ m, cfg: { ...S.best, ...(p.delta || {}) }, desc: p.desc }))];
+  for (const c of cands) if (passes(c.m) && (!S.verified || fit(c.m) + c.m.test.tot / 10 > fit(S.verified.m) + S.verified.m.test.tot / 10))
+    S.verified = { round: S.round, desc: c.desc, cfg: c.cfg, m: c.m };
+  if (S.verified && liveM && !passes(S.verified.m)) S.verified = null;   // bot thật đổi → kiểm tra lại
   for (const { p, m } of res) { S.seen[p.key] = 1; S.tested++; R.rows.push({ desc: p.desc, delta: p.delta, ...(m || {}), fit: m ? +fit(m).toFixed(2) : null, good: good(m, base) }); }
   // nhận: chế độ "từng thông số" & "tinh chỉnh" → mỗi thông số lấy phương án tốt nhất; "ghép" & "ngẫu nhiên" → lấy 1 phương án tốt nhất
   const ok = res.filter(x => good(x.m, base)).sort((a, b) => fit(b.m) - fit(a.m)), take = [];
@@ -269,6 +281,13 @@ function report(S) {
   if (b && b.tf) { const tfs = Object.keys({ ...b.tf, ...b.tfTest });
     L.push("## Theo khung (cấu hình tốt nhất)", "", "| Khung | Lệnh 2023–2025 | Win rate | Tổng R | Lệnh 2026 (kiểm tra kín) | Win rate | Tổng R |", "|---|---|---|---|---|---|---|",
       ...tfs.map(t => { const a = b.tf[t] || {}, c = b.tfTest[t] || {}; return `| ${t.toUpperCase()} | ${a.n ?? 0} | ${a.win ?? "–"}% | ${a.tot ?? 0}R | ${c.n ?? 0} | ${c.win ?? "–"}% | ${c.tot ?? 0}R |`; }), ""); }
+  { const V2 = S.verified;
+    L.push("## ✅ Cấu hình tốt nhất ĐÃ QUA kiểm tra 2026 (đề xuất để Trọng duyệt)", "");
+    if (!V2) L.push("Chưa có cấu hình nào vừa hơn bot thật ở 2023–2025 vừa hơn ở năm 2026.", "");
+    else { const dv = KNOBS.filter(k => !eq(V2.cfg[k.id], live[k.id]));
+      L.push(`Tìm thấy ở vòng ${V2.round} (${V2.desc}).`, "", "| | Lệnh 2023–2025 | Win rate | Tổng R | Sụt vốn MC95 | Chỉ số | Lệnh 2026 | Win rate | Tổng R 2026 |", "|---|---|---|---|---|---|---|---|---|",
+        ...[["Bot thật", lv], ["**Đề xuất**", V2.m]].map(([n, m]) => m ? `| ${n} | ${m.n} | ${m.win}% | ${m.tot}R | ${m.dd95}R | ${fit(m).toFixed(2)} | ${m.test.n} | ${f2(m.test.win)}% | ${m.test.tot}R |` : `| ${n} | – |`), "",
+        "| Thông số | Bot thật | Đề xuất |", "|---|---|---|", ...dv.map(k => `| ${k.label} | ${fmt(live[k.id])} | **${fmt(V2.cfg[k.id])}** |`), ""); } }
   L.push("## Thông số khác với bot thật", "", "| Thông số | Bot thật | Đề xuất |", "|---|---|---|", ...(diff.length ? diff.map(k => `| ${k.label} | ${fmt(live[k.id])} | **${fmt(S.best[k.id])}** |`) : ["| (chưa có) | | |"]), "");
   const acc = S.accepted.slice(-40).reverse();
   L.push("## Các thay đổi đã nhận (mới nhất trước)", "", "| Vòng | Thông số | Từ → Thành | Tổng R | Win rate | MC95 | Chỉ số |", "|---|---|---|---|---|---|---|",

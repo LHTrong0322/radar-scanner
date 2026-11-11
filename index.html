@@ -1006,6 +1006,25 @@ const SL_BUF=1;                                      // đệm SL dưới vùng 
 const SLB_4H=null, SLB_1D=null, SLB_1W=null;       // đệm SL riêng từng khung
 const SL_BUF_TF={"4h":SLB_4H,"1d":SLB_1D,"1w":SLB_1W};
 const slBuf=tf=>SL_BUF_TF[tf]??SL_BUF;
+// ---- Thuật toán mới đang nghiên cứu (11/11/2026). Mặc định TẮT (null) → bot thật không đổi. Bot tối ưu tự dò; chỉ bật khi Trọng duyệt. ----
+const REGIME_EMA=200;   // lọc BTC: giá BTC 1D phải trên EMA bao nhiêu ngày
+const RS_DAYS=null;     // sức mạnh tương đối: lợi nhuận N ngày của coin phải ≥ của BTC (coin mạnh hơn BTC mới mua)
+const VOL_X=null;       // bỏ kèo khi biến động (ATR) hiện tại > VOL_X lần mức bình thường (trung vị ~100 nến) — tránh thị trường loạn
+const TIME_STOP=null;   // thoát lệnh nếu sau N nến kể từ khi khớp mà vẫn chưa chạm TP1 (lệnh "ì", không chạy)
+const TRAIL_R=null;     // sau khi chạm TP1: SL bám theo giá cao nhất trừ TRAIL_R × R (khoá lãi khi giá chạy xa)
+function rsOK(dc,bc,t){
+  if(RS_DAYS==null||!dc||!bc) return true;
+  const last=a=>{for(let i=a.length-1;i>=0;i--) if(a[i].t+864e5<=t) return i; return -1};   // nến ngày đã đóng tại thời điểm t
+  const i=last(dc), j=last(bc); if(i<RS_DAYS||j<RS_DAYS) return true;
+  return dc[i].c/dc[i-RS_DAYS].c>=bc[j].c/bc[j-RS_DAYS].c;
+}
+function volOK(c){
+  if(VOL_X==null||!c||c.length<130) return true;
+  const tr=[]; for(let i=c.length-120;i<c.length;i++) tr.push(Math.max(c[i].h-c[i].l,Math.abs(c[i].h-c[i-1].c),Math.abs(c[i].l-c[i-1].c)));
+  const avg=a=>a.reduce((s,x)=>s+x,0)/a.length, now=avg(tr.slice(-14)), hist=[];
+  for(let k=0;k+14<=tr.length-14;k+=4) hist.push(avg(tr.slice(k,k+14)));
+  hist.sort((a,b)=>a-b); return now<=VOL_X*hist[Math.floor(hist.length/2)];
+}
 const HTF_MIN=0.4;    // khung lớn hơn phải đang tăng (trend ≥ 0.4, Trọng duyệt nâng từ 0.3 ngày 11/11/2026 theo bot tối ưu) — backtest toàn bộ dữ liệu 2018→nay: R/lệnh 0.117 → 0.203, win rate 30.5% → 33.7%, sụt vốn 63R → 26R. Trọng duyệt bật lại 11/11/2026
 const LOW_TF_ASSETS=["BTC"];   // mã được quét thêm khung nhỏ
 const LOW_TFS=["1h"];          // khung nhỏ được trade (đã tắt 15m 11/11/2026: lợi thế quá mỏng, phí ăn hết); 15m chỉ dùng để xác nhận cho 1H
@@ -1581,7 +1600,8 @@ function simulate(j,c,cur){
   // SHORT: chạy cùng logic trên nến nghịch đảo (1/giá); lợi nhuận tính theo công thức short thật (1 − giá ra / Entry)
   const sh=j.side==="short", I=x=>x==null?x:sh?1/x:x, cc=sh?invC(c):c, E=I(j.entry), ret=x=>sh?1-E/x:x/E-1;
   const T=(Array.isArray(j.tps)&&j.tps.length>=2?j.tps:[j.tp1,j.tp2]).map(I), F=Array.isArray(j.tpf)&&j.tpf.length===T.length?j.tpf:tpFrac(T.length), TP1=I(j.tp1);
-  let st=j.mode==="Chờ hồi"?"pending":"open", sl=I(j.stop), half=false, real=0, left=1, hit=0, fillAt=st==="open"?j.at:null, exitAt=null, exit=null;
+  let st=j.mode==="Chờ hồi"?"pending":"open", sl=I(j.stop), half=false, real=0, left=1, hit=0, fillAt=st==="open"?j.at:null, exitAt=null, exit=null, tag=null, nFill=0, mx=-Infinity;
+  const R0=E-I(j.stop);
   const expiry=j.at+8*TFMS[j.tf];   // lệnh chờ hết hạn sau 8 nến (Trọng duyệt 11/11/2026)
   // Cấu trúc theo khung của kèo: gom nến 1H thành nến khung kèo; long: đáy cao hơn (higher low) mới nhất sau khi khớp; short: đỉnh thấp hơn (lower high).
   // Nến khung kèo ĐÓNG CỬA phá mốc này (mốc nằm phía có lời so với SL) → cấu trúc bị phá → thoát lệnh ở giá đóng cửa.
@@ -1590,6 +1610,8 @@ function simulate(j,c,cur){
   const closeBar=()=>{
     if(!agg) return false; bars.push(agg); const n=bars.length, last=agg; agg=null;
     if(st==="open"&&hl!=null&&hl>sl&&last.c<hl&&last.t>=fillAt){ real+=left*ret(last.c); left=0; st="struct"; exitAt=last.end; exit=last.c; return true }
+    if(st==="open"&&fillAt!=null&&last.t>=fillAt) nFill++;
+    if(TIME_STOP!=null&&st==="open"&&hit===0&&nFill>=TIME_STOP){ real+=left*ret(last.c); left=0; st="struct"; tag="time"; exitAt=last.end; exit=last.c; return true }   // lệnh ì: N nến chưa tới TP1 → thoát
     if(n>=5){ const p=bars[n-3]; if(fillAt!=null&&p.t>=fillAt&&p.l<bars[n-4].l&&p.l<bars[n-5].l&&p.l<=bars[n-2].l&&p.l<=bars[n-1].l&&(hl==null||p.l>hl)) hl=p.l }
     return false;
   };
@@ -1607,13 +1629,14 @@ function simulate(j,c,cur){
     if(k.l<=sl){ real+=left*ret(sl); left=0; st=hit===0?"sl":hit===1?"tp1_be":"trail"; exitAt=k.t; exit=sl; break }
     while(hit<T.length&&k.h>=T[hit]){ real+=F[hit]*ret(T[hit]); left-=F[hit]; hit++; sl=hit===1?E:T[hit-2] }
     if(hit>=1) half=true;
+    if(TRAIL_R!=null&&hit>=1&&hit<T.length&&R0>0){ mx=Math.max(mx,k.h); sl=Math.max(sl,mx-TRAIL_R*R0) }   // khoá lãi sau TP1
     if(hit>=T.length){ left=0; st="tp2"; exitAt=k.t; exit=T[T.length-1]; break }
   }
   let roi=real;
   if(st==="open"&&cur) roi=real+left*ret(I(cur));
   if(st==="pending"||st==="expired") roi=0;
   const riskPct=-ret(I(j.stop));
-  return {status:st,half,hit,nTp:T.length,real,left,slNow:st==="open"?I(sl):null,structLo:st==="open"&&hl!=null&&hl>sl?I(hl):null,fillAt,exitAt,exit:I(exit),roi:roi*100,r:riskPct>0?roi/riskPct:0,cur};
+  return {status:st,tag,half,hit,nTp:T.length,real,left,slNow:st==="open"?I(sl):null,structLo:st==="open"&&hl!=null&&hl>sl?I(hl):null,fillAt,exitAt,exit:I(exit),roi:roi*100,r:riskPct>0?roi/riskPct:0,cur};
 }
 // Áp dụng cách đặt TP mới cho các lệnh đang mở / chờ khớp (một lần mỗi lệnh)
 const TP_VER=2;

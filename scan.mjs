@@ -34,7 +34,7 @@ function loadCore() {
     grab(/function simulate\([\s\S]*?\n\}/, "simulate"),
   ].join("\n");
   const S = { tf: "4h", win: 3, os: 30, ob: 70 };
-  return new Function("S", src + "\nreturn {TFMS,SETS,STOCKS,skipCoin,bucket,compute,trendOf,pickReasons,simulate,MAX_SL,clamp,swapTxt,PICK_MIN:typeof PICK_MIN!=='undefined'?PICK_MIN:70,RR_TF:typeof RR_TF!=='undefined'?RR_TF:{},MIN_RR:typeof MIN_RR!=='undefined'?MIN_RR:2,TF_ADD:typeof TF_ADD!=='undefined'?TF_ADD:{},HTF_MIN:typeof HTF_MIN!=='undefined'?HTF_MIN:null,REGIME:typeof REGIME!=='undefined'?REGIME:false,LOW_TF_ASSETS:typeof LOW_TF_ASSETS!=='undefined'?LOW_TF_ASSETS:[],LOW_TFS:typeof LOW_TFS!=='undefined'?LOW_TFS:['1h'],LTF_CONFIRM:typeof LTF_CONFIRM!=='undefined'?LTF_CONFIRM:{},upClear:typeof upClear!=='undefined'?upClear:()=>true,ltfOK:typeof ltfOK!=='undefined'?ltfOK:()=>true,ema};")(S);
+  return new Function("S", src + "\nreturn {TFMS,SETS,STOCKS,skipCoin,bucket,compute,trendOf,pickReasons,simulate,MAX_SL,clamp,swapTxt,PICK_MIN:typeof PICK_MIN!=='undefined'?PICK_MIN:70,RR_TF:typeof RR_TF!=='undefined'?RR_TF:{},REGIME_EMA:typeof REGIME_EMA!=='undefined'?REGIME_EMA:200,RS_DAYS:typeof RS_DAYS!=='undefined'?RS_DAYS:null,rsOK:typeof rsOK!=='undefined'?rsOK:null,volOK:typeof volOK!=='undefined'?volOK:null,MIN_RR:typeof MIN_RR!=='undefined'?MIN_RR:2,TF_ADD:typeof TF_ADD!=='undefined'?TF_ADD:{},HTF_MIN:typeof HTF_MIN!=='undefined'?HTF_MIN:null,REGIME:typeof REGIME!=='undefined'?REGIME:false,LOW_TF_ASSETS:typeof LOW_TF_ASSETS!=='undefined'?LOW_TF_ASSETS:[],LOW_TFS:typeof LOW_TFS!=='undefined'?LOW_TFS:['1h'],LTF_CONFIRM:typeof LTF_CONFIRM!=='undefined'?LTF_CONFIRM:{},upClear:typeof upClear!=='undefined'?upClear:()=>true,ltfOK:typeof ltfOK!=='undefined'?ltfOK:()=>true,ema};")(S);
 }
 const K = loadCore();
 
@@ -312,6 +312,7 @@ async function main() {
 
   // 4.2 nến 3 khung + chấm điểm
   const ok = [], near = [], evals = new Map();
+  let BTC1D = null; if (K.RS_DAYS != null) { try { BTC1D = (await cryptoCandles("BTC", "1d", 400)).c; } catch (e) { } }   // cho bộ lọc sức mạnh tương đối
   await pool(assets, 6, async a => {
     const R = {}, why = [], TFA = a.kind !== "stock" && K.LOW_TF_ASSETS.includes(a.base) ? [...K.LOW_TFS, ...PICK_TFS] : PICK_TFS;   // BTC: thêm khung nhỏ (1H)
     const FETCH = [...new Set([...TFA, ...TFA.map(x => K.LTF_CONFIRM[x]).filter(Boolean)])];   // thêm khung nhỏ để xác nhận (A2)
@@ -330,6 +331,8 @@ async function main() {
       const htf = TFA[k + 1] || null, hT = htf ? K.trendOf(R[htf]) : null;
       if (K.HTF_MIN != null && htf && (hT == null || hT < K.HTF_MIN)) return;
       if (K.LTF_CONFIRM[tf] && !K.ltfOK(tf, R[K.LTF_CONFIRM[tf]])) return;   // khung nhỏ phải xác nhận cấu trúc tăng (W: D tăng rõ)
+      if (a.kind !== "stock" && K.rsOK && !K.rsOK(R["1d"] && R["1d"].c, BTC1D, Date.now())) return;   // coin yếu hơn BTC (nếu bật RS_DAYS)
+      if (K.volOK && !K.volOK(t.c)) return;                                                          // biến động bất thường (nếu bật VOL_X)
       let sc = t.buy.score; if (hT != null) { if (hT > .3) sc += 3; else if (hT < -.3) sc -= 5; }
       sc = K.clamp(sc, 0, 100);
       const rs = K.pickReasons(t.ind), why = SIDE === "short" ? { g: rs.g.map(K.swapTxt), w: rs.w.map(K.swapTxt) } : rs;
@@ -342,7 +345,7 @@ async function main() {
   // bộ lọc thị trường (REGIME trong index.html): chỉ LONG khi BTC 1D trên EMA200 (SHORT: dưới)
   let regimeOK = true;
   if (K.REGIME) {
-    try { const bc = (await cryptoCandles("BTC", "1d", 400)).c, e = K.ema(bc.map(x => x.c), 200), up = bc.at(-1).c > e.at(-1); regimeOK = SIDE === "short" ? !up : up;
+    try { const bc = (await cryptoCandles("BTC", "1d", 400)).c, e = K.ema(bc.map(x => x.c), K.REGIME_EMA || 200), up = bc.at(-1).c > e.at(-1); regimeOK = SIDE === "short" ? !up : up;
       if (!regimeOK) console.log(`Bộ lọc thị trường: BTC ${up ? "trên" : "dưới"} EMA200 1D → không mở kèo ${SIDE}`); } catch (e) { }
     if (!regimeOK) for (let i = ok.length - 1; i >= 0; i--) if (ok[i].a.kind !== "stock") ok.splice(i, 1);   // chỉ áp cho crypto, cổ phiếu không phụ thuộc BTC
   }
