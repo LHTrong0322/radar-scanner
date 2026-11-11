@@ -1,11 +1,11 @@
-# Tối ưu tự động — vòng 10
+# Tối ưu tự động — vòng 11
 
 Đây là báo cáo để thảo luận. Bot thật KHÔNG bị thay đổi cho tới khi Trọng duyệt.
 
 Mỗi vòng: backtest toàn bộ dữ liệu (từ 2018, mọi nến, có phí + funding), đổi từng thông số một so với cấu hình tốt nhất hiện tại. Chỉ nhận thay đổi khi R/lệnh tăng ≥ 0.005R, KHÔNG xấu đi ở cả nửa đầu lẫn nửa sau dữ liệu, sụt vốn không tệ hơn 10%, tổng R không giảm quá 10%, số lệnh không giảm quá nửa.
 
 **Mốc ban đầu:** 1669 lệnh · win rate 30% · 0.055R/lệnh · tổng 92.39R · sụt vốn 65.43R
-**Cấu hình tốt nhất hiện tại:** 437 lệnh · win rate 40.7% · 0.332R/lệnh · tổng 145.13R · sụt vốn 16.53R
+**Cấu hình tốt nhất hiện tại:** 437 lệnh · win rate 40.7% · 0.343R/lệnh · tổng 150R · sụt vốn 15.66R
 
 ## Thông số khác với bot thật
 
@@ -15,6 +15,8 @@ Mỗi vòng: backtest toàn bộ dữ liệu (từ 2018, mọi nến, có phí +
 | Trọng số phần Elliott (/100) | 15 | **8** |
 | Trọng số phần Entry (/100) | 20 | **30** |
 | Trọng số phần R:R (/100) | 20 | **30** |
+| Điểm vùng: POC anchored | 2 | **3** |
+| Điểm vùng: EMA 50 | 1.5 | **0.75** |
 
 ## Lịch sử các vòng
 
@@ -198,3 +200,22 @@ Nhận: Trọng số phần Elliott (/100) 15 → 8 · Trọng số phần Entry
 | Điểm vùng: BOS | 2 → 3 | 5 | 0.332 | 40.7% | 437 | 16.53 | 0.656 | 0.171 |  |
 
 Nhận: Trọng số phần R:R (/100) 20 → 30
+
+### Vòng 11 — mốc: 0.343R/lệnh, win 40.7%, DD 15.66R, 437 lệnh
+
+| Thông số | Từ → Thử | Điểm 0–10 | R/lệnh | Win rate | Lệnh | Max DD | Nửa đầu | Nửa sau | Nhận? |
+|---|---|---|---|---|---|---|---|---|---|
+| Điểm vùng: POC anchored | 2 → 1 | 4.1 | 0.297 | 39.8% | 435 | 17.2 | 0.61 | 0.138 |  |
+| Điểm vùng: POC anchored | 2 → 3 | 6 | 0.392 | 41% | 434 | 16.34 | 0.718 | 0.23 | ✅ |
+| Điểm vùng: EMA 200 | 2 → 1 | 4.9 | 0.338 | 40.3% | 437 | 16.63 | 0.678 | 0.17 |  |
+| Điểm vùng: EMA 200 | 2 → 3 | 4.9 | 0.338 | 40.9% | 430 | 16.52 | 0.698 | 0.159 |  |
+| Điểm vùng: EMA 50 | 1.5 → 0.75 | 5.2 | 0.355 | 41.8% | 414 | 14.65 | 0.697 | 0.187 | ✅ |
+| Điểm vùng: EMA 50 | 1.5 → 2.25 | 5.4 | 0.364 | 42% | 452 | 17.19 | 0.596 | 0.247 |  |
+| Điểm vùng: EMA 21 | 1 → 0.5 | 4.8 | 0.334 | 40.7% | 427 | 15.33 | 0.657 | 0.174 |  |
+| Điểm vùng: EMA 21 | 1 → 1.5 | 4.2 | 0.303 | 39.6% | 455 | 18.68 | 0.663 | 0.133 |  |
+| Điểm vùng: Break mây Ichimoku | 2 → 1 | 5.3 | 0.358 | 41.1% | 419 | 15.13 | 0.677 | 0.201 |  |
+| Điểm vùng: Break mây Ichimoku | 2 → 3 | 4.8 | 0.333 | 40% | 445 | 16.75 | 0.597 | 0.195 |  |
+| Điểm vùng: Kháng cự cũ bị phá | 1.5 → 0.75 | 4.5 | 0.316 | 40.3% | 432 | 15.45 | 0.605 | 0.172 |  |
+| Điểm vùng: Kháng cự cũ bị phá | 1.5 → 2.25 | 4.9 | 0.338 | 40.6% | 424 | 17.18 | 0.666 | 0.175 |  |
+
+Nhận: Điểm vùng: POC anchored 2 → 3 · Điểm vùng: EMA 50 1.5 → 0.75
