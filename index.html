@@ -339,7 +339,7 @@ details.how p{color:var(--muted);font-size:12.5px;line-height:1.6;max-width:90ch
       <div class="sub2">Watchlist · sắp đạt chuẩn</div>
       <ul class="ext" id="nearList"></ul>
       <details class="how"><summary>Cách chọn setup</summary>
-        <p>Quét toàn bộ coin có trên Binance và các mã cổ phiếu ở 3 khung 4H, 1D, 1W (không phụ thuộc khung đang chọn ở bảng dưới). Kèo đạt chuẩn khi R:R tới TP1 tối thiểu 1:2, điểm tổng hợp ≥ 70, cấu trúc Dow của khung kèo đang tăng hoặc vừa phá đỉnh thấp hơn gần nhất, và stop loss cách Entry không quá 35% (xa hơn thì tự động loại); danh sách xếp ưu tiên theo R:R rồi tới điểm. HTF (khung lớn hơn) chỉ ảnh hưởng nhẹ (tăng +3, giảm −5 điểm), không loại kèo. Mỗi mã chỉ giữ khung có kèo tốt nhất. “Limit” nghĩa là giá đang cách xa support, nên đặt lệnh chờ ở mức Entry thay vì mua đuổi. Bấm một dòng để mở phân tích TradingView.</p>
+        <p>Quét toàn bộ coin có trên Binance và các mã cổ phiếu ở 3 khung 4H, 1D, 1W (không phụ thuộc khung đang chọn ở bảng dưới). Kèo đạt chuẩn khi R:R tới TP1 tối thiểu 1:2, điểm tổng hợp ≥ 70, cấu trúc Dow của khung kèo đang tăng (tối thiểu 2 đỉnh + 2 đáy cao dần), và stop loss cách Entry không quá 35% (xa hơn thì tự động loại); danh sách xếp ưu tiên theo R:R rồi tới điểm. HTF (khung lớn hơn) chỉ ảnh hưởng nhẹ (tăng +3, giảm −5 điểm), không loại kèo. Mỗi mã chỉ giữ khung có kèo tốt nhất. “Limit” nghĩa là giá đang cách xa support, nên đặt lệnh chờ ở mức Entry thay vì mua đuổi. Bấm một dòng để mở phân tích TradingView.</p>
       </details>
     </section>
 
@@ -998,7 +998,7 @@ const HTF_MIN=.3;    // khung lớn hơn phải đang tăng (trend ≥ 0.3) mớ
 const LOW_TF_ASSETS=["BTC"];
 const LTF_CONFIRM={"1w":"1d"};   // kèo khung W: cấu trúc khung D cũng phải đang tăng rõ
 // cấu trúc khung xác nhận "tăng rõ": Dow đang tăng (hoặc vừa phá đỉnh thấp hơn) và xu hướng ≥ HTF_MIN
-const upClear=t=>{ if(!t||!t.ind) return false; const d=t.ind.dow, T=trendOf(t); return !!d&&(d.state===1||/^Gãy cấu trúc giảm/.test(d.why||""))&&T!=null&&T>=(HTF_MIN??.3) };   // mã được quét thêm khung 15m và 1h
+const upClear=t=>{ if(!t||!t.ind) return false; const d=t.ind.dow, T=trendOf(t); return !!d&&d.state===1&&T!=null&&T>=(HTF_MIN??.3) };   // mã được quét thêm khung 15m và 1h
 const REGIME=false;  // true: chỉ LONG khi BTC 1D trên EMA200 (SHORT: dưới)   // điểm cộng thêm vào ngưỡng theo khung (để thử nghiệm)     // số TP tối đa (backtest 2 năm: 2 TP tốt hơn 3–4 TP)   // stop loss spot tối đa 35% tính từ Entry
 const pctOf=(v,b)=>{const x=(v/b-1)*100;return (x>=0?"+":"")+x.toFixed(1)+"%"};
 const zoneOS=()=>S.os, zoneOB=()=>S.ob-5;   // phân kỳ dương: RSI ≤ ngưỡng quá bán (30) · phân kỳ âm: RSI ≥ ngưỡng quá mua − 5 (65)
@@ -1242,8 +1242,8 @@ function buyScore(i){
   if(r>78){score*=.8;notes.push("×0.8 RSI quá cao")}
   if(d21!=null&&d21>4){score*=.8;notes.push("×0.8 giá quá xa EMA 21 (đu đỉnh)")}
   // Cổng cấu trúc Dow trên khung của kèo: phải đang tăng (HH + HL) hoặc vừa phá đỉnh LH gần nhất (break out khỏi xu hướng giảm)
-  const dw=i.dow, dowOK=dw&&(dw.state===1||/^Gãy cấu trúc giảm/.test(dw.why||""));
-  if(!dowOK){score=Math.min(score,50);notes.push("trần 50: cấu trúc Dow chưa xác nhận tăng (chưa phá đỉnh thấp hơn gần nhất)")}
+  const dw=i.dow, dowOK=!!dw&&dw.state===1;   // cấu trúc tăng: tối thiểu 2 đỉnh + 2 đáy cao dần (HH + HL) và giá chưa thủng đáy HL gần nhất
+  if(!dowOK){score=Math.min(score,50);notes.push("trần 50: cấu trúc Dow chưa tăng (cần tối thiểu 2 đỉnh + 2 đáy cao dần)")}
   if(T!=null&&T<-.3){score=Math.min(score,45);notes.push("trần 45: chart đang yếu")}
   if(P&&P.rr1<1){score=Math.min(score,55);notes.push("trần 55: R:R tới kháng cự gần nhất < 1")}
   if(P&&P.reject){score=Math.min(score,40);notes.push(`loại: SL cách Entry ${(P.slPct*100).toFixed(0)}% (> ${MAX_SL*100}%)`)}
