@@ -34,7 +34,7 @@ function loadCore() {
     grab(/function simulate\([\s\S]*?\n\}/, "simulate"),
   ].join("\n");
   const S = { tf: "4h", win: 3, os: 30, ob: 70 };
-  return new Function("S", src + "\nreturn {TFMS,SETS,STOCKS,skipCoin,bucket,compute,trendOf,pickReasons,simulate,MAX_SL,clamp,swapTxt,PICK_MIN:typeof PICK_MIN!=='undefined'?PICK_MIN:70,MIN_RR:typeof MIN_RR!=='undefined'?MIN_RR:2,TF_ADD:typeof TF_ADD!=='undefined'?TF_ADD:{},HTF_MIN:typeof HTF_MIN!=='undefined'?HTF_MIN:null,REGIME:typeof REGIME!=='undefined'?REGIME:false,LOW_TF_ASSETS:typeof LOW_TF_ASSETS!=='undefined'?LOW_TF_ASSETS:[],LOW_TFS:typeof LOW_TFS!=='undefined'?LOW_TFS:['1h'],LTF_CONFIRM:typeof LTF_CONFIRM!=='undefined'?LTF_CONFIRM:{},upClear:typeof upClear!=='undefined'?upClear:()=>true,ltfOK:typeof ltfOK!=='undefined'?ltfOK:()=>true,ema};")(S);
+  return new Function("S", src + "\nreturn {TFMS,SETS,STOCKS,skipCoin,bucket,compute,trendOf,pickReasons,simulate,MAX_SL,clamp,swapTxt,PICK_MIN:typeof PICK_MIN!=='undefined'?PICK_MIN:70,RR_TF:typeof RR_TF!=='undefined'?RR_TF:{},MIN_RR:typeof MIN_RR!=='undefined'?MIN_RR:2,TF_ADD:typeof TF_ADD!=='undefined'?TF_ADD:{},HTF_MIN:typeof HTF_MIN!=='undefined'?HTF_MIN:null,REGIME:typeof REGIME!=='undefined'?REGIME:false,LOW_TF_ASSETS:typeof LOW_TF_ASSETS!=='undefined'?LOW_TF_ASSETS:[],LOW_TFS:typeof LOW_TFS!=='undefined'?LOW_TFS:['1h'],LTF_CONFIRM:typeof LTF_CONFIRM!=='undefined'?LTF_CONFIRM:{},upClear:typeof upClear!=='undefined'?upClear:()=>true,ltfOK:typeof ltfOK!=='undefined'?ltfOK:()=>true,ema};")(S);
 }
 const K = loadCore();
 
@@ -335,7 +335,7 @@ async function main() {
       const rs = K.pickReasons(t.ind), why = SIDE === "short" ? { g: rs.g.map(K.swapTxt), w: rs.w.map(K.swapTxt) } : rs;
       const P = t.buy.plan, it = { a, base: a.base, tf, P, score: sc, hT, htf, why, rank: sc + Math.min(P.rr1, 5) * 5 };
       evals.set(a.base + "|" + tf, it);
-      if (sc >= K.PICK_MIN + (K.TF_ADD[tf] || 0) && P.rr1 >= K.MIN_RR) ok.push(it); else if (sc >= K.PICK_MIN - 10 && P.rr1 >= 1.5) near.push(it);
+      if (sc >= K.PICK_MIN + (K.TF_ADD[tf] || 0) && P.rr1 >= (K.RR_TF && K.RR_TF[tf] != null ? K.RR_TF[tf] : K.MIN_RR)) ok.push(it); else if (sc >= K.PICK_MIN - 10 && P.rr1 >= 1.5) near.push(it);
     });
   });
   const best = arr => { const m = new Map(); for (const x of arr) { const o = m.get(x.base); if (!o || x.rank > o.rank) m.set(x.base, x); } return [...m.values()].sort((p, q) => q.rank - p.rank); };

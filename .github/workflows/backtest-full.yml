@@ -6,8 +6,8 @@ on:
   workflow_dispatch:
     inputs:
       days:
-        description: "Số ngày quá khứ, hoặc max (toàn bộ từ 2018)"
-        default: "max"
+        description: "Số ngày quá khứ (mặc định 2190 = 6 năm gần nhất, Trọng yêu cầu 11/11/2026), hoặc max"
+        default: "2190"
       side:
         description: "long hoặc short"
         default: "long"
@@ -22,7 +22,10 @@ on:
         default: "experiments"
       lowtf:
         description: "Có xét BTC 15m/1h không (1 = có, 0 = chỉ 4H/1D/1W)"
-        default: "1"
+        default: "0"
+      skip:
+        description: "Bỏ các mã (phân cách dấu phẩy). Mặc định BTC: bot chính không trade BTC (dành cho chiến lược RSI)"
+        default: "BTC"
 
 permissions:
   contents: write
@@ -50,7 +53,7 @@ jobs:
         run: |
           EXTRA=""
           if [ "$EXPS" != "none" ] && ls "$EXPDIR"/*.json >/dev/null 2>&1; then EXTRA="--exp $EXPDIR"; fi
-          node bt.mjs --days "$DAYS" --side "$SIDE" --lowtf "$LOWTF" --shard ${{ matrix.k }}/16 --out shards $EXTRA
+          node bt.mjs --days "$DAYS" --side "$SIDE" --lowtf "$LOWTF" --skip "${{ github.event.inputs.skip }}" --shard ${{ matrix.k }}/16 --out shards $EXTRA
       - uses: actions/upload-artifact@v4
         with:
           name: shard-${{ matrix.k }}
@@ -82,7 +85,7 @@ jobs:
           ls shards
           EXTRA=""
           if [ "$EXPS" != "none" ] && ls "$EXPDIR"/*.json >/dev/null 2>&1; then EXTRA="--exp $EXPDIR"; fi
-          node bt.mjs --days "$DAYS" --side "$SIDE" --lowtf "$LOWTF" --label "$LABEL" --merge shards $EXTRA
+          node bt.mjs --days "$DAYS" --side "$SIDE" --lowtf "$LOWTF" --skip "${{ github.event.inputs.skip }}" --label "$LABEL" --merge shards $EXTRA
       - name: Lưu kết quả
         run: |
           git config user.name "radar-backtest"

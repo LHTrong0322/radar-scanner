@@ -996,7 +996,16 @@ const PICK_MIN=70;   // điểm tối thiểu để thành kèo
 const MAX_TPS=2;
 const MIN_RR=2.5;     // R:R tối thiểu tới TP1 (TP1 phải ≥ 2.5R mới vào lệnh) — Trọng duyệt 11/11/2026
 const STRONG_MKT=6;   // điểm tối thiểu để VÀO NGAY (tín hiệu mạnh); thấp hơn thì đặt lệnh chờ — Trọng duyệt nâng 5 → 6 (11/11/2026, backtest xác nhận)
-const TF_ADD={"4h":0,"1d":0,"1w":0};
+const ADD_4H=0, ADD_1D=0, ADD_1W=0;   // cộng thêm vào ngưỡng điểm theo khung
+const TF_ADD={"4h":ADD_4H,"1d":ADD_1D,"1w":ADD_1W};
+// Tham số riêng từng khung (null = dùng giá trị chung). Bot tối ưu dò từng khung; chỉ đổi khi Trọng duyệt.
+const RR_4H=null, RR_1D=null, RR_1W=null;          // R:R tối thiểu tới TP1 riêng từng khung
+const RR_TF={"4h":RR_4H,"1d":RR_1D,"1w":RR_1W};
+const rrMin=tf=>RR_TF[tf]??MIN_RR;
+const SL_BUF=1;                                      // đệm SL dưới vùng hỗ trợ (ATR) — Trọng duyệt 1 ATR ngày 11/11/2026
+const SLB_4H=null, SLB_1D=null, SLB_1W=null;       // đệm SL riêng từng khung
+const SL_BUF_TF={"4h":SLB_4H,"1d":SLB_1D,"1w":SLB_1W};
+const slBuf=tf=>SL_BUF_TF[tf]??SL_BUF;
 const HTF_MIN=0.4;    // khung lớn hơn phải đang tăng (trend ≥ 0.4, Trọng duyệt nâng từ 0.3 ngày 11/11/2026 theo bot tối ưu) — backtest toàn bộ dữ liệu 2018→nay: R/lệnh 0.117 → 0.203, win rate 30.5% → 33.7%, sụt vốn 63R → 26R. Trọng duyệt bật lại 11/11/2026
 const LOW_TF_ASSETS=["BTC"];   // mã được quét thêm khung nhỏ
 const LOW_TFS=["1h"];          // khung nhỏ được trade (đã tắt 15m 11/11/2026: lợi thế quá mỏng, phí ăn hết); 15m chỉ dùng để xác nhận cho 1H
@@ -1168,7 +1177,7 @@ function planTrade(i){
   const cands=piv.filter(p=>p.tp==="L"&&p.v<entry-.5*atr).map(p=>p.v);
   if(e&&isMotive(e)&&e.dir>0&&e.inv!=null&&e.inv<entry) cands.push(e.inv);
   let stop, why, stopW=null;
-  if(zs&&zs.w>=2){ stop=zs.lo-1*atr; why="dưới vùng "+zs.why+" (cách 1 ATR tránh bị quét)"; stopW=zs.w }
+  if(zs&&zs.w>=2){ const sb=slBuf(i.tf); stop=zs.lo-sb*atr; why="dưới vùng "+zs.why+" (cách "+sb+" ATR tránh bị quét)"; stopW=zs.w }
   else { stop=cands.length?Math.max(...cands)-.5*atr:entry-2*atr; why=cands.length?"dưới đáy cấu trúc gần nhất":"2 ATR (chưa có đáy swing)" }
   if(entry-stop<1*atr){stop=entry-1*atr;why="tối thiểu 1 ATR"}
   if(entry-stop>5*atr){stop=entry-5*atr;why="giới hạn 5 ATR (đáy cấu trúc quá xa)"}
@@ -1363,7 +1372,7 @@ function compute(row){
   for(const n of [9,21,50,34,89,200]) E[n]=ema(cl,n);
   const ev={}; for(const n in E) ev[n]=E[n][cl.length-1];
   const rA=rsiArr(cl), hA=histArr(cl);
-  row.ind={div:divergence(c,rA,hA),rsi:rsiLast(cl),macd:macd(cl),adx:row.src==="cg"?null:adx(c),ichi:ichimoku(c,S.win),dow:dow(closedOnly(c,row.tf||S.tf)),ew:elliott(c),vol:row.src==="cg"?null:volChg(c,row.tf||S.tf),
+  row.ind={tf:row.tf||S.tf,div:divergence(c,rA,hA),rsi:rsiLast(cl),macd:macd(cl),adx:row.src==="cg"?null:adx(c),ichi:ichimoku(c,S.win),dow:dow(closedOnly(c,row.tf||S.tf)),ew:elliott(c),vol:row.src==="cg"?null:volChg(c,row.tf||S.tf),
     x:SETS.map(set=>emaSignal(E,set,S.win)),ev};
   const L=cl.length-1, at=atrLast(c), K=at?indLevels(cl):null;
   row.ind.lv={px:cl[L],e21:E[21][L],e50:E[50][L],e200:E[200][L],atr:at,piv:at?swings(c,at*2,4,40):[],
@@ -1513,7 +1522,7 @@ function computePicks(){
       const rs=pickReasons(t.ind), why=curSide()==='short'?{g:rs.g.map(swapTxt),w:rs.w.map(swapTxt)}:rs;
       const it={r,tf,ind:t.ind,buy:t.buy,P:t.buy.plan,score:sc,htf,hT,why,side:curSide()};
       it.rank=sc+Math.min(it.P.rr1,5)*5;                                            // ưu tiên R:R
-      if(sc>=PICK_MIN+(TF_ADD[tf]||0)&&it.P.rr1>=MIN_RR) ok.push(it);
+      if(sc>=PICK_MIN+(TF_ADD[tf]||0)&&it.P.rr1>=rrMin(tf)) ok.push(it);
       else if(sc>=60&&it.P.rr1>=1.5) near.push(it);
     });
   }

@@ -31,7 +31,7 @@ function loadCore(file, text) {
   const src = [grab(/const TFMS=[^\n]*/), grab(/const SETS=[^\n]*/), grab(/const SKIP=[^\n]*/), grab(/const STOCKS=[^\n]*/), js.slice(a, b),
     grab(/const trendOf=[^\n]*/), grab(/function simulate\([\s\S]*?\n\}/)].join("\n");
   const extra = (js.match(/const EXTRA_CRYPTO=(\[[^\]]*\])/) || [])[1];
-  const K = new Function("S", src + "\nreturn {compute,trendOf,simulate,clamp,TFMS,PICK_MIN:typeof PICK_MIN!=='undefined'?PICK_MIN:70,MIN_RR:typeof MIN_RR!=='undefined'?MIN_RR:2,TF_ADD:typeof TF_ADD!=='undefined'?TF_ADD:{},HTF_MIN:typeof HTF_MIN!=='undefined'?HTF_MIN:null,REGIME:typeof REGIME!=='undefined'?REGIME:false,LOW_TF_ASSETS:typeof LOW_TF_ASSETS!=='undefined'?LOW_TF_ASSETS:[],LOW_TFS:typeof LOW_TFS!=='undefined'?LOW_TFS:['15m','1h'],LTF_CONFIRM:typeof LTF_CONFIRM!=='undefined'?LTF_CONFIRM:{},upClear:typeof upClear!=='undefined'?upClear:()=>true,ltfOK:typeof ltfOK!=='undefined'?ltfOK:null,ema};")({ tf: "4h", win: 3, os: 30, ob: 70 });
+  const K = new Function("S", src + "\nreturn {compute,trendOf,simulate,clamp,TFMS,PICK_MIN:typeof PICK_MIN!=='undefined'?PICK_MIN:70,RR_TF:typeof RR_TF!=='undefined'?RR_TF:{},MIN_RR:typeof MIN_RR!=='undefined'?MIN_RR:2,TF_ADD:typeof TF_ADD!=='undefined'?TF_ADD:{},HTF_MIN:typeof HTF_MIN!=='undefined'?HTF_MIN:null,REGIME:typeof REGIME!=='undefined'?REGIME:false,LOW_TF_ASSETS:typeof LOW_TF_ASSETS!=='undefined'?LOW_TF_ASSETS:[],LOW_TFS:typeof LOW_TFS!=='undefined'?LOW_TFS:['15m','1h'],LTF_CONFIRM:typeof LTF_CONFIRM!=='undefined'?LTF_CONFIRM:{},upClear:typeof upClear!=='undefined'?upClear:()=>true,ltfOK:typeof ltfOK!=='undefined'?ltfOK:null,ema};")({ tf: "4h", win: 3, os: 30, ob: 70 });
   K.extra = extra ? JSON.parse(extra) : [];
   try { K.stocks = JSON.parse((js.match(/const STOCKS=(\[[\s\S]*?\]\]);/) || [])[1] || "[]"); } catch (e) { K.stocks = []; }
   K.lowAssets = K.LOW_TF_ASSETS || [];
@@ -188,7 +188,7 @@ function signals(K, D, startT, base, stock, F) {
       }
       sc = K.clamp(sc, 0, 100);
       if (sc < K.PICK_MIN + (K.TF_ADD[tf] || 0)) { bump(tf, "8 điểm cuối < ngưỡng"); continue; }
-      if (B.plan.rr1 < K.MIN_RR) { bump(tf, "9 R:R TP1 < tối thiểu"); continue; }
+      if (B.plan.rr1 < (K.RR_TF && K.RR_TF[tf] != null ? K.RR_TF[tf] : K.MIN_RR)) { bump(tf, "9 R:R TP1 < tối thiểu"); continue; }
       bump(tf, "10 ĐẠT CHUẨN"); out.push({ t: bars[i].t + MS[tf], tf, sc, P: B.plan, parts: Object.fromEntries(B.parts.map(([n, v]) => [n, v == null ? null : +v.toFixed(3)])), rank: sc + Math.min(B.plan.rr1, 5) * 5 });
     }
   }
@@ -346,6 +346,7 @@ uni = [...new Set([...uni, ...K1.extra])].filter(b => /^[A-Z0-9]{2,12}$/.test(b)
 const STOCKS = arg("stocks", "1") === "1" ? K1.stocks.filter(x => !arg("only", "") || arg("only", "").toUpperCase().split(",").includes(x[1])) : [];   // cổ phiếu (Yahoo): 4H/1H tối đa 2 năm, 1D/1W tối đa 10 năm
 const ONLY = arg("only", "") ? arg("only", "").toUpperCase().split(",") : null;
 if (ONLY) uni = uni.filter(b => ONLY.includes(b)).concat(ONLY.filter(b => !uni.includes(b) && !K1.stocks.some(x => x[1] === b)));
+const SKIP = String(arg("skip", "")).split(",").map(x => x.trim().toUpperCase()).filter(Boolean); if (SKIP.length) uni = uni.filter(b => !SKIP.includes(b));   // --skip BTC: bỏ mã bot không trade (BTC dành cho chiến lược RSI)
 const ALL = [...uni.map(b => ({ b })), ...STOCKS.map(([sym, label]) => ({ b: label, sym, stock: true }))];
 K1s = STOCKS.map(x => x[1]);
 const SHARD = arg("shard", ""), MERGE = arg("merge", "");   // chia việc cho nhiều máy: --shard k/n chạy 1 phần · --merge thư_mục gộp kết quả
@@ -393,6 +394,23 @@ const RA = report(A), RB = K2 ? report(B) : null;
 // bảng so sánh nhiều phiên bản
 const MID = Date.now() - DAYS * 864e5 / 2;                 // chia đôi kỳ backtest: nửa đầu / nửa sau (kiểm tra độ ổn định, tránh "học thuộc" dữ liệu)
 const half = (T, first) => stats(T.filter(x => first ? x.at < MID : x.at >= MID));
+// ---- kiểm tra kín: giữ riêng N tháng gần nhất (mặc định 12). Bot tối ưu chỉ được chọn thông số dựa trên phần "huấn luyện" (trước mốc),
+// phần "kiểm tra kín" chỉ dùng để chấm cuối cùng → biết cấu hình mới có hiệu quả thật trên dữ liệu chưa từng thấy hay không.
+const HOLD_M = +arg("holdout", "12"), CUT = Date.now() - HOLD_M * 30.44 * 864e5;
+const T_START = A.length ? Math.min(...A.map(x => x.at)) : Date.now() - 365 * 864e5, T_MID = (T_START + CUT) / 2;
+function mcDD(T, runs = 2000) {          // sụt vốn Monte Carlo: xáo trộn thứ tự lệnh nhiều lần, lấy mức sụt vốn mà 95% trường hợp không vượt quá
+  const R = T.filter(x => DONE.includes(x.st)).map(x => x.r); if (R.length < 5) return null;
+  let sd = 1234567; const rnd = () => { sd = (sd * 1103515245 + 12345) % 2147483648; return sd / 2147483648; };
+  const out = [];
+  for (let k = 0; k < runs; k++) { const a = R.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+    let eq = 0, pk = 0, dd = 0; for (const r of a) { eq += r; if (eq > pk) pk = eq; if (pk - eq > dd) dd = pk - eq; } out.push(dd); }
+  out.sort((x, y) => x - y); return +out[Math.floor(runs * .95)].toFixed(2);
+}
+function seg(T) {
+  const tr = T.filter(x => x.at < CUT), te = T.filter(x => x.at >= CUT);
+  return { cut: CUT, holdMonths: HOLD_M, train: { ...stats(tr), dd95: mcDD(tr) }, test: { ...stats(te), dd95: mcDD(te) },
+    h1: stats(tr.filter(x => x.at < T_MID)), h2: stats(tr.filter(x => x.at >= T_MID)), tf: group(tr, x => x.tf), tfTest: group(te, x => x.tf) };
+}
 const effScore = R => R.all.expectancy == null || RA.all.expectancy == null ? "–" : Math.max(0, Math.min(10, +(5 + (R.all.expectancy - RA.all.expectancy) / .05).toFixed(1)));
 const stable = T => { const a = half(T, true).expectancy, b = half(T, false).expectancy, a0 = half(A, true).expectancy, b0 = half(A, false).expectancy;
   if (a == null || b == null || a0 == null || b0 == null) return "–"; const da = a - a0, db = b - b0; return da > 0 && db > 0 ? "✅ tốt hơn cả 2 năm" : da < 0 && db < 0 ? "❌ tệ hơn cả 2 năm" : "⚠️ chỉ tốt 1 năm"; };
@@ -411,7 +429,7 @@ const text = `Phí: ${NOFEE ? "KHÔNG tính" : `maker ${FEE_MAKER}% · taker ${F
 fs.writeFileSync(path.join(OUT, name + ".md"), text);
 const slim = T => T.map(({ parts, eWhy, sWhy, tWhy, ...x }) => x);
 fs.writeFileSync(path.join(OUT, name + ".json"), JSON.stringify({ at: Date.now(), days: DAYS, side: SIDE, label: LABEL, assets: uni.length, miss,
-  A: RA, variants: V.map(v => ({ name: v.name, desc: v.desc || "", R: report(v.T), half1: half(v.T, true), half2: half(v.T, false) })), half1: half(A, true), half2: half(A, false), tradesA: A }));
+  A: RA, variants: V.map(v => ({ name: v.name, desc: v.desc || "", R: report(v.T), half1: half(v.T, true), half2: half(v.T, false), seg: seg(v.T) })), half1: half(A, true), half2: half(A, false), tradesA: A }));
 console.log(text);
 console.log(`\nXong sau ${((Date.now() - t0) / 1000).toFixed(0)}s → ${OUT}/${name}.md`);
 }
