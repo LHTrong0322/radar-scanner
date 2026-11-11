@@ -1,4 +1,4 @@
-# Tối ưu tự động (chạy liên tục) — vòng 35
+# Tối ưu tự động (chạy liên tục) — vòng 36
 
 Bot thật KHÔNG bị thay đổi cho tới khi Trọng duyệt. Backtest mọi nến 4H/1D/1W trong từ 01/2023 tới nay, có phí + funding, không tính BTC (BTC dành cho chiến lược RSI).
 
@@ -7,7 +7,7 @@ Chỉ chọn thông số trên **01/2023 → 12/2025** (Trọng chốt). **năm 
 Nhận thay đổi khi: chỉ số tăng ≥ 3%, tổng R không giảm quá 3%, win rate không giảm quá 0.5 điểm, sụt vốn MC95 không tệ hơn 5%, không xấu đi ở cả 2 nửa 2023–2025 (01/2023–06/2024 và 07/2024–12/2025), số lệnh không giảm quá 30%.
 ⚠️ Các thay đổi Trọng duyệt trước 11/11/2026 21:30 đã được chọn khi nhìn toàn bộ dữ liệu, kể cả giai đoạn kiểm tra kín → với chúng, phần kiểm tra kín không còn kín hoàn toàn.
 
-Chế độ dò hiện tại: **từng thông số** · đã thử 181 phương án.
+Chế độ dò hiện tại: **từng thông số** · đã thử 193 phương án.
 
 ## Bot thật so với cấu hình tốt nhất
 
@@ -15,8 +15,8 @@ Cấu hình mới chỉ đáng tin khi THẮNG bot thật ở phần kiểm tra 
 
 | | Lệnh 2023–2025 | Win rate | Tổng R | R/lệnh | Sụt vốn lớn nhất | Sụt vốn MC95 | Tổng R ÷ MC95 | Lệnh 2026 (kín) | Win rate | Tổng R | R/lệnh | Sụt vốn |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Bot thật | 214 | 37.9% | 53.86R | 0.252 | 12.91R | 19.28R | 2.79 | 47 | 23.4% | -7.55R | -0.161 | 14.93R |
-| **Tốt nhất** | 218 | 43.1% | 107.97R | 0.495 | 7.13R | 12.09R | 8.93 | 66 | 21.2% | -12.55R | -0.19 | 13.81R |
+| Bot thật | 214 | 37.9% | 53.86R | 0.252 | 12.91R | 18.93R | 2.85 | 47 | 23.4% | -7.55R | -0.161 | 14.93R |
+| **Tốt nhất** | 218 | 43.1% | 107.97R | 0.495 | 7.13R | 11.89R | 9.08 | 66 | 21.2% | -12.55R | -0.19 | 13.81R |
 
 ## Theo khung (cấu hình tốt nhất)
 
@@ -32,7 +32,7 @@ Tìm thấy ở vòng 32 (Lọc BTC trên EMA200 (crypto): false → true).
 
 | | Lệnh 2023–2025 | Win rate | Tổng R | Sụt vốn MC95 | Chỉ số | Lệnh 2026 | Win rate | Tổng R 2026 |
 |---|---|---|---|---|---|---|---|---|
-| Bot thật | 214 | 37.9% | 53.86R | 19.28R | 2.79 | 47 | 23.4% | -7.55R |
+| Bot thật | 214 | 37.9% | 53.86R | 18.93R | 2.85 | 47 | 23.4% | -7.55R |
 | **Đề xuất** | 214 | 42.5% | 98.87R | 12.5R | 7.91 | 47 | 21.3% | -5.84R |
 
 | Thông số | Bot thật | Đề xuất |
@@ -79,6 +79,23 @@ Tìm thấy ở vòng 32 (Lọc BTC trên EMA200 (crypto): false → true).
 | 19 (hoàn tác) | Ngưỡng điểm 'vào ngay' (tín hiệu mạnh) | 6 → 5 | 104.08R | 43.9% | 13.85R | 7.51 |
 
 ## 10 vòng gần nhất
+
+### Vòng 36 — từng thông số · mốc: tổng 107.97R, win 43.1%, MC95 11.89R, chỉ số 9.08
+
+| Phương án | Tổng R | Win rate | R/lệnh | MC95 | Chỉ số | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
+|---|---|---|---|---|---|---|---|---|---|
+| Điểm vùng: Break mây Ichimoku: 2 → 1 | 100.67 | 42.4% | 0.449 | 12.93 | 7.79 | 0.435 | 0.464 | -19.2 |  |
+| Điểm vùng: Break mây Ichimoku: 2 → 3 | 74.56 | 39.5% | 0.327 | 15.88 | 4.7 | 0.166 | 0.506 | -15.37 |  |
+| Điểm vùng: Kháng cự cũ bị phá: 1.5 → 0.75 | 95.99 | 42.5% | 0.434 | 13.36 | 7.18 | 0.359 | 0.515 | -13.93 |  |
+| Điểm vùng: Kháng cự cũ bị phá: 1.5 → 2.25 | 89.89 | 40.8% | 0.412 | 13.04 | 6.89 | 0.366 | 0.461 | -12.29 |  |
+| Điểm vùng: Fib 0.618 sóng 2: 2.5 → 1.25 | 107.97 | 43.1% | 0.495 | 11.89 | 9.08 | 0.425 | 0.571 | -12.55 |  |
+| Điểm vùng: Fib 0.618 sóng 2: 2.5 → 3.75 | 105.58 | 42.5% | 0.482 | 12.66 | 8.34 | 0.424 | 0.544 | -12.64 |  |
+| Điểm vùng: Đỉnh sóng 1 (sàn sóng 4): 2.5 → 1.25 | 96.37 | 41.9% | 0.444 | 12.46 | 7.73 | 0.352 | 0.539 | -14.33 |  |
+| Điểm vùng: Đỉnh sóng 1 (sàn sóng 4): 2.5 → 3.75 | 110.39 | 43.2% | 0.486 | 12.08 | 9.14 | 0.447 | 0.53 | -11.8 |  |
+| Điểm vùng: Mức RSI 30/70: 1 → 0.5 | 111.92 | 43.8% | 0.476 | 12.4 | 9.03 | 0.439 | 0.519 | -16.46 |  |
+| Điểm vùng: Mức RSI 30/70: 1 → 1.5 | 71.65 | 41.6% | 0.432 | 10.94 | 6.55 | 0.264 | 0.595 | -10.87 |  |
+| Điểm vùng: Mức MACD: 1 → 0.5 | 93.15 | 41.8% | 0.423 | 13.2 | 7.06 | 0.4 | 0.449 | -14.33 |  |
+| Điểm vùng: Mức MACD: 1 → 1.5 | 98.59 | 40.5% | 0.444 | 13.3 | 7.41 | 0.374 | 0.521 | -14.39 |  |
 
 ### Vòng 35 — từng thông số · mốc: tổng 107.97R, win 43.1%, MC95 12.09R, chỉ số 8.93
 
@@ -237,6 +254,3 @@ Nhận: Cộng thêm ngưỡng điểm khung 1D 0 → 5
 | Điểm vùng: HVN cố định: 0.5 → 0.75 | 96.44 | 41.5% | 0.444 | 13.51 | 7.14 | 0.445 | 0.443 | -15.11 |  |
 
 Nhận: Điểm vùng: HVN cố định 0.5 → 0.25 · Điểm vùng: HVN anchored 0.5 → 0.25 · Điểm vùng: POC volume profile cố định 0.5 → 0.75
-
-### Vòng 26 — từng thông số · mốc: tổng 89.54R, win 40.6%, MC95 14.57R, chỉ số 6.15
-Gộp các thay đổi vòng 25 làm chỉ số giảm (6.82 → 6.15) → hoàn tác
