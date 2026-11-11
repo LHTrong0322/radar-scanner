@@ -1284,7 +1284,7 @@ function buyScore(i){
   if(r>78){score*=.8;notes.push("×0.8 RSI quá cao")}
   if(d21!=null&&d21>4){score*=.8;notes.push("×0.8 giá quá xa EMA 21 (đu đỉnh)")}
   // Cổng cấu trúc Dow trên khung của kèo: phải đang tăng (HH + HL) hoặc vừa phá đỉnh LH gần nhất (break out khỏi xu hướng giảm)
-  const dw=i.dow, dowOK=true;   // Cổng Dow TẮT (Trọng duyệt 12/11/2026 01:06; phép thử bỏ từng phần: 2023–2025 +22.9R, 2026 −7.5R → +3.5R). Cấu trúc Dow vẫn dùng trong điểm Trend, vùng giá và thoát lệnh — chỉ tính trên nến đã đóng
+  const dw=i.dow, dowOK=dw&&(dw.state===1||/^Gãy cấu trúc giảm/.test(dw.why||""));   // Dow nới lỏng (Trọng duyệt 11/11/2026): đỉnh + đáy cao dần (HH + HL), HOẶC nến đã đóng cửa vượt đỉnh thấp hơn (LH) gần nhất — chỉ tính trên nến đã đóng. Bật lại 12/11/2026 01:21 (xác nhận trên cấu hình mới: bỏ cổng làm 2023–2025 −27.5R, MC95 12.5 → 22.9R)
   if(!dowOK){score=Math.min(score,50);notes.push("trần 50: cấu trúc Dow chưa tăng (cần 2 đỉnh + 2 đáy cao dần, hoặc nến đã đóng cửa vượt đỉnh thấp hơn gần nhất)")}
   if(T!=null&&T<-.3){score=Math.min(score,45);notes.push("trần 45: chart đang yếu")}
   if(P&&P.rr1<1){score=Math.min(score,55);notes.push("trần 55: R:R tới kháng cự gần nhất < 1")}
