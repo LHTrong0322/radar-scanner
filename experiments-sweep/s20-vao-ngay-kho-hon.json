@@ -1,0 +1,10 @@
+{
+ "name": "s20-vao-ngay-kho-hon",
+ "desc": "Ngưỡng 'vào ngay' 5 điểm",
+ "patch": [
+  {
+   "find": "else if(mkt>=3){",
+   "replace": "else if(mkt>=5){"
+  }
+ ]
+}

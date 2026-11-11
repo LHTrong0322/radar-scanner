@@ -1,0 +1,10 @@
+{
+ "name": "s07-rr-3",
+ "desc": "R:R TP1 tối thiểu 3",
+ "patch": [
+  {
+   "find": "const MIN_RR=2;",
+   "replace": "const MIN_RR=3;"
+  }
+ ]
+}

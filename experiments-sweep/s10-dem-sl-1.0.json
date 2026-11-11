@@ -1,0 +1,14 @@
+{
+ "name": "s10-dem-sl-1.0",
+ "desc": "Đệm SL 1.0 ATR",
+ "patch": [
+  {
+   "find": "stop=zs.lo-.5*atr;",
+   "replace": "stop=zs.lo-1.0*atr;"
+  },
+  {
+   "find": "Math.max(...cands)-.5*atr",
+   "replace": "Math.max(...cands)-1.0*atr"
+  }
+ ]
+}

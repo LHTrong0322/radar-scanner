@@ -1,0 +1,10 @@
+{
+ "name": "s15-chot-het-tp1",
+ "desc": "Chốt 100% ở TP1 (1 TP)",
+ "patch": [
+  {
+   "find": "const MAX_TPS=2;",
+   "replace": "const MAX_TPS=1;"
+  }
+ ]
+}

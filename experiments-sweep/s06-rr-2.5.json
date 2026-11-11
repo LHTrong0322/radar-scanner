@@ -1,0 +1,10 @@
+{
+ "name": "s06-rr-2.5",
+ "desc": "R:R TP1 tối thiểu 2.5",
+ "patch": [
+  {
+   "find": "const MIN_RR=2;",
+   "replace": "const MIN_RR=2.5;"
+  }
+ ]
+}

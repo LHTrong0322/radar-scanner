@@ -1,0 +1,14 @@
+{
+ "name": "s09-dem-sl-0.7",
+ "desc": "Đệm SL 0.7 ATR",
+ "patch": [
+  {
+   "find": "stop=zs.lo-.5*atr;",
+   "replace": "stop=zs.lo-0.7*atr;"
+  },
+  {
+   "find": "Math.max(...cands)-.5*atr",
+   "replace": "Math.max(...cands)-0.7*atr"
+  }
+ ]
+}

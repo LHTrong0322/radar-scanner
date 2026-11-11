@@ -1,0 +1,10 @@
+{
+ "name": "s04-diem-80",
+ "desc": "Ngưỡng điểm 80",
+ "patch": [
+  {
+   "find": "const PICK_MIN=70;",
+   "replace": "const PICK_MIN=80;"
+  }
+ ]
+}

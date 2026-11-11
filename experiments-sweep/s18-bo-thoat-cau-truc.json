@@ -1,0 +1,10 @@
+{
+ "name": "s18-bo-thoat-cau-truc",
+ "desc": "Bỏ thoát lệnh khi phá cấu trúc",
+ "patch": [
+  {
+   "find": "if(st===\"open\"&&hl!=null&&hl>sl&&last.c<hl&&last.t>=fillAt)",
+   "replace": "if(false&&st===\"open\"&&hl!=null&&hl>sl&&last.c<hl&&last.t>=fillAt)"
+  }
+ ]
+}

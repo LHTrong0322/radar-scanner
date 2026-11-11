@@ -1,0 +1,10 @@
+{
+ "name": "s11-sl-toi-da-20",
+ "desc": "SL tối đa 20% (thay 35%)",
+ "patch": [
+  {
+   "find": "const MAX_SL=.35;",
+   "replace": "const MAX_SL=.20;"
+  }
+ ]
+}

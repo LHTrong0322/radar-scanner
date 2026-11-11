@@ -1,0 +1,10 @@
+{
+ "name": "s17-lenh-cho-24-nen",
+ "desc": "Lệnh chờ hết hạn sau 24 nến",
+ "patch": [
+  {
+   "find": "const expiry=j.at+12*TFMS[j.tf];",
+   "replace": "const expiry=j.at+24*TFMS[j.tf];"
+  }
+ ]
+}

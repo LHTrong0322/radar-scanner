@@ -1,0 +1,10 @@
+{
+ "name": "s19-vao-ngay-de-hon",
+ "desc": "Ngưỡng 'vào ngay' 2 điểm (thay 3)",
+ "patch": [
+  {
+   "find": "else if(mkt>=3){",
+   "replace": "else if(mkt>=2){"
+  }
+ ]
+}

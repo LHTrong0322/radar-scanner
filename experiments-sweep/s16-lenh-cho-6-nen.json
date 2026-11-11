@@ -1,0 +1,10 @@
+{
+ "name": "s16-lenh-cho-6-nen",
+ "desc": "Lệnh chờ hết hạn sau 6 nến (thay 12)",
+ "patch": [
+  {
+   "find": "const expiry=j.at+12*TFMS[j.tf];",
+   "replace": "const expiry=j.at+6*TFMS[j.tf];"
+  }
+ ]
+}

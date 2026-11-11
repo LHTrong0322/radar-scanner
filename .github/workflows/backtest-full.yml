@@ -1,7 +1,7 @@
 name: Backtest TOÀN BỘ dữ liệu
 
 # Backtest 100% dữ liệu: toàn bộ lịch sử (từ 2018), mọi coin trong danh sách + cổ phiếu, BTC thêm khung 15m/1h,
-# xét MỌI nến, chấm SL/TP bằng nến 1H. Chia cho 8 máy chạy song song rồi gộp kết quả. Không đặt lệnh.
+# xét MỌI nến, chấm SL/TP bằng nến 1H. Chia cho 16 máy chạy song song rồi gộp kết quả. Không đặt lệnh.
 on:
   workflow_dispatch:
     inputs:
@@ -17,6 +17,12 @@ on:
       label:
         description: "(tuỳ chọn) tên ngắn cho lần chạy"
         default: "full"
+      exp_dir:
+        description: "Thư mục thí nghiệm (experiments hoặc experiments-sweep)"
+        default: "experiments"
+      lowtf:
+        description: "Có xét BTC 15m/1h không (1 = có, 0 = chỉ 4H/1D/1W)"
+        default: "1"
 
 permissions:
   contents: write
@@ -28,7 +34,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        k: [0, 1, 2, 3, 4, 5, 6, 7]
+        k: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -36,15 +42,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Chạy phần ${{ matrix.k }}/8
+      - name: Chạy phần ${{ matrix.k }}/16
         env:
           DAYS: ${{ github.event.inputs.days }}
           SIDE: ${{ github.event.inputs.side }}
           EXPS: ${{ github.event.inputs.experiments }}
+          EXPDIR: ${{ github.event.inputs.exp_dir }}
+          LOWTF: ${{ github.event.inputs.lowtf }}
         run: |
           EXTRA=""
-          if [ "$EXPS" != "none" ] && ls experiments/*.json >/dev/null 2>&1; then EXTRA="--exp experiments"; fi
-          node bt.mjs --days "$DAYS" --side "$SIDE" --shard ${{ matrix.k }}/8 --out shards $EXTRA
+          if [ "$EXPS" != "none" ] && ls "$EXPDIR"/*.json >/dev/null 2>&1; then EXTRA="--exp $EXPDIR"; fi
+          node bt.mjs --days "$DAYS" --side "$SIDE" --lowtf "$LOWTF" --shard ${{ matrix.k }}/16 --out shards $EXTRA
       - uses: actions/upload-artifact@v4
         with:
           name: shard-${{ matrix.k }}
@@ -71,12 +79,14 @@ jobs:
           DAYS: ${{ github.event.inputs.days }}
           SIDE: ${{ github.event.inputs.side }}
           EXPS: ${{ github.event.inputs.experiments }}
+          EXPDIR: ${{ github.event.inputs.exp_dir }}
+          LOWTF: ${{ github.event.inputs.lowtf }}
           LABEL: ${{ github.event.inputs.label }}
         run: |
           ls shards
           EXTRA=""
-          if [ "$EXPS" != "none" ] && ls experiments/*.json >/dev/null 2>&1; then EXTRA="--exp experiments"; fi
-          node bt.mjs --days "$DAYS" --side "$SIDE" --label "$LABEL" --merge shards $EXTRA
+          if [ "$EXPS" != "none" ] && ls "$EXPDIR"/*.json >/dev/null 2>&1; then EXTRA="--exp $EXPDIR"; fi
+          node bt.mjs --days "$DAYS" --side "$SIDE" --lowtf "$LOWTF" --label "$LABEL" --merge shards $EXTRA
       - name: Lưu kết quả
         run: |
           git config user.name "radar-backtest"

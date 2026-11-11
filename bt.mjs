@@ -14,7 +14,7 @@ const DAYS_ARG = arg("days", "730"), DAYS = DAYS_ARG === "max" ? Math.floor((Dat
 const HTML = arg("html", "index.html"), HTML2 = arg("html2", ""), NAMES = arg("names", ""), LABEL = arg("label", ""), OUT = arg("out", "backtests");
 const TFS = ["4h", "1d", "1w"], LOWTFS = ["15m", "1h"], HTF = { "15m": "1h", "1h": "4h", "4h": "1d", "1d": "1w", "1w": null };
 const EXEC = { "15m": "15m", "1h": "1h", "4h": "1h", "1d": "1h", "1w": "1d" };   // chấm SL/TP bằng nến nhỏ hơn cho chính xác
-const LOW_DAYS = Math.min(DAYS, +arg("lowdays", 730));     // BTC 15m/1h: chỉ xét 2 năm gần nhất cho nhẹ
+const LOW_DAYS = Math.min(DAYS, +arg("lowdays", 730)), LOWTF_ON = arg("lowtf", "1") !== "0";   // --lowtf 0: chỉ xét 4H/1D/1W     // BTC 15m/1h: chỉ xét 2 năm gần nhất cho nhẹ
 const STEP = { "15m": 1, "1h": 1, "4h": +arg("step4h", 1), "1d": 1, "1w": 1 };    // xét mọi nến (step 1) để kết quả không phụ thuộc thời điểm lấy mẫu
 const WIN = 400;                                             // số nến đưa vào thuật toán mỗi lần (giống bot)
 const MS = { "15m": 9e5, "1h": 36e5, "4h": 144e5, "1d": 864e5, "1w": 6048e5 };
@@ -156,7 +156,7 @@ function partial(htfBars, lowBars, upto, htf) {
   return closed;
 }
 function signals(K, D, startT, base) {
-  const out = [], low = (K.LOW_TF_ASSETS || []).includes(base), tfs = low ? [...LOWTFS, ...TFS] : TFS, lowStart = Date.now() - LOW_DAYS * 864e5;
+  const out = [], low = LOWTF_ON && (K.LOW_TF_ASSETS || []).includes(base), tfs = low ? [...LOWTFS, ...TFS] : TFS, lowStart = Date.now() - LOW_DAYS * 864e5;
   for (const tf of tfs) {
     const bars = D[tf]; if (!bars || bars.length < 80) continue;
     const st0 = LOWTFS.includes(tf) ? Math.max(startT, lowStart) : startT;
@@ -336,7 +336,7 @@ const task = (vi, D, base) => new Promise(res => { const id = ++seq; wait.set(id
 const keep = setInterval(() => { }, 10000);                  // giữ tiến trình sống khi chờ mạng
 let done = 0;
 async function runOne({ b, sym, stock }) {
-  const D = {}, low = (K1.lowAssets || []).includes(b) && !stock;
+  const D = {}, low = LOWTF_ON && (K1.lowAssets || []).includes(b) && !stock;
   for (const tf of [...TFS, "1h", ...(low ? ["15m"] : [])]) { try { D[tf] = stock ? await stockCandles(sym, tf) : await candles(b, tf, from[tf]); } catch (e) { } }   // 1h: xác nhận + chấm SL/TP
   if (!D["4h"] || !D["1d"]) { miss.push(b); return; }
   const R = await Promise.all(texts.map((_, vi) => task(vi, D, b)));

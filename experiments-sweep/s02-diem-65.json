@@ -1,0 +1,10 @@
+{
+ "name": "s02-diem-65",
+ "desc": "Ngưỡng điểm 65",
+ "patch": [
+  {
+   "find": "const PICK_MIN=70;",
+   "replace": "const PICK_MIN=65;"
+  }
+ ]
+}
