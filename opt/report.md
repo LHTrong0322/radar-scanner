@@ -1,4 +1,4 @@
-# Tối ưu tự động (chạy liên tục) — vòng 28
+# Tối ưu tự động (chạy liên tục) — vòng 29
 
 Bot thật KHÔNG bị thay đổi cho tới khi Trọng duyệt. Backtest mọi nến 4H/1D/1W trong từ 01/2023 tới nay, có phí + funding, không tính BTC (BTC dành cho chiến lược RSI).
 
@@ -7,7 +7,7 @@ Chỉ chọn thông số trên **01/2023 → 12/2025** (Trọng chốt). **năm 
 Nhận thay đổi khi: chỉ số tăng ≥ 3%, tổng R không giảm quá 3%, win rate không giảm quá 0.5 điểm, sụt vốn MC95 không tệ hơn 5%, không xấu đi ở cả 2 nửa 2023–2025 (01/2023–06/2024 và 07/2024–12/2025), số lệnh không giảm quá 30%.
 ⚠️ Các thay đổi Trọng duyệt trước 11/11/2026 21:30 đã được chọn khi nhìn toàn bộ dữ liệu, kể cả giai đoạn kiểm tra kín → với chúng, phần kiểm tra kín không còn kín hoàn toàn.
 
-Chế độ dò hiện tại: **từng thông số** · đã thử 96 phương án.
+Chế độ dò hiện tại: **từng thông số** · đã thử 108 phương án.
 
 ## Bot thật so với cấu hình tốt nhất
 
@@ -15,8 +15,8 @@ Cấu hình mới chỉ đáng tin khi THẮNG bot thật ở phần kiểm tra 
 
 | | Lệnh 2023–2025 | Win rate | Tổng R | R/lệnh | Sụt vốn lớn nhất | Sụt vốn MC95 | Tổng R ÷ MC95 | Lệnh 2026 (kín) | Win rate | Tổng R | R/lệnh | Sụt vốn |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Bot thật | 214 | 37.9% | 53.86R | 0.252 | 12.91R | 18.82R | 2.86 | 47 | 23.4% | -7.55R | -0.161 | 14.93R |
-| **Tốt nhất** | 219 | 42.9% | 104.06R | 0.475 | 7.13R | 12.26R | 8.49 | 66 | 21.2% | -12.55R | -0.19 | 13.81R |
+| Bot thật | 214 | 37.9% | 53.86R | 0.252 | 12.91R | 19.5R | 2.76 | 47 | 23.4% | -7.55R | -0.161 | 14.93R |
+| **Tốt nhất** | 219 | 42.9% | 104.06R | 0.475 | 7.13R | 12.45R | 8.36 | 66 | 21.2% | -12.55R | -0.19 | 13.81R |
 
 ## Theo khung (cấu hình tốt nhất)
 
@@ -32,7 +32,7 @@ Tìm thấy ở vòng 28 (Điểm vùng: MACD cắt lên Signal: 0.5 → 0.25).
 
 | | Lệnh 2023–2025 | Win rate | Tổng R | Sụt vốn MC95 | Chỉ số | Lệnh 2026 | Win rate | Tổng R 2026 |
 |---|---|---|---|---|---|---|---|---|
-| Bot thật | 214 | 37.9% | 53.86R | 18.82R | 2.86 | 47 | 23.4% | -7.55R |
+| Bot thật | 214 | 37.9% | 53.86R | 19.5R | 2.76 | 47 | 23.4% | -7.55R |
 | **Đề xuất** | 230 | 42.2% | 103.34R | 13.36R | 7.74 | 68 | 23.5% | -6.25R |
 
 | Thông số | Bot thật | Đề xuất |
@@ -78,6 +78,23 @@ Tìm thấy ở vòng 28 (Điểm vùng: MACD cắt lên Signal: 0.5 → 0.25).
 | 19 (hoàn tác) | Ngưỡng điểm 'vào ngay' (tín hiệu mạnh) | 6 → 5 | 104.08R | 43.9% | 13.85R | 7.51 |
 
 ## 10 vòng gần nhất
+
+### Vòng 29 — từng thông số · mốc: tổng 104.06R, win 42.9%, MC95 12.45R, chỉ số 8.36
+
+| Phương án | Tổng R | Win rate | R/lệnh | MC95 | Chỉ số | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
+|---|---|---|---|---|---|---|---|---|---|
+| Điểm vùng: Fib sóng 4: 1.25 → 0 | 101.54 | 42.6% | 0.47 | 12.47 | 8.14 | 0.403 | 0.541 | -12.55 |  |
+| Điểm vùng: Fib sóng 4: 1.25 → 2.5 | 102.24 | 42.3% | 0.461 | 12.54 | 8.15 | 0.412 | 0.511 | -13.28 |  |
+| Ngưỡng điểm vào kèo: 70 → 65 | 96.7 | 42.2% | 0.434 | 12.82 | 7.54 | 0.372 | 0.497 | -12.74 |  |
+| Ngưỡng điểm vào kèo: 70 → 75 | 98.57 | 42.8% | 0.474 | 12.21 | 8.07 | 0.405 | 0.547 | -12.37 |  |
+| R:R tối thiểu tới TP1: 2.5 → 2 | 105.83 | 37.7% | 0.233 | 19.2 | 5.51 | 0.262 | 0.208 | -6.86 |  |
+| R:R tối thiểu tới TP1: 2.5 → 3 | 67.03 | 41.3% | 0.486 | 13.01 | 5.15 | 0.365 | 0.606 | -4.01 |  |
+| Ngưỡng điểm 'vào ngay' (tín hiệu mạnh): 6 → 5 | 99.08 | 41.6% | 0.452 | 13.51 | 7.33 | 0.406 | 0.504 | -12.25 |  |
+| Ngưỡng điểm 'vào ngay' (tín hiệu mạnh): 6 → 7 | 98.29 | 43.4% | 0.445 | 12.51 | 7.86 | 0.377 | 0.52 | -12.84 |  |
+| SL tối đa (% Entry): 0.35 → 0.2 | 103.2 | 43.2% | 0.501 | 12.25 | 8.42 | 0.453 | 0.552 | -11.78 |  |
+| SL tối đa (% Entry): 0.35 → 0.5 | 98.63 | 42.9% | 0.454 | 12.53 | 7.87 | 0.382 | 0.532 | -12.55 |  |
+| Đệm SL dưới vùng hỗ trợ (ATR): 1 → 0.8 | 131.27 | 41% | 0.49 | 14.46 | 9.08 | 0.476 | 0.504 | -10.2 |  |
+| Đệm SL dưới vùng hỗ trợ (ATR): 1 → 1.2 | 68.91 | 41.2% | 0.379 | 12.86 | 5.36 | 0.305 | 0.461 | -4.11 |  |
 
 ### Vòng 28 — từng thông số · mốc: tổng 104.06R, win 42.9%, MC95 12.26R, chỉ số 8.49
 
@@ -213,6 +230,3 @@ Nhận: Số nến mỗi bên để xác định đỉnh/đáy Dow 5 → 4 · Đ
 
 ### Vòng 20 — từng thông số
 Trọng chốt: tối ưu trên 01/2023 → 12/2025, kiểm tra kín năm 2026 → bắt đầu lại từ cấu hình bot thật
-
-### Vòng 20 — từng thông số · mốc: tổng 7.61R, win 40%, MC95 10.4R, chỉ số 0.73
-Gộp các thay đổi vòng 19 làm chỉ số giảm (7.21 → 0.73) → hoàn tác
