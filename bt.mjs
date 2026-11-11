@@ -436,6 +436,24 @@ if (SHARD) {
   console.log(`Phần ${SHARD} xong: ${A.length} lệnh · ${((Date.now() - t0) / 1000).toFixed(0)}s`); process.exit(0);
 }
 }
+// ---- quản lý rủi ro cấp danh mục, như bot thật (hyper.mjs) ----
+// cầu dao: lỗ thực tế ≥ DAY_STOP R trong ngày (giờ VN) → không mở lệnh mới tới hết ngày; ≥ WEEK_STOP R trong tuần (từ thứ Hai) → nghỉ tới tuần sau
+// trần rủi ro: tổng số lệnh đang mở + lệnh chờ ≤ MAXR (bot thật: tổng rủi ro ≤ 30% tài sản ÷ 1R; mặc định giả định 10R)
+const DAY_STOP = +arg("daystop", "3"), WEEK_STOP = +arg("weekstop", "6"), MAXR = +arg("maxrisk", "10"), RISK_ON = arg("risk", "1") === "1";
+function portfolio(T) {
+  if (!RISK_ON) return 0;
+  const CL = new Set(["tp2", "trail", "tp1_be", "struct", "sl"]), open = [], acc = []; let skipped = 0;
+  for (const x of [...T].sort((a, b) => a.at - b.at)) {
+    const t = x.at;
+    for (let i = open.length - 1; i >= 0; i--) { const o = open[i], end = o.exitAt || (o.st === "expired" ? o.at + EXP_BARS * MS[o.tf] : Infinity); if (end <= t) open.splice(i, 1); }
+    const vn = t + 7 * 36e5, dayStart = Math.floor(vn / 864e5) * 864e5 - 7 * 36e5, weekStart = dayStart - ((new Date(vn).getUTCDay() + 6) % 7) * 864e5;
+    let dR = 0, wR = 0; for (const c of acc) if (CL.has(c.st) && c.exitAt && c.exitAt <= t) { if (c.exitAt >= weekStart) wR += c.r; if (c.exitAt >= dayStart) dR += c.r; }
+    if (dR <= -DAY_STOP || wR <= -WEEK_STOP || open.length >= MAXR) { x.st0 = x.st; x.st = "skip_risk"; x.riskWhy = dR <= -DAY_STOP ? "day" : wR <= -WEEK_STOP ? "week" : "maxrisk"; skipped++; continue; }
+    open.push(x); acc.push(x);
+  }
+  return skipped;
+}
+{ const n = portfolio(A); V.forEach(v => portfolio(v.T)); if (RISK_ON) console.log(`Quản lý rủi ro (cầu dao −${DAY_STOP}R/ngày, −${WEEK_STOP}R/tuần, tối đa ${MAXR} lệnh cùng lúc): bỏ ${n} kèo của thuật toán hiện tại`); }
 if (K2) B.push(...V[0].T);
 const RA = report(A), RB = K2 ? report(B) : null;
 // bảng so sánh nhiều phiên bản
