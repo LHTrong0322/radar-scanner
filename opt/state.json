@@ -36,7 +36,8 @@
   "z_fib2": 2.5,
   "z_w1": 2.5,
   "z_rsi": 1,
-  "z_macd": 1
+  "z_macd": 1,
+  "dowk": 5
  },
  "baseline": {
   "n": 738,
@@ -680,7 +681,8 @@
      "h1": 0.389,
      "h2": 0.079,
      "score": 4.6,
-     "good": false
+     "good": false,
+     "from": 5
     },
     {
      "knob": "weak",

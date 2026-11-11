@@ -16,7 +16,6 @@ Mỗi vòng: backtest toàn bộ dữ liệu (từ 2018, mọi nến, có phí +
 | % chốt ở TP1 | 0.5 | **0.33** |
 | Lệnh chờ hết hạn sau (nến) | 12 | **8** |
 | Điểm tối thiểu vùng đặt lệnh chờ | 2 | **3** |
-| Số nến mỗi bên để xác định đỉnh/đáy Dow | 5 | **undefined** |
 
 ## Lịch sử các vòng
 
@@ -51,7 +50,7 @@ Nhận: R:R tối thiểu tới TP1 2 → 2.5 · Ngưỡng điểm 'vào ngay' (
 | Lệnh chờ hết hạn sau (nến) | 12 → 8 | 5.4 | 0.223 | 33.2% | 606 | 38.83 | 0.536 | 0.083 | ✅ |
 | Điểm tối thiểu vùng đặt lệnh chờ | 2 → 1 | 5 | 0.202 | 32.7% | 740 | 38.12 | 0.514 | 0.066 |  |
 | Điểm tối thiểu vùng đặt lệnh chờ | 2 → 3 | 5.5 | 0.227 | 33.2% | 745 | 40.48 | 0.564 | 0.075 | ✅ |
-| Số nến mỗi bên để xác định đỉnh/đáy Dow | undefined → 2 | 4.6 | 0.18 | 31.5% | 797 | 33.31 | 0.389 | 0.079 |  |
+| Số nến mỗi bên để xác định đỉnh/đáy Dow | 5 → 2 | 4.6 | 0.18 | 31.5% | 797 | 33.31 | 0.389 | 0.079 |  |
 | Trần điểm khi chart yếu (Trend < x) | -0.3 → -0.6 | 5 | 0.201 | 32.7% | 738 | 38 | 0.514 | 0.063 |  |
 | Trần điểm khi chart yếu (Trend < x) | -0.3 → 0 | 4.9 | 0.198 | 32.6% | 737 | 38 | 0.506 | 0.063 |  |
 

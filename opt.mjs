@@ -91,6 +91,7 @@ function plan() {
     a2: () => { const m = html.match(/const LTF_CONFIRM=(\{[^}]*\});/); return m ? Object.keys(SPECIAL.a2).find(k => SPECIAL.a2[k] === m[1]) : undefined; },
     dow: () => Object.keys(SPECIAL.dow).find(k => html.includes(SPECIAL.dow[k])) };
   S.live = S.live || {};
+  for (const k of KNOBS) if (!(k.id in S.best)) S.best[k.id] = k.cur;      // thông số mới thêm sau khi tối ưu đã chạy → lấy giá trị đang dùng (tránh hiện "undefined")
   for (const [id, f] of Object.entries(liveOf)) { const v = f(); if (v === undefined) continue; const k = KNOBS.find(x => x.id === id); k.cur = v;
     if (!eq(S.live[id], v)) { if (S.live[id] !== undefined || !eq(S.best[id], v)) S.best[id] = v; S.live[id] = v; } }
   fs.rmSync(DIR, { recursive: true, force: true }); fs.mkdirSync(DIR, { recursive: true });
