@@ -410,22 +410,54 @@ export async function rsiDcaRun({ state, daily, outbox, errors, esc }) {
     if (C) {
       // cập nhật các phần đã khớp
       for (const L of C.legs) if (!L.done && L.cid) { const f = await filledOf(L.cid); if (f.status === "filled") { L.done = true; L.fillPx = f.px || L.px; say(`Khớp phần ${Math.round(L.w * 100)}% ở ${L.fillPx} (−${Math.round(L.d * 100)}%).`); } }
-      if (last.t > S.lastDay && r >= 70) {                                              // tín hiệu bán
-        S.lastDay = last.t;
-        const open = (await orders()).filter(o => C.legs.some(L => L.cid && L.cid === o.cloid));
+      const newDay = last.t > S.lastDay, prevR = S.prevRsi;
+      const sellQty = async () => { let q = 0; for (const L of C.legs) if (L.cid) { const f = await filledOf(L.cid); q += Math.max(0, f.filled); }
+        for (const X of (C.sell && C.sell.legs) || []) if (X.cid) { const f = await filledOf(X.cid); q -= Math.max(0, f.filled); }
+        return Math.max(0, Math.min(q, await spotBal(m.token))); };
+      const mkt = async (qty, tag) => { const sz = fmtSz(qty, m.szDecimals); if (!(parseFloat(sz) > 0) || parseFloat(sz) * m.mark < MIN_NOTIONAL) return 0;
+        await placeOrders([limitO({ asset: m.asset }, false, fmtPxSpot(m.mark * .99, m.szDecimals, "down"), sz, "Ioc", cloidOf(tag))]); return parseFloat(sz); };
+      const finish = async why => {
+        const open = (await orders()).filter(o => [...C.legs, ...((C.sell && C.sell.legs) || [])].some(L => L.cid && L.cid === o.cloid));
         if (open.length) await cancelOids(open.map(o => ({ asset: m.asset, oid: o.oid })));
-        let qty = 0; for (const L of C.legs) if (L.cid) { const f = await filledOf(L.cid); qty += Math.max(0, f.filled); }
-        qty = Math.min(qty, await spotBal(m.token));
-        const sz = fmtSz(qty, m.szDecimals);
-        if (parseFloat(sz) > 0 && parseFloat(sz) * m.mark >= MIN_NOTIONAL) await placeOrders([limitO({ asset: m.asset }, false, fmtPxSpot(m.mark * .99, m.szDecimals, "down"), sz, "Ioc", cloidOf("rsi-exit" + C.start))]);
-        const filled = C.legs.filter(L => L.done), w = filled.reduce((a, L) => a + L.w, 0), cost = w ? filled.reduce((a, L) => a + L.w * L.fillPx, 0) / w : 0;
-        const ret = cost ? (m.mark / cost - 1) * 100 : 0;
-        S.history.push({ start: C.start, end: last.t, p0: C.p0, cost: +cost.toPrecision(6), exit: +m.mark.toPrecision(6), legs: filled.length, ret: +ret.toFixed(1) });
-        S.cycle = null;
-        say(`RSI(14) nến D = ${r.toFixed(1)} ≥ 70 → <b>bán toàn bộ</b> BTC của chu kỳ ở ~${m.mark.toFixed(0)}. Giá vốn ${cost.toFixed(0)} (${filled.length}/4 phần đã khớp) → ${ret >= 0 ? "+" : ""}${ret.toFixed(1)}%.`);
+        const rest = await sellQty(); await mkt(rest, `rsi-end-${C.start}`);
+        const F = C.legs.filter(L => L.done), w = F.reduce((a, L) => a + L.w, 0), cost = w ? F.reduce((a, L) => a + L.w * L.fillPx, 0) / w : 0;
+        S.history.push({ start: C.start, end: last.t, p0: C.p0, cost: +cost.toPrecision(6), exit: +m.mark.toPrecision(6), why }); S.history = S.history.slice(-50);
+        S.cycle = null; say(`${why} → <b>đã bán hết</b> BTC của chu kỳ (giá vốn ${cost.toFixed(0)}, giá hiện tại ~${m.mark.toFixed(0)}). Kết thúc chu kỳ.`);
+      };
+      if (C.sell) {                                                                      // đang bán dần
+        for (const X of C.sell.legs) if (!X.done && X.cid && X.px) { const f = await filledOf(X.cid); if (f.status === "filled") { X.done = true; say(`Chốt phần ${Math.round(X.w * 100)}% ở ${X.px} (+${Math.round(X.u * 100)}%).`); } }
+        if (newDay) {
+          S.lastDay = last.t;
+          if (r < 45) { await finish(`RSI(14) nến D = ${r.toFixed(1)} rớt dưới 45 khi chưa chốt hết`); S.prevRsi = r; return; }
+          if (r >= 70 && prevR != null && prevR < 70) {                                   // RSI retest dưới 70 rồi đóng cửa lại trên 70 → chốt thêm phần kế tiếp
+            const X = C.sell.legs.find(x => !x.done);
+            if (X) { if (X.cid) { await cancelCloid({ asset: m.asset }, X.cid); }
+              const base = await sellQty(), part = C.sell.legs.filter(x => !x.done).reduce((a, x) => a + x.w, 0);
+              const q = await mkt(base * X.w / part, `rsi-re-${C.start}-${X.u}`); X.done = true; X.cid = null;
+              say(`RSI(14) nến D đóng cửa lại trên 70 (${r.toFixed(1)}) sau khi retest → <b>chốt thêm ${Math.round(X.w * 100)}%</b> ở ~${m.mark.toFixed(0)}.`); }
+          }
+        }
+        if (C.sell.legs.every(x => x.done)) await finish("Đã chốt đủ các phần bán");
+        S.prevRsi = newDay ? r : S.prevRsi; return;
       }
+      if (newDay && r >= 70) {                                                           // bắt đầu bán dần kim tự tháp
+        S.lastDay = last.t;
+        const openBuys = (await orders()).filter(o => C.legs.some(L => L.cid && L.cid === o.cloid && !L.done));
+        if (openBuys.length) await cancelOids(openBuys.map(o => ({ asset: m.asset, oid: o.oid })));   // ngừng mua thêm
+        const qty = await sellQty(), x0 = m.mark;
+        C.sell = { at: last.t, p: +x0.toPrecision(6), legs: [{ w: .1, u: 0 }, { w: .2, u: .08 }, { w: .3, u: .16 }, { w: .4, u: .25 }] };
+        await mkt(qty * .1, `rsi-s0-${C.start}`); C.sell.legs[0].done = true;
+        const ords = [];
+        for (const X of C.sell.legs.slice(1)) { X.px = +fmtPxSpot(x0 * (1 + X.u), m.szDecimals, "up"); X.cid = cloidOf(`rsi-s-${C.start}-${X.u}`); const sz = fmtSz(qty * X.w, m.szDecimals);
+          if (parseFloat(sz) * X.px >= MIN_NOTIONAL) ords.push(limitO({ asset: m.asset }, false, String(X.px), sz, "Gtc", X.cid)); else X.cid = null; }
+        if (ords.length) await placeOrders(ords);
+        say(`RSI(14) nến D = ${r.toFixed(1)} ≥ 70 → <b>bắt đầu chốt dần</b>: bán 10% ~${x0.toFixed(0)}, chờ bán ${C.sell.legs.slice(1).map(X => `${Math.round(X.w * 100)}% ở ${X.px}`).join(", ")}. RSI retest rồi lên lại 70 → chốt thêm; RSI < 45 → bán hết.`);
+      }
+      if (newDay) { S.lastDay = Math.max(S.lastDay, last.t); }
+      S.prevRsi = newDay ? r : S.prevRsi;
       return;
     }
+    if (last.t > S.lastDay) S.prevRsi = r;
     if (last.t > S.lastDay && r < 30) {                                                 // tín hiệu mua: bắt đầu chu kỳ
       S.lastDay = last.t;
       const A = await account(), budget = A.equity * RSI_PCT / 100, p0 = m.mark;
@@ -447,7 +479,7 @@ export async function rsiDcaRun({ state, daily, outbox, errors, esc }) {
       const f0 = await filledOf(legs[0].cid); if (f0.status === "filled") { S.cycle.legs[0].done = true; S.cycle.legs[0].fillPx = f0.px || p0; }
       say(`RSI(14) nến D = ${r.toFixed(1)} < 30 → <b>bắt đầu chu kỳ DCA</b> (${RSI_PCT}% tài sản, mua spot BTC).\n` +
         S.cycle.legs.map(L => `• ${Math.round(L.w * 100)}% ${L.d ? `chờ mua ở ${L.px} (−${Math.round(L.d * 100)}%)` : `mua ngay ~${p0.toFixed(0)}${S.cycle.legs[0].done ? " ✅" : ""}`}`).join("\n") +
-        `\nBán toàn bộ khi RSI nến D ≥ 70. Không có SL.`);
+        `\nChốt dần khi RSI nến D ≥ 70 (10% ngay, 20/30/40% ở +8/+16/+25%, mỗi lần RSI retest rồi lên lại 70 chốt thêm), RSI < 45 khi chưa chốt hết → bán hết. Không có SL.`);
     }
   } catch (e) { errors.push(`RSI BTC: ${e.message}`); say(`⚠️ Lỗi: ${esc(e.message.slice(0, 200))}`); }
 }
