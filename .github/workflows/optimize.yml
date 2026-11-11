@@ -1,17 +1,14 @@
 name: Tối ưu tự động
 
 # Mỗi lượt = 1 vòng: lập kế hoạch (đổi từng thông số một so với cấu hình tốt nhất) → backtest toàn bộ dữ liệu có phí trên 16 máy
-# → chấm điểm, chỉ nhận thay đổi tốt hơn và ổn định → ghi opt/report.md → tự chạy vòng tiếp theo cho tới khi hội tụ / đủ số vòng.
+# → chấm điểm, chỉ nhận thay đổi tốt hơn và ổn định → ghi opt/report.md → tự chạy vòng tiếp theo, VĨNH VIỄN (Trọng yêu cầu 11/11/2026).
 # KHÔNG sửa bot thật.
 on:
   workflow_dispatch:
     inputs:
-      batch:
-        description: "Số thông số dò mỗi vòng"
-        default: "6"
-      max_rounds:
-        description: "Số vòng tối đa"
-        default: "30"
+      configs:
+        description: "Số phương án thử mỗi vòng"
+        default: "12"
       auto_next:
         description: "Tự chạy vòng tiếp theo (1/0)"
         default: "1"
@@ -32,7 +29,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: node opt.mjs plan --batch "${{ github.event.inputs.batch }}"
+      - run: node opt.mjs plan --configs "${{ github.event.inputs.configs || 12 }}"
       - uses: actions/upload-artifact@v4
         with:
           name: opt-plan
@@ -58,7 +55,7 @@ jobs:
         with:
           name: opt-plan
           path: .
-      - run: node bt.mjs --days max --lowtf 1 --exp experiments-opt --shard ${{ matrix.k }}/16 --out shards
+      - run: node bt.mjs --days 2190 --lowtf 0 --skip BTC --holdout 24 --exp experiments-opt --shard ${{ matrix.k }}/16 --out shards
       - uses: actions/upload-artifact@v4
         with:
           name: opt-shard-${{ matrix.k }}
@@ -88,13 +85,18 @@ jobs:
       - name: Gộp + chấm điểm vòng
         run: |
           R=$(node -e 'console.log(JSON.parse(require("fs").readFileSync("opt/state.json")).round)')
-          node bt.mjs --days max --lowtf 1 --label "opt-r$R" --merge shards --exp experiments-opt
-          node opt.mjs update --result "$(ls -t backtests/*-opt-r$R.json | head -1)" --max "${{ github.event.inputs.max_rounds }}"
+          node bt.mjs --days 2190 --lowtf 0 --skip BTC --holdout 24 --label "opt-r$R" --merge shards --exp experiments-opt --out opt-out
+          node opt.mjs update --result "$(ls -t opt-out/*-opt-r$R.json | head -1)"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: opt-result
+          path: opt-out/
+          retention-days: 7
       - name: Lưu kết quả
         run: |
           git config user.name "radar-optimizer"
           git config user.email "radar-optimizer@users.noreply.github.com"
-          git add opt backtests
+          git add opt
           git commit -m "tối ưu: vòng $(node -e 'console.log(JSON.parse(require("fs").readFileSync("opt/state.json")).round)')" || true
           for i in 1 2 3 4 5; do
             git pull --rebase -X theirs origin main && git push origin HEAD:main && break
@@ -106,7 +108,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           if [ "$(cat opt/continue 2>/dev/null)" = "1" ]; then
-            gh workflow run optimize.yml --ref main -f batch="${{ github.event.inputs.batch }}" -f max_rounds="${{ github.event.inputs.max_rounds }}" -f auto_next=1
+            gh workflow run optimize.yml --ref main -f configs="${{ github.event.inputs.configs || 12 }}" -f auto_next=1
           else
             echo "Dừng: đã hội tụ hoặc đủ số vòng"
           fi
