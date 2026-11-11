@@ -1,11 +1,11 @@
-# Tối ưu tự động — vòng 14
+# Tối ưu tự động — vòng 15
 
 Đây là báo cáo để thảo luận. Bot thật KHÔNG bị thay đổi cho tới khi Trọng duyệt.
 
 Mỗi vòng: backtest toàn bộ dữ liệu (từ 2018, mọi nến, có phí + funding), đổi từng thông số một so với cấu hình tốt nhất hiện tại. Chỉ nhận thay đổi khi R/lệnh tăng ≥ 0.005R, KHÔNG xấu đi ở cả nửa đầu lẫn nửa sau dữ liệu, sụt vốn không tệ hơn 10%, tổng R không giảm quá 10%, số lệnh không giảm quá nửa.
 
 **Mốc ban đầu:** 1669 lệnh · win rate 30% · 0.055R/lệnh · tổng 92.39R · sụt vốn 65.43R
-**Cấu hình tốt nhất hiện tại:** 410 lệnh · win rate 41.7% · 0.38R/lệnh · tổng 155.68R · sụt vốn 14.65R
+**Cấu hình tốt nhất hiện tại:** 408 lệnh · win rate 42.6% · 0.398R/lệnh · tổng 162.44R · sụt vốn 14.65R
 
 ## Thông số khác với bot thật
 
@@ -274,3 +274,20 @@ Nhận: Điểm vùng: POC anchored 2 → 3 · Điểm vùng: EMA 50 1.5 → 0.7
 | SL tối đa (% Entry) | 0.35 → 0.5 | 4.6 | 0.361 | 42% | 410 | 14.65 | 0.719 | 0.18 |  |
 
 Nhận: Điểm vùng: Fib 0.5 / 0.382 sóng 2 2 → 3 · Điểm vùng: Fib sóng 4 2.5 → 1.25
+
+### Vòng 15 — mốc: 0.398R/lệnh, win 42.6%, DD 14.65R, 408 lệnh
+
+| Thông số | Từ → Thử | Điểm 0–10 | R/lệnh | Win rate | Lệnh | Max DD | Nửa đầu | Nửa sau | Nhận? |
+|---|---|---|---|---|---|---|---|---|---|
+| Đệm SL dưới vùng hỗ trợ (ATR) | 1 → 0.8 | 4.2 | 0.359 | 39% | 508 | 18.65 | 0.629 | 0.226 |  |
+| Đệm SL dưới vùng hỗ trợ (ATR) | 1 → 1.2 | 4.5 | 0.373 | 42.6% | 331 | 11.9 | 0.674 | 0.219 |  |
+| Điểm tối thiểu của vùng đặt SL | 2 → 1 | 5 | 0.398 | 42.6% | 408 | 14.65 | 0.752 | 0.221 |  |
+| Điểm tối thiểu của vùng đặt SL | 2 → 3 | 4.9 | 0.394 | 42.6% | 406 | 14.65 | 0.732 | 0.227 |  |
+| % chốt ở TP1 | 0.3 → 0.25 | 5.1 | 0.402 | 42.6% | 408 | 14.76 | 0.758 | 0.224 |  |
+| % chốt ở TP1 | 0.3 → 0.33 | 5 | 0.396 | 42.6% | 408 | 14.59 | 0.748 | 0.22 |  |
+| Khoảng cách tối thiểu TP1 (ATR) | 0.75 → 0.5 | 3.8 | 0.34 | 40.3% | 303 | 12.18 | 0.687 | 0.15 |  |
+| Khoảng cách tối thiểu TP1 (ATR) | 0.75 → 1 | 3.8 | 0.338 | 41% | 495 | 13.45 | 0.559 | 0.229 |  |
+| Lệnh chờ hết hạn sau (nến) | 8 → 10 | 4.5 | 0.371 | 41.6% | 454 | 15.76 | 0.738 | 0.185 |  |
+| Lệnh chờ hết hạn sau (nến) | 8 → 6 | 4.7 | 0.383 | 42.8% | 332 | 13.61 | 0.818 | 0.155 |  |
+| Điểm tối thiểu vùng đặt lệnh chờ | 3 → 2 | 4.8 | 0.387 | 43.2% | 407 | 14.97 | 0.72 | 0.222 |  |
+| Điểm tối thiểu vùng đặt lệnh chờ | 3 → 4 | 4.3 | 0.361 | 40.1% | 411 | 15.14 | 0.713 | 0.188 |  |
