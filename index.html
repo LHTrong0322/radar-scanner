@@ -997,7 +997,7 @@ const MAX_TPS=2;
 const MIN_RR=2.5;     // R:R tối thiểu tới TP1 (TP1 phải ≥ 2.5R mới vào lệnh) — Trọng duyệt 11/11/2026
 const STRONG_MKT=6;   // điểm tối thiểu để VÀO NGAY (tín hiệu mạnh); thấp hơn thì đặt lệnh chờ — Trọng duyệt nâng 5 → 6 (11/11/2026, backtest xác nhận)
 const TF_ADD={"4h":0,"1d":0,"1w":0};
-const HTF_MIN=.3;    // khung lớn hơn phải đang tăng (trend ≥ 0.3) — backtest toàn bộ dữ liệu 2018→nay: R/lệnh 0.117 → 0.203, win rate 30.5% → 33.7%, sụt vốn 63R → 26R. Trọng duyệt bật lại 11/11/2026
+const HTF_MIN=0.4;    // khung lớn hơn phải đang tăng (trend ≥ 0.4, Trọng duyệt nâng từ 0.3 ngày 11/11/2026 theo bot tối ưu) — backtest toàn bộ dữ liệu 2018→nay: R/lệnh 0.117 → 0.203, win rate 30.5% → 33.7%, sụt vốn 63R → 26R. Trọng duyệt bật lại 11/11/2026
 const LOW_TF_ASSETS=["BTC"];   // mã được quét thêm khung nhỏ
 const LOW_TFS=["1h"];          // khung nhỏ được trade (đã tắt 15m 11/11/2026: lợi thế quá mỏng, phí ăn hết); 15m chỉ dùng để xác nhận cho 1H
 const LTF_CONFIRM={"1w":"1d","1d":"4h","4h":"1h","1h":"15m"};   // khung nhỏ hơn phải xác nhận: W cần D tăng rõ; D/4H/1H cần khung nhỏ đã có cấu trúc tăng (A2, Trọng bật 11/11/2026)
@@ -1028,7 +1028,7 @@ function vpAnchor(c,ew){
 }
 function vpLevels(c,ew){                                         // POC anchored là chính (2đ); POC fixed 250 nến và các HVN chỉ cộng nhẹ 0.5đ
   const L=c.length-1, out=[], fx=volProfile(c,L-249), an=volProfile(c,vpAnchor(c,ew));
-  if(an){ out.push([an.poc,"POC anchored VP",2]); an.hvn.forEach(v=>out.push([v,"HVN anchored VP",.5])) }
+  if(an){ out.push([an.poc,"POC anchored VP",3]); an.hvn.forEach(v=>out.push([v,"HVN anchored VP",.5])) }
   if(fx){ out.push([fx.poc,"POC volume profile 250 nến",.5]); fx.hvn.forEach(v=>out.push([v,"HVN volume profile 250 nến",.5])) }
   return out;
 }
@@ -1054,12 +1054,12 @@ function ewLevels(ew,px){
   const out=[]; if(!ew||!isMotive(ew)||ew.dir<=0||!ew.seq) return out;
   const v=ew.seq.map(p=>p.v), L=ew.legs, ret=(a,b,r)=>b-(b-a)*r;   // a = đầu sóng, b = đỉnh sóng
   if(L===2||(L===1&&px<v[1])){                                       // đang ở sóng 2: hồi về sóng 1
-    out.push([ret(v[0],v[1],.618),"Fib 0.618 sóng 1 (vùng sóng 2)",2.5],[ret(v[0],v[1],.5),"Fib 0.5 sóng 1 (vùng sóng 2)",2],[ret(v[0],v[1],.382),"Fib 0.382 sóng 1 (sóng 2 nông)",1]);
+    out.push([ret(v[0],v[1],.618),"Fib 0.618 sóng 1 (vùng sóng 2)",2.5],[ret(v[0],v[1],.5),"Fib 0.5 sóng 1 (vùng sóng 2)",3],[ret(v[0],v[1],.382),"Fib 0.382 sóng 1 (sóng 2 nông)",1]);
   }
   if(L===4||(L===3&&px<v[3])){                                       // đang ở sóng 4: hồi về sóng 3, độ sâu ngược với sóng 2
     const r2=(v[1]-v[2])/(v[1]-v[0]), deep2=r2>=.5;
-    const F=deep2?[[.382,"Fib 0.382 sóng 3 (sóng 2 sâu → sóng 4 nông)",2.5]]
-                 :[[.618,"Fib 0.618 sóng 3 (sóng 2 nông → sóng 4 sâu)",2.5],[.5,"Fib 0.5 sóng 3 (sóng 4 sâu)",2]];
+    const F=deep2?[[.382,"Fib 0.382 sóng 3 (sóng 2 sâu → sóng 4 nông)",1.25]]
+                 :[[.618,"Fib 0.618 sóng 3 (sóng 2 nông → sóng 4 sâu)",1.25],[.5,"Fib 0.5 sóng 3 (sóng 4 sâu)",2]];
     for(const [r,t,w] of F){ const y=ret(v[2],v[3],r); if(y>v[1]) out.push([y,t,w]) }   // sóng 4 không được chồng lên đỉnh sóng 1
     out.push([v[1],"đỉnh sóng 1 (sàn của sóng 4)",2.5]);
   }
@@ -1111,7 +1111,7 @@ function supLevels(c,at,ev,ichi,ew,K,forSL){
   for(const [v,t,w] of ewLevels(ew,px)) add(v,t,w);                // Fib hồi sóng 2 / sóng 4, đỉnh sóng 1
   const lastH=swings(c,at*2,4,40).filter(p=>p.tp==="H").pop();      // BOS: đỉnh swing gần nhất đã bị giá phá lên
   if(lastH&&lastH.v<px&&c.slice(lastH.i+1).some(x=>x.c>lastH.v)) add(lastH.v,"BOS (đỉnh swing vừa bị phá)",2);
-  add(ev[21],"EMA 21",1); add(ev[50],"EMA 50",1.5); add(ev[200],"EMA 200",2);
+  add(ev[21],"EMA 21",1); add(ev[50],"EMA 50",0.75); add(ev[200],"EMA 200",2);
   if(ichi&&ichi.bot!=null){ add(ichi.bot,"đáy mây Ichimoku",1.2); add(ichi.top,"đỉnh mây Ichimoku",1.2);
     if(ichi.state===1) add(ichi.top,"đã break lên mây Ichimoku",2) }               // giá đã phá lên trên mây → đỉnh mây thành hỗ trợ mạnh
   if(K){ add(K.r45,"RSI 45–55 (hỗ trợ)",1); add(K.r55,"RSI 45–55 (hỗ trợ)",1); add(K.r30,"RSI chạm 30 (quá bán)",1); if(K.mf&&K.mf.bull) add(K.mf.px,"MACD còn trên Signal",1) }
@@ -1239,7 +1239,7 @@ function buyScore(i){
   }
   // 7) Chất lượng SL: SL nằm dưới vùng hỗ trợ mạnh thì tốt; SL chỉ theo khoảng ATR tối thiểu/tối đa thì kém
   const SLq=!P?null:P.stopW!=null?clamp((P.stopW-3)/4):/ATR/.test(P.why)?-.5:0;
-  const parts=[["Trend",T,30],["Momentum",M,15],["Elliott",W,15],["Entry",En,20],["R:R",RR,20],["Divergence",D,10],["SL",SLq,5]];
+  const parts=[["Trend",T,30],["Momentum",M,15],["Elliott",W,8],["Entry",En,30],["R:R",RR,30],["Divergence",D,10],["SL",SLq,5]];
   const S=wavg(parts.map(([_,v,w])=>[v,w])); if(S==null) return null;
   let score=50+50*S; const notes=[];
   if(T>.5&&En>.4&&RR>.4){score+=6;notes.push("+6 cộng hưởng: chart khoẻ, entry đẹp, R:R tốt")}

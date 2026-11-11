@@ -12,7 +12,12 @@ const fmt = v => v === null ? "null" : String(v);
 
 // ---------- danh sách thông số được dò ----------
 // find: đoạn code gốc (phải có đúng 1 lần trong index.html) · tpl: đoạn thay thế, {v} = giá trị · c: các giá trị thử (theo thứ tự)
-const W = (id, label, finds, cur, c, group) => ({ id, label, finds, cur, c, group });
+// Giá trị bot thật đã đổi (Trọng duyệt) so với số viết trong danh sách dưới: đoạn code cần tìm được dựng lại từ tpl với giá trị mới
+const LIVE_NOW = { htf: .4, p_W: 8, p_En: 30, p_RR: 30, z_poc: 3, z_ema50: .75, z_fib2b: 3, z_fib4: 1.25 };   // áp 11/11/2026 21:10
+const W = (id, label, finds, cur, c, group) => {
+  if (id in LIVE_NOW) { cur = LIVE_NOW[id]; finds = finds.map(([f, t]) => typeof f === "string" ? [t.split("{v}").join(String(cur)), t] : [f, t]); }
+  return { id, label, finds, cur, c, group };
+};
 const KNOBS = [
   // ngưỡng & quản lý lệnh
   W("pick", "Ngưỡng điểm vào kèo", [["const PICK_MIN=70;", "const PICK_MIN={v};"]], 70, [55, 60, 65, 70, 75, 80, 85], "Ngưỡng"),
