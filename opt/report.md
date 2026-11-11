@@ -1,17 +1,19 @@
-# Tối ưu tự động — vòng 8
+# Tối ưu tự động — vòng 9
 
 Đây là báo cáo để thảo luận. Bot thật KHÔNG bị thay đổi cho tới khi Trọng duyệt.
 
 Mỗi vòng: backtest toàn bộ dữ liệu (từ 2018, mọi nến, có phí + funding), đổi từng thông số một so với cấu hình tốt nhất hiện tại. Chỉ nhận thay đổi khi R/lệnh tăng ≥ 0.005R, KHÔNG xấu đi ở cả nửa đầu lẫn nửa sau dữ liệu, sụt vốn không tệ hơn 10%, tổng R không giảm quá 10%, số lệnh không giảm quá nửa.
 
 **Mốc ban đầu:** 1669 lệnh · win rate 30% · 0.055R/lệnh · tổng 92.39R · sụt vốn 65.43R
-**Cấu hình tốt nhất hiện tại:** 454 lệnh · win rate 40.5% · 0.335R/lệnh · tổng 152.12R · sụt vốn 17.82R
+**Cấu hình tốt nhất hiện tại:** 439 lệnh · win rate 41% · 0.34R/lệnh · tổng 149.08R · sụt vốn 16.53R
 
 ## Thông số khác với bot thật
 
 | Thông số | Bot thật | Đề xuất |
 |---|---|---|
 | Khung lớn phải tăng (trend ≥) | 0.3 | **0.4** |
+| Trọng số phần Elliott (/100) | 15 | **8** |
+| Trọng số phần Entry (/100) | 20 | **30** |
 
 ## Lịch sử các vòng
 
@@ -157,3 +159,22 @@ Trọng duyệt áp 5 thay đổi lên bot thật (TP1 30%, vào ngay 6, đệm 
 | Điểm ADX > 25 và +DI trội (Momentum) | 2 → 3 | 5.1 | 0.339 | 40.5% | 439 | 16.71 | 0.618 | 0.203 |  |
 
 Nhận: Khung lớn phải tăng (trend ≥) 0.3 → 0.4
+
+### Vòng 9 — mốc: 0.34R/lệnh, win 41%, DD 16.53R, 439 lệnh
+
+| Thông số | Từ → Thử | Điểm 0–10 | R/lệnh | Win rate | Lệnh | Max DD | Nửa đầu | Nửa sau | Nhận? |
+|---|---|---|---|---|---|---|---|---|---|
+| Điểm ADX < 13 cạn lực giảm (Momentum) | 1.5 → 0.75 | 4.9 | 0.336 | 40.9% | 440 | 16.53 | 0.647 | 0.177 |  |
+| Điểm ADX < 13 cạn lực giảm (Momentum) | 1.5 → 2.5 | 5 | 0.34 | 41% | 439 | 16.53 | 0.659 | 0.177 |  |
+| Cộng điểm phân kỳ dương ẩn | 3 → 1.5 | 5.1 | 0.343 | 41.2% | 430 | 15.66 | 0.641 | 0.192 |  |
+| Cộng điểm phân kỳ dương ẩn | 3 → 5 | 5 | 0.341 | 41% | 439 | 15.51 | 0.654 | 0.182 |  |
+| Trọng số phần Trend (/100) | 30 → 15 | 5.1 | 0.344 | 41.2% | 427 | 15.66 | 0.644 | 0.194 |  |
+| Trọng số phần Trend (/100) | 30 → 45 | 4.8 | 0.328 | 40.6% | 438 | 15.51 | 0.627 | 0.178 |  |
+| Trọng số phần Momentum (/100) | 15 → 23 | 5.1 | 0.344 | 41.1% | 433 | 16.53 | 0.661 | 0.184 |  |
+| Trọng số phần Momentum (/100) | 15 → 8 | 5 | 0.342 | 41.2% | 442 | 15.66 | 0.665 | 0.18 |  |
+| Trọng số phần Elliott (/100) | 15 → 23 | 5.2 | 0.348 | 41.5% | 429 | 15.66 | 0.651 | 0.194 |  |
+| Trọng số phần Elliott (/100) | 15 → 8 | 5.2 | 0.348 | 41% | 439 | 15.52 | 0.688 | 0.178 | ✅ |
+| Trọng số phần Entry (/100) | 20 → 10 | 5 | 0.341 | 41% | 441 | 15.51 | 0.654 | 0.184 |  |
+| Trọng số phần Entry (/100) | 20 → 30 | 5.1 | 0.346 | 41.2% | 432 | 15.66 | 0.656 | 0.189 | ✅ |
+
+Nhận: Trọng số phần Elliott (/100) 15 → 8 · Trọng số phần Entry (/100) 20 → 30
