@@ -269,6 +269,7 @@ function msgUpdate(j, prev) {
   if (j.status === "tp2") return `🏁 <b>${h}</b> chốt TP cuối${T.length > 2 ? ` (TP${T.length})` : ""} ${fp(T[T.length - 1])} · ROI ${roi}`;
   if (j.status === "trail") return `☑️ <b>${h}</b> chạm TP${j.hit} rồi giá quay đầu, phần còn lại chốt ở TP${j.hit - 1} · ROI ${roi}`;
   if (j.status === "tp1_be") return `☑️ <b>${h}</b> chốt TP1 rồi về hoà phần còn lại · ROI ${roi}`;
+  if (j.status === "struct" && j.tag === "time") return `⏱ <b>${h}</b> lệnh ì: đã ${String(j.tf).toUpperCase() === "1D" ? "10 ngày" : "10 nến " + String(j.tf).toUpperCase()} mà chưa chạm TP1 → thoát lệnh ở ${fp(j.exit)} · ROI ${roi}`;
   if (j.status === "struct") return `⚠️ <b>${h}</b> ${j.side === "short" ? "phá cấu trúc giảm" : "phá cấu trúc tăng"} (nến ${String(j.tf).toUpperCase()} đóng cửa ${j.side === "short" ? "trên đỉnh" : "dưới đáy"} gần nhất) → thoát lệnh ở ${fp(j.exit)} · ROI ${roi}`;
   if (j.status === "sl") return `🛑 <b>${h}</b> dính SL ${fp(j.stop)} · ROI ${roi}`;
   if (j.status === "expired") return `⌛ <b>${h}</b> lệnh chờ bị hủy (không khớp)`;

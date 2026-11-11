@@ -242,7 +242,7 @@ export async function hyperRun({ state, newIds, outbox, errors, esc, link, allow
       if (j.status === "struct") {                                     // cấu trúc tăng bị phá → đóng toàn bộ vị thế bằng lệnh thị trường (reduce-only)
         await cancelOids([...sls, ...tps].map(o => ({ asset: m.asset, oid: o.oid })));
         await placeOrders([limitO(m, sh, fmtPx(mark * (sh ? 1.03 : .97), m.szDecimals, sh ? "up" : "down"), szS, "Ioc", null, true)]);
-        h.st = "closed"; h.at = Date.now(); h.why = sh ? "phá cấu trúc giảm" : "phá cấu trúc tăng";
+        h.st = "closed"; h.at = Date.now(); h.why = j.tag === "time" ? "lệnh ì: 10 nến chưa tới TP1" : sh ? "phá cấu trúc giảm" : "phá cấu trúc tăng";
         say(`<b>${esc(j.base)}</b> ${sh ? "phá cấu trúc giảm" : "phá cấu trúc tăng"} (nến ${String(j.tf).toUpperCase()} đóng ${sh ? "trên đỉnh" : "dưới đáy"} gần nhất): đã đóng toàn bộ vị thế bằng lệnh thị trường.`);
         continue;
       }
