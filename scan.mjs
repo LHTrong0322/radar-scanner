@@ -359,12 +359,14 @@ async function main() {
       try {
         const c = a.kind === "stock" ? await stockCandles(a.sym, tf) : (await cryptoCandles(a.base, tf)).c;
         if (c.length < 60) continue;
-        const t = { src: a.kind === "stock" ? "st" : "ex", c, tf, side: SIDE }; K.compute(t);
-        if (t.ind) R[tf] = t;
+        const cc = K.closedOnly(c, tf);   // tín hiệu chỉ xác nhận trên nến ĐÃ ĐÓNG (Trọng duyệt 12/11/2026) — vào lệnh thì linh hoạt theo giá hiện tại trên sàn
+        if (cc.length < 60) continue;
+        const t = { src: a.kind === "stock" ? "st" : "ex", c: cc, tf, side: SIDE }; K.compute(t);
+        if (t.ind) { t.livePx = c.at(-1).c; R[tf] = t; }
       } catch (e) { why.push(`${tf}: ${e.message}`); }
     }
     if (!Object.keys(R).length) { errors.push(`${a.base}: không có dữ liệu (${why.join(" | ") || "thiếu nến"})`); return; }
-    a.price = (R["4h"] || R["1d"] || R["1w"]).c.at(-1).c;
+    { const r0 = R["4h"] || R["1d"] || R["1w"] || Object.values(R)[0]; a.price = r0.livePx ?? r0.c.at(-1).c; }   // giá hiện tại (nến đang chạy)
     TFA.forEach((tf, k) => {
       const t = R[tf]; if (!t || !t.buy || !t.buy.plan || t.buy.plan.reject) return;
       const htf = TFA[k + 1] || null, hT = htf ? K.trendOf(R[htf]) : null;
@@ -384,7 +386,7 @@ async function main() {
   // bộ lọc thị trường (REGIME trong index.html): chỉ LONG khi BTC 1D trên EMA200 (SHORT: dưới)
   let regimeOK = true, marketWhy = [];
   if (K.REGIME) {
-    try { const bc = (await cryptoCandles("BTC", "1d", 400)).c, e = K.ema(bc.map(x => x.c), K.REGIME_EMA || 200), up = bc.at(-1).c > e.at(-1), sl = K.REGIME_SLOPE || 0, rising = !sl || e.at(-1) > e.at(-1 - sl), falling = !sl || e.at(-1) < e.at(-1 - sl); const src = K.REGIME_SRC || "ema"; regimeOK = !src.includes("ema") || (SIDE === "short" ? !up && falling : up && rising);
+    try { const bc = K.closedOnly((await cryptoCandles("BTC", "1d", 400)).c, "1d"), e = K.ema(bc.map(x => x.c), K.REGIME_EMA || 200), up = bc.at(-1).c > e.at(-1), sl = K.REGIME_SLOPE || 0, rising = !sl || e.at(-1) > e.at(-1 - sl), falling = !sl || e.at(-1) < e.at(-1 - sl); const src = K.REGIME_SRC || "ema"; regimeOK = !src.includes("ema") || (SIDE === "short" ? !up && falling : up && rising);
       if (src.includes("dow")) { const dtf = src.includes("4h") ? "4h" : "1d", dc = (await cryptoCandles("BTC", dtf, 300)).c, d = K.dow(K.closedOnly(dc, dtf));
         const dOK = SIDE === "short" ? K.btcDowDown(d) : K.btcDowUp(d); if (!dOK) console.log(`Bộ lọc thị trường: BTC ${dtf.toUpperCase()} chưa có cấu trúc ${SIDE === "short" ? "giảm" : "tăng"}`); if (!dOK) marketWhy.push(`BTC ${dtf.toUpperCase()} chưa có cấu trúc ${SIDE === "short" ? "giảm" : "tăng"}`); regimeOK = regimeOK && dOK; }
       if (src.includes("ema") && !(SIDE === "short" ? !up : up)) marketWhy.unshift(`BTC ${up ? "trên" : "dưới"} EMA${K.REGIME_EMA || 200} ngày`);

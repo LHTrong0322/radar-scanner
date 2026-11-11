@@ -1496,9 +1496,9 @@ function evalTF(r,tf,side){
   if(tf===S.tf) c=r.c;
   else{
     const m=S.mcache.get(r.sym); if(!m||!m[tf]) return null;
-    c=m[tf].c.slice(); const l=c[c.length-1];
-    if(l&&r.price) c[c.length-1]={...l,c:r.price,h:Math.max(l.h,r.price),l:Math.min(l.l,r.price)};
+    c=m[tf].c.slice();
   }
+  c=closedOnly(c||[],tf);   // tín hiệu chỉ xác nhận trên nến ĐÃ ĐÓNG (giống bot thật, Trọng duyệt 12/11/2026); giá hiện tại chỉ dùng lúc vào lệnh
   if(!c||c.length<60) return null;
   const t={src:r.src,c,tf,side}; compute(t); return t.ind?t:null;
 }
