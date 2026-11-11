@@ -1008,6 +1008,7 @@ const SL_BUF_TF={"4h":SLB_4H,"1d":SLB_1D,"1w":SLB_1W};
 const slBuf=tf=>SL_BUF_TF[tf]??SL_BUF;
 // ---- Thuật toán mới đang nghiên cứu (11/11/2026). Mặc định TẮT (null) → bot thật không đổi. Bot tối ưu tự dò; chỉ bật khi Trọng duyệt. ----
 const REGIME_EMA=200;   // lọc BTC: giá BTC 1D phải trên EMA bao nhiêu ngày
+const REGIME_SLOPE=0;   // 0 = tắt; N = EMA đó còn phải đang DỐC LÊN so với N ngày trước (lọc thị trường đi ngang quanh EMA)
 const RS_DAYS=null;     // sức mạnh tương đối: lợi nhuận N ngày của coin phải ≥ của BTC (coin mạnh hơn BTC mới mua)
 const VOL_X=null;       // bỏ kèo khi biến động (ATR) hiện tại > VOL_X lần mức bình thường (trung vị ~100 nến) — tránh thị trường loạn
 const TIME_STOP=null;   // thoát lệnh nếu sau N nến kể từ khi khớp mà vẫn chưa chạm TP1 (lệnh "ì") — Trọng TẮT lại 11/11/2026 23:42

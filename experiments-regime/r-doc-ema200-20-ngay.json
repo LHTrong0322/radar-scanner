@@ -1,0 +1,10 @@
+{
+ "name": "r-doc-ema200-20-ngay",
+ "desc": "Thị trường chỉ tính là tăng (giảm) khi BTC trên (dưới) EMA200 VÀ EMA200 dốc lên (xuống) so với 20 ngày trước; còn lại = đi ngang → đứng ngoài",
+ "patch": [
+  {
+   "find": "const REGIME_SLOPE=0;",
+   "replace": "const REGIME_SLOPE=20;"
+  }
+ ]
+}

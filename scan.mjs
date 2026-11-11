@@ -34,7 +34,7 @@ function loadCore() {
     grab(/function simulate\([\s\S]*?\n\}/, "simulate"),
   ].join("\n");
   const S = { tf: "4h", win: 3, os: 30, ob: 70 };
-  return new Function("S", src + "\nreturn {TFMS,SETS,STOCKS,skipCoin,bucket,compute,trendOf,pickReasons,simulate,MAX_SL,clamp,swapTxt,PICK_MIN:typeof PICK_MIN!=='undefined'?PICK_MIN:70,RR_TF:typeof RR_TF!=='undefined'?RR_TF:{},REGIME_EMA:typeof REGIME_EMA!=='undefined'?REGIME_EMA:200,RS_DAYS:typeof RS_DAYS!=='undefined'?RS_DAYS:null,rsOK:typeof rsOK!=='undefined'?rsOK:null,volOK:typeof volOK!=='undefined'?volOK:null,MIN_RR:typeof MIN_RR!=='undefined'?MIN_RR:2,TF_ADD:typeof TF_ADD!=='undefined'?TF_ADD:{},HTF_MIN:typeof HTF_MIN!=='undefined'?HTF_MIN:null,REGIME:typeof REGIME!=='undefined'?REGIME:false,LOW_TF_ASSETS:typeof LOW_TF_ASSETS!=='undefined'?LOW_TF_ASSETS:[],LOW_TFS:typeof LOW_TFS!=='undefined'?LOW_TFS:['1h'],LTF_CONFIRM:typeof LTF_CONFIRM!=='undefined'?LTF_CONFIRM:{},upClear:typeof upClear!=='undefined'?upClear:()=>true,ltfOK:typeof ltfOK!=='undefined'?ltfOK:()=>true,ema};")(S);
+  return new Function("S", src + "\nreturn {TFMS,SETS,STOCKS,skipCoin,bucket,compute,trendOf,pickReasons,simulate,MAX_SL,clamp,swapTxt,PICK_MIN:typeof PICK_MIN!=='undefined'?PICK_MIN:70,RR_TF:typeof RR_TF!=='undefined'?RR_TF:{},REGIME_EMA:typeof REGIME_EMA!=='undefined'?REGIME_EMA:200,REGIME_SLOPE:typeof REGIME_SLOPE!=='undefined'?REGIME_SLOPE:0,RS_DAYS:typeof RS_DAYS!=='undefined'?RS_DAYS:null,rsOK:typeof rsOK!=='undefined'?rsOK:null,volOK:typeof volOK!=='undefined'?volOK:null,MIN_RR:typeof MIN_RR!=='undefined'?MIN_RR:2,TF_ADD:typeof TF_ADD!=='undefined'?TF_ADD:{},HTF_MIN:typeof HTF_MIN!=='undefined'?HTF_MIN:null,REGIME:typeof REGIME!=='undefined'?REGIME:false,LOW_TF_ASSETS:typeof LOW_TF_ASSETS!=='undefined'?LOW_TF_ASSETS:[],LOW_TFS:typeof LOW_TFS!=='undefined'?LOW_TFS:['1h'],LTF_CONFIRM:typeof LTF_CONFIRM!=='undefined'?LTF_CONFIRM:{},upClear:typeof upClear!=='undefined'?upClear:()=>true,ltfOK:typeof ltfOK!=='undefined'?ltfOK:()=>true,ema};")(S);
 }
 const K = loadCore();
 
@@ -346,7 +346,7 @@ async function main() {
   // bộ lọc thị trường (REGIME trong index.html): chỉ LONG khi BTC 1D trên EMA200 (SHORT: dưới)
   let regimeOK = true;
   if (K.REGIME) {
-    try { const bc = (await cryptoCandles("BTC", "1d", 400)).c, e = K.ema(bc.map(x => x.c), K.REGIME_EMA || 200), up = bc.at(-1).c > e.at(-1); regimeOK = SIDE === "short" ? !up : up;
+    try { const bc = (await cryptoCandles("BTC", "1d", 400)).c, e = K.ema(bc.map(x => x.c), K.REGIME_EMA || 200), up = bc.at(-1).c > e.at(-1), sl = K.REGIME_SLOPE || 0, rising = !sl || e.at(-1) > e.at(-1 - sl), falling = !sl || e.at(-1) < e.at(-1 - sl); regimeOK = SIDE === "short" ? !up && falling : up && rising;
       if (!regimeOK) console.log(`Bộ lọc thị trường: BTC ${up ? "trên" : "dưới"} EMA200 1D → không mở kèo ${SIDE}`); } catch (e) { }
     if (!regimeOK) for (let i = ok.length - 1; i >= 0; i--) if (ok[i].a.kind !== "stock") ok.splice(i, 1);   // chỉ áp cho crypto, cổ phiếu không phụ thuộc BTC
   }
