@@ -397,7 +397,7 @@ const MID = Date.now() - DAYS * 864e5 / 2;                 // chia đôi kỳ ba
 const half = (T, first) => stats(T.filter(x => first ? x.at < MID : x.at >= MID));
 // ---- kiểm tra kín: giữ riêng N tháng gần nhất (mặc định 12). Bot tối ưu chỉ được chọn thông số dựa trên phần "huấn luyện" (trước mốc),
 // phần "kiểm tra kín" chỉ dùng để chấm cuối cùng → biết cấu hình mới có hiệu quả thật trên dữ liệu chưa từng thấy hay không.
-// Trọng chốt 11/11/2026: kiểm tra kín = 01/2023 → 12/2025; huấn luyện = phần còn lại (11/2020 → 12/2022 và 2026). Nửa đầu / nửa sau của huấn luyện = trước 2023 / từ 2026.
+// Trọng chốt 11/11/2026 21:56: huấn luyện (tối ưu) = 01/2023 → 12/2025, chia 2 nửa (01/2023–06/2024, 07/2024–12/2025) để kiểm tra ổn định; kiểm tra kín = 2020–2022 + 2026.
 const TEST_FROM = Date.parse(arg("test-from", "2023-01-01") + "T00:00:00Z"), TEST_TO = Date.parse(arg("test-to", "2026-01-01") + "T00:00:00Z"), HOLD_M = Math.round((TEST_TO - TEST_FROM) / (30.44 * 864e5));
 const inTest = x => x.at >= TEST_FROM && x.at < TEST_TO;
 function mcDD(T, runs = 2000) {          // sụt vốn Monte Carlo: xáo trộn thứ tự lệnh nhiều lần, lấy mức sụt vốn mà 95% trường hợp không vượt quá
@@ -409,9 +409,9 @@ function mcDD(T, runs = 2000) {          // sụt vốn Monte Carlo: xáo trộn
   out.sort((x, y) => x - y); return +out[Math.floor(runs * .95)].toFixed(2);
 }
 function seg(T) {
-  const tr = T.filter(x => !inTest(x)), te = T.filter(inTest);
+  const tr = T.filter(inTest), te = T.filter(x => !inTest(x));   // Trọng 11/11 21:56: TỐI ƯU trên 01/2023 → 12/2025, KIỂM TRA KÍN trên phần còn lại (2020–2022 + 2026)
   return { testFrom: TEST_FROM, testTo: TEST_TO, holdMonths: HOLD_M, train: { ...stats(tr), dd95: mcDD(tr) }, test: { ...stats(te), dd95: mcDD(te) },
-    h1: stats(tr.filter(x => x.at < TEST_FROM)), h2: stats(tr.filter(x => x.at >= TEST_TO)), tf: group(tr, x => x.tf), tfTest: group(te, x => x.tf) };
+    h1: stats(tr.filter(x => x.at < (TEST_FROM + TEST_TO) / 2)), h2: stats(tr.filter(x => x.at >= (TEST_FROM + TEST_TO) / 2)), tf: group(tr, x => x.tf), tfTest: group(te, x => x.tf) };
 }
 const effScore = R => R.all.expectancy == null || RA.all.expectancy == null ? "–" : Math.max(0, Math.min(10, +(5 + (R.all.expectancy - RA.all.expectancy) / .05).toFixed(1)));
 const stable = T => { const a = half(T, true).expectancy, b = half(T, false).expectancy, a0 = half(A, true).expectancy, b0 = half(A, false).expectancy;
