@@ -1,0 +1,10 @@
+{
+ "name": "r1-bo-khung-lon-tang",
+ "desc": "Bỏ 'khung lớn phải tăng'",
+ "patch": [
+  {
+   "find": "const HTF_MIN=.3;    // khung lớn hơn phải đang tăng (trend ≥ 0.3) — backtest toàn bộ dữ liệu 2018→nay: R/lệnh 0.117 → 0.203, win rate 30.5% → 33.7%, sụt vốn 63R → 26R. Trọng duyệt bật lại 11/11/2026",
+   "replace": "const HTF_MIN=null;"
+  }
+ ]
+}

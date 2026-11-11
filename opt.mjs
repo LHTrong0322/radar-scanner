@@ -27,7 +27,7 @@ const KNOBS = [
   W("limz", "Điểm tối thiểu vùng đặt lệnh chờ", [["const below=best(SZ.filter(z=>z.hi<px-.6*atr&&z.hi>=px-3*atr&&z.w>=2));", "const below=best(SZ.filter(z=>z.hi<px-.6*atr&&z.hi>=px-3*atr&&z.w>={v}));"]], 2, [1, 2, 3, 4, 5], "Entry"),
   W("weak", "Trần điểm khi chart yếu (Trend < x)", [["if(T!=null&&T<-.3){score=Math.min(score,45);", "if(T!=null&&T<{v}){score=Math.min(score,45);"]], -.3, [-.6, -.3, 0, .2], "Ngưỡng"),
   // bộ lọc (bật/tắt)
-  W("htf", "Khung lớn phải tăng (trend ≥)", [[/const HTF_MIN=[^;]*;/, "const HTF_MIN={v};"]], null, [null, 0, .2, .3, .4, .5], "Bộ lọc"),
+  W("htf", "Khung lớn phải tăng (trend ≥)", [[/const HTF_MIN=[^;]*;/, "const HTF_MIN={v};"]], .3, [null, 0, .2, .3, .4, .5], "Bộ lọc"),
   W("regime", "Lọc BTC trên EMA200 (crypto)", [[/const REGIME=[^;]*;/, "const REGIME={v};"]], true, [false, true], "Bộ lọc"),
   W("a2", "Xác nhận khung nhỏ (A2)", [[/const LTF_CONFIRM=\{[^}]*\};/, "const LTF_CONFIRM={v};"]], "ON", ["OFF", "W", "ON"], "Bộ lọc",),
   W("dow", "Cổng Dow", [["const dw=i.dow, dowOK=!!dw&&dw.state===1;", "{v}"]], "CHẶT", ["TẮT", "LỎNG", "CHẶT"], "Bộ lọc"),
@@ -84,6 +84,14 @@ function plan() {
   const S = load(), html = fs.readFileSync(HTML, "utf8"), BATCH = +arg("batch", 6);
   if (S.done) { console.log("Đã hội tụ, không còn gì để thử."); fs.writeFileSync("opt/continue", "0"); return; }
   // giá trị hiện tại trong code có thể đã đổi (Trọng duyệt áp dụng) → đồng bộ "cur" của các thông số đặc biệt
+  // đồng bộ với bot thật: nếu Trọng đã đổi bộ lọc trên bot thật thì cấu hình gốc của tối ưu cũng đổi theo
+  const liveOf = { htf: () => { const m = html.match(/const HTF_MIN=([^;]*);/); return m ? (m[1] === "null" ? null : +m[1]) : undefined; },
+    regime: () => { const m = html.match(/const REGIME=([^;]*);/); return m ? m[1] === "true" : undefined; },
+    a2: () => { const m = html.match(/const LTF_CONFIRM=(\{[^}]*\});/); return m ? Object.keys(SPECIAL.a2).find(k => SPECIAL.a2[k] === m[1]) : undefined; },
+    dow: () => Object.keys(SPECIAL.dow).find(k => html.includes(SPECIAL.dow[k])) };
+  S.live = S.live || {};
+  for (const [id, f] of Object.entries(liveOf)) { const v = f(); if (v === undefined) continue; const k = KNOBS.find(x => x.id === id); k.cur = v;
+    if (!eq(S.live[id], v)) { if (S.live[id] !== undefined || !eq(S.best[id], v)) S.best[id] = v; S.live[id] = v; } }
   fs.rmSync(DIR, { recursive: true, force: true }); fs.mkdirSync(DIR, { recursive: true });
   const usable = KNOBS.filter(k => { try { patches(html, { [k.id]: k.c.find(v => !eq(v, k.cur)) }); return true; } catch (e) { console.log("Bỏ qua:", k.label, e.message); return false; } });
   const exps = [{ name: "000-best", desc: "Cấu hình tốt nhất hiện tại (mốc so sánh của vòng)", cfg: { ...S.best } }];

@@ -995,8 +995,9 @@ const MAX_TPS=2;
 const MIN_RR=2;       // R:R tối thiểu tới TP1
 const STRONG_MKT=5;   // điểm tối thiểu để VÀO NGAY (tín hiệu mạnh); thấp hơn thì đặt lệnh chờ — Trọng yêu cầu 11/11/2026
 const TF_ADD={"4h":0,"1d":0,"1w":0};
-const HTF_MIN=null;  // khung lớn hơn KHÔNG bắt buộc phải tăng — backtest: khi đã có xác nhận khung nhỏ (A2) thì luật này cắt mất kèo tốt (+32.7R → +66.4R khi bỏ). Trọng duyệt bỏ 11/11/2026
-const LOW_TF_ASSETS=["BTC"];
+const HTF_MIN=.3;    // khung lớn hơn phải đang tăng (trend ≥ 0.3) — backtest toàn bộ dữ liệu 2018→nay: R/lệnh 0.117 → 0.203, win rate 30.5% → 33.7%, sụt vốn 63R → 26R. Trọng duyệt bật lại 11/11/2026
+const LOW_TF_ASSETS=["BTC"];   // mã được quét thêm khung nhỏ
+const LOW_TFS=["1h"];          // khung nhỏ được trade (đã tắt 15m 11/11/2026: lợi thế quá mỏng, phí ăn hết); 15m chỉ dùng để xác nhận cho 1H
 const LTF_CONFIRM={"1w":"1d","1d":"4h","4h":"1h","1h":"15m"};   // khung nhỏ hơn phải xác nhận: W cần D tăng rõ; D/4H/1H cần khung nhỏ đã có cấu trúc tăng (A2, Trọng bật 11/11/2026)
 // cấu trúc khung xác nhận "tăng rõ": Dow đang tăng (hoặc vừa phá đỉnh thấp hơn) và xu hướng ≥ HTF_MIN
 const dowUp=t=>!!(t&&t.ind&&t.ind.dow&&t.ind.dow.state===1);   // khung xác nhận đã có cấu trúc tăng: tối thiểu 2 đỉnh + 2 đáy cao dần
