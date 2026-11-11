@@ -1,11 +1,11 @@
-# Tối ưu tự động — vòng 11
+# Tối ưu tự động — vòng 12
 
 Đây là báo cáo để thảo luận. Bot thật KHÔNG bị thay đổi cho tới khi Trọng duyệt.
 
 Mỗi vòng: backtest toàn bộ dữ liệu (từ 2018, mọi nến, có phí + funding), đổi từng thông số một so với cấu hình tốt nhất hiện tại. Chỉ nhận thay đổi khi R/lệnh tăng ≥ 0.005R, KHÔNG xấu đi ở cả nửa đầu lẫn nửa sau dữ liệu, sụt vốn không tệ hơn 10%, tổng R không giảm quá 10%, số lệnh không giảm quá nửa.
 
 **Mốc ban đầu:** 1669 lệnh · win rate 30% · 0.055R/lệnh · tổng 92.39R · sụt vốn 65.43R
-**Cấu hình tốt nhất hiện tại:** 437 lệnh · win rate 40.7% · 0.343R/lệnh · tổng 150R · sụt vốn 15.66R
+**Cấu hình tốt nhất hiện tại:** 410 lệnh · win rate 41.7% · 0.38R/lệnh · tổng 155.68R · sụt vốn 14.65R
 
 ## Thông số khác với bot thật
 
@@ -219,3 +219,20 @@ Nhận: Trọng số phần R:R (/100) 20 → 30
 | Điểm vùng: Kháng cự cũ bị phá | 1.5 → 2.25 | 4.9 | 0.338 | 40.6% | 424 | 17.18 | 0.666 | 0.175 |  |
 
 Nhận: Điểm vùng: POC anchored 2 → 3 · Điểm vùng: EMA 50 1.5 → 0.75
+
+### Vòng 12 — mốc: 0.38R/lệnh, win 41.7%, DD 14.65R, 410 lệnh
+
+| Thông số | Từ → Thử | Điểm 0–10 | R/lệnh | Win rate | Lệnh | Max DD | Nửa đầu | Nửa sau | Nhận? |
+|---|---|---|---|---|---|---|---|---|---|
+| Điểm vùng: Fib 0.618 sóng 2 | 2.5 → 1.25 | 4.9 | 0.375 | 41.4% | 411 | 14.94 | 0.72 | 0.205 |  |
+| Điểm vùng: Fib 0.618 sóng 2 | 2.5 → 3.75 | 5.1 | 0.383 | 42% | 410 | 14.65 | 0.719 | 0.214 |  |
+| Điểm vùng: Đỉnh sóng 1 (sàn sóng 4) | 2.5 → 1.25 | 4.9 | 0.375 | 41.8% | 411 | 16.04 | 0.714 | 0.208 |  |
+| Điểm vùng: Đỉnh sóng 1 (sàn sóng 4) | 2.5 → 3.75 | 4.3 | 0.346 | 41% | 417 | 14.74 | 0.689 | 0.173 |  |
+| Điểm vùng: Mức RSI 30/70 | 1 → 0.5 | 4.6 | 0.359 | 40.9% | 443 | 13.33 | 0.723 | 0.191 |  |
+| Điểm vùng: Mức RSI 30/70 | 1 → 1.5 | 4 | 0.332 | 42% | 312 | 11.4 | 0.722 | 0.113 |  |
+| Điểm vùng: Mức MACD | 1 → 0.5 | 4.7 | 0.364 | 40.6% | 416 | 14.65 | 0.709 | 0.188 |  |
+| Điểm vùng: Mức MACD | 1 → 1.5 | 4.5 | 0.354 | 41.2% | 417 | 16.54 | 0.709 | 0.174 |  |
+| Điểm vùng: POC volume profile cố định | 0.5 → 0.25 | 5.1 | 0.384 | 42% | 410 | 14.65 | 0.742 | 0.205 |  |
+| Điểm vùng: POC volume profile cố định | 0.5 → 0.75 | 5 | 0.378 | 41.7% | 410 | 14.65 | 0.719 | 0.207 |  |
+| Điểm vùng: HVN anchored | 0.5 → 0.25 | 5.1 | 0.384 | 41.9% | 408 | 13.52 | 0.708 | 0.223 |  |
+| Điểm vùng: HVN anchored | 0.5 → 0.75 | 4.8 | 0.371 | 41.4% | 406 | 14.66 | 0.733 | 0.191 |  |
