@@ -421,6 +421,9 @@ async function main() {
   if (process.env.HL_ADDRESS && process.env.HL_AGENT_KEY) {
     try { const { hyperRun } = await import(pathToFileURL(path.join(HERE, "hyper.mjs")).href); await hyperRun({ state, newIds, outbox, errors, esc, link, allowed: new Set(assets.map(a => a.base)) }); }
     catch (e) { errors.push(`Hyperliquid: ${e.message}`); }
+    // Chiến lược RSI khung D cho BTC (DCA kim tự tháp, 50% tài sản, mua spot) — chạy độc lập với bot chính
+    try { const { rsiDcaRun } = await import(pathToFileURL(path.join(HERE, "hyper.mjs")).href); const bd = (await cryptoCandles("BTC", "1d", 500)).c; await rsiDcaRun({ state, daily: bd, outbox, errors, esc }); }
+    catch (e) { errors.push(`RSI BTC: ${e.message}`); }
   } else if (process.env.ARCUS_ADDRESS && process.env.ARCUS_PRIVATE_KEY) {
     try { const { arcusRun } = await import(pathToFileURL(path.join(HERE, "arcus.mjs")).href); await arcusRun({ state, newIds, outbox, errors, esc, link }); }
     catch (e) { errors.push(`Arcus: ${e.message}`); }
@@ -436,7 +439,7 @@ async function main() {
   const pub = x => ({ side: SIDE, base: x.base, sym: x.a.kind === "stock" ? x.a.sym : x.base + "USDT", src: x.a.kind === "stock" ? "st" : "bn", ex: x.a.ex, tf: x.tf, score: Math.round(x.score),
     rank: x.rank, entry: x.P.entry, mode: x.P.mode, stop: x.P.stop, tp1: x.P.tp1, tp2: x.P.tp2, rr1: x.P.rr1, rr2: x.P.rr2, tp1Why: x.P.tp1Why, tp2Why: x.P.tp2Why, why: x.why, htf: x.htf, hT: x.hT });
   const out = { version: 1, updatedAt: Date.now(), tookSec: Math.round((Date.now() - t0) / 1000), rankSrc, scanned: assets.length,
-    picks: picks.map(pub), near: nears.map(pub), journal: keep, errors: errors.slice(0, 40), arcusMeta: state.arcusMeta, hlMeta: state.hlMeta, arb, arbAlert: state.arbAlert, universe: state.universe, side: SIDE, breakerMsg: state.breakerMsg };
+    picks: picks.map(pub), near: nears.map(pub), journal: keep, errors: errors.slice(0, 40), arcusMeta: state.arcusMeta, hlMeta: state.hlMeta, arb, arbAlert: state.arbAlert, universe: state.universe, side: SIDE, breakerMsg: state.breakerMsg, rsiDca: state.rsiDca };
   fs.mkdirSync(path.dirname(STATE_PATH), { recursive: true });
   fs.writeFileSync(STATE_PATH, JSON.stringify(out));
   if (process.env.PING === "true") outbox.push(`✅ <b>Crypto RSI Radar</b> đã kết nối Telegram.\nVừa quét ${assets.length} mã (${rankSrc}) · ${picks.length} kèo đạt chuẩn · ${active.length} lệnh đang theo dõi.\nTừ giờ bot sẽ báo khi có kèo mới, chạm TP hoặc dính SL.` + link());

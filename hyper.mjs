@@ -359,3 +359,95 @@ export async function hyperRun({ state, newIds, outbox, errors, esc, link, allow
 }
 
 export const _test = { signL1, fmtPx, fmtSz, wire, cloidOf, plan, libs, setWallet: w => { WALLET = w; } };
+
+/* ================= Chiến lược RSI khung D cho BTC (DCA kim tự tháp, mua SPOT) =================
+   - Vào: nến D (UTC) đóng cửa có RSI(14) < 30 → bắt đầu chu kỳ, ngân sách = RSI_DCA_PCT% (mặc định 50%) tổng tài sản lúc đó
+   - Chia vốn kim tự tháp: 10% mua ngay, 20% / 30% / 40% đặt lệnh chờ mua ở −8% / −16% / −25% so với giá vào đầu tiên
+   - Ra : nến D đóng cửa có RSI(14) ≥ 70 → huỷ lệnh chờ chưa khớp, bán toàn bộ BTC đã mua trong chu kỳ
+   - Không SL (đúng chiến lược Trọng duyệt). Mua bằng SPOT (UBTC/USDC trên Hyperliquid): không đòn bẩy, không thanh lý, không funding,
+     tách biệt hoàn toàn với các lệnh perp của bot chính.
+   - KHÔNG ghi số tiền / khối lượng vào state.json (repo công khai): chỉ lưu giá, tỷ trọng, mã lệnh. */
+const RSI_PCT = parseFloat(process.env.RSI_DCA_PCT || "50");
+const RSI_LEGS = [{ w: .1, d: 0 }, { w: .2, d: .08 }, { w: .3, d: .16 }, { w: .4, d: .25 }];
+function rsiD(closes, n = 14) {
+  if (closes.length <= n + 1) return null; let g = 0, l = 0;
+  for (let i = 1; i <= n; i++) { const d = closes[i] - closes[i - 1]; if (d > 0) g += d; else l -= d; } g /= n; l /= n;
+  for (let i = n + 1; i < closes.length; i++) { const d = closes[i] - closes[i - 1]; g = (g * (n - 1) + Math.max(d, 0)) / n; l = (l * (n - 1) + Math.max(-d, 0)) / n; }
+  return l === 0 ? 100 : 100 - 100 / (1 + g / l);
+}
+// spot BTC trên Hyperliquid (token UBTC, cặp với USDC); mã tài sản spot = 10000 + index
+async function spotBTC() {
+  const [meta, ctxs] = await info({ type: "spotMetaAndAssetCtxs" });
+  const tok = meta.tokens.find(t => ["UBTC", "BTC"].includes(String(t.name).toUpperCase())), usdc = meta.tokens.find(t => t.name === "USDC");
+  if (!tok || !usdc) throw new Error("không thấy cặp spot BTC/USDC trên Hyperliquid");
+  const pairs = meta.universe.filter(u => u.tokens[0] === tok.index && u.tokens[1] === usdc.index);
+  if (!pairs.length) throw new Error("không thấy cặp spot BTC/USDC");
+  const best = pairs.map(u => ({ u, c: ctxs[u.index] || {} })).sort((a, b) => parseFloat(b.c.dayNtlVlm || 0) - parseFloat(a.c.dayNtlVlm || 0))[0];
+  return { asset: 10000 + best.u.index, coin: best.u.name, token: tok.name, szDecimals: tok.szDecimals, mark: parseFloat(best.c.markPx || best.c.midPx || 0) };
+}
+const fmtPxSpot = (px, szDec, mode) => { const p = fmtPx(px, Math.max(0, szDec - 2), mode); return p; };   // spot: tối đa (8 − szDecimals) chữ số thập phân
+async function spotBal(token) {
+  const sp = await info({ type: "spotClearinghouseState", user: USER });
+  const b = ((sp && sp.balances) || []).find(x => x.coin === token); return b ? parseFloat(b.total || 0) - parseFloat(b.hold || 0) : 0;
+}
+async function filledOf(cloid) {
+  try { const r = await info({ type: "orderStatus", user: USER, oid: cloid }); const o = r && r.order && r.order.order, st = r && r.order && r.order.status;
+    if (!o) return { status: "none", filled: 0 }; return { status: st, filled: parseFloat(o.origSz || 0) - parseFloat(o.sz || 0), px: parseFloat(o.limitPx || 0) }; }
+  catch (e) { return { status: "err", filled: 0 }; }
+}
+export async function rsiDcaRun({ state, daily, outbox, errors, esc }) {
+  if (!USER || !process.env.HL_AGENT_KEY || MODE !== "auto" || !(RSI_PCT > 0)) return;
+  const say = s => outbox.push(`📈 <b>RSI BTC khung D</b> · ${s}`);
+  try { await libs(); } catch (e) { errors.push(`RSI BTC: ${e.message}`); return; }
+  const now = Date.now(), D = (daily || []).filter(k => k.t + 864e5 <= now);          // chỉ nến D đã đóng (UTC)
+  if (D.length < 60) { errors.push("RSI BTC: thiếu nến D của BTC"); return; }
+  const last = D.at(-1), r = rsiD(D.map(k => k.c)); if (r == null) return;
+  const S = state.rsiDca = state.rsiDca || { cycle: null, lastDay: 0, history: [] };
+  S.rsi = +r.toFixed(1); S.rsiDay = last.t;
+  let m; try { m = await spotBTC(); } catch (e) { errors.push(`RSI BTC: ${e.message}`); return; }
+  const C = S.cycle;
+  try {
+    if (C) {
+      // cập nhật các phần đã khớp
+      for (const L of C.legs) if (!L.done && L.cid) { const f = await filledOf(L.cid); if (f.status === "filled") { L.done = true; L.fillPx = f.px || L.px; say(`Khớp phần ${Math.round(L.w * 100)}% ở ${L.fillPx} (−${Math.round(L.d * 100)}%).`); } }
+      if (last.t > S.lastDay && r >= 70) {                                              // tín hiệu bán
+        S.lastDay = last.t;
+        const open = (await orders()).filter(o => C.legs.some(L => L.cid && L.cid === o.cloid));
+        if (open.length) await cancelOids(open.map(o => ({ asset: m.asset, oid: o.oid })));
+        let qty = 0; for (const L of C.legs) if (L.cid) { const f = await filledOf(L.cid); qty += Math.max(0, f.filled); }
+        qty = Math.min(qty, await spotBal(m.token));
+        const sz = fmtSz(qty, m.szDecimals);
+        if (parseFloat(sz) > 0 && parseFloat(sz) * m.mark >= MIN_NOTIONAL) await placeOrders([limitO({ asset: m.asset }, false, fmtPxSpot(m.mark * .99, m.szDecimals, "down"), sz, "Ioc", cloidOf("rsi-exit" + C.start))]);
+        const filled = C.legs.filter(L => L.done), w = filled.reduce((a, L) => a + L.w, 0), cost = w ? filled.reduce((a, L) => a + L.w * L.fillPx, 0) / w : 0;
+        const ret = cost ? (m.mark / cost - 1) * 100 : 0;
+        S.history.push({ start: C.start, end: last.t, p0: C.p0, cost: +cost.toPrecision(6), exit: +m.mark.toPrecision(6), legs: filled.length, ret: +ret.toFixed(1) });
+        S.cycle = null;
+        say(`RSI(14) nến D = ${r.toFixed(1)} ≥ 70 → <b>bán toàn bộ</b> BTC của chu kỳ ở ~${m.mark.toFixed(0)}. Giá vốn ${cost.toFixed(0)} (${filled.length}/4 phần đã khớp) → ${ret >= 0 ? "+" : ""}${ret.toFixed(1)}%.`);
+      }
+      return;
+    }
+    if (last.t > S.lastDay && r < 30) {                                                 // tín hiệu mua: bắt đầu chu kỳ
+      S.lastDay = last.t;
+      const A = await account(), budget = A.equity * RSI_PCT / 100, p0 = m.mark;
+      if (!(budget > 0) || !(p0 > 0)) throw new Error("không đọc được tài sản / giá BTC");
+      // gộp phần nhỏ hơn 10 USD (mức tối thiểu của sàn) vào phần sau
+      const legs = []; let carry = 0;
+      RSI_LEGS.forEach((L, k) => { const usd = (L.w + carry) * budget; if (usd < MIN_NOTIONAL * 1.1 && k < RSI_LEGS.length - 1) { carry += L.w; return; } legs.push({ w: L.w + carry, d: L.d }); carry = 0; });
+      if (!legs.length || legs.at(-1).w * budget < MIN_NOTIONAL) throw new Error("vốn quá nhỏ để chia DCA (mỗi lệnh cần ≥ 10 USD)");
+      const start = last.t, ords = [];
+      for (const L of legs) {
+        L.px = L.d ? +fmtPxSpot(p0 * (1 - L.d), m.szDecimals, "down") : null;
+        const px = L.d ? L.px : p0 * 1.01, sz = fmtSz(L.w * budget / (L.d ? L.px : p0), m.szDecimals);
+        L.cid = cloidOf(`rsi-${start}-${L.d}`);
+        ords.push(limitO({ asset: m.asset }, true, L.d ? fmtPxSpot(L.px, m.szDecimals) : fmtPxSpot(px, m.szDecimals, "up"), sz, L.d ? "Gtc" : "Ioc", L.cid));
+      }
+      await placeOrders(ords);
+      S.cycle = { start, p0: +p0.toPrecision(6), legs: legs.map(L => ({ w: +L.w.toFixed(2), d: L.d, px: L.px, cid: L.cid, done: false })) };
+      await new Promise(res => setTimeout(res, 2000));
+      const f0 = await filledOf(legs[0].cid); if (f0.status === "filled") { S.cycle.legs[0].done = true; S.cycle.legs[0].fillPx = f0.px || p0; }
+      say(`RSI(14) nến D = ${r.toFixed(1)} < 30 → <b>bắt đầu chu kỳ DCA</b> (${RSI_PCT}% tài sản, mua spot BTC).\n` +
+        S.cycle.legs.map(L => `• ${Math.round(L.w * 100)}% ${L.d ? `chờ mua ở ${L.px} (−${Math.round(L.d * 100)}%)` : `mua ngay ~${p0.toFixed(0)}${S.cycle.legs[0].done ? " ✅" : ""}`}`).join("\n") +
+        `\nBán toàn bộ khi RSI nến D ≥ 70. Không có SL.`);
+    }
+  } catch (e) { errors.push(`RSI BTC: ${e.message}`); say(`⚠️ Lỗi: ${esc(e.message.slice(0, 200))}`); }
+}
