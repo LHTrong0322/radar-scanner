@@ -314,6 +314,7 @@ if (EXP) {
   for (const f of files) {
     try {
       const X = JSON.parse(fs.readFileSync(f, "utf8")); let t = mainText;
+      if (arg("merge", "")) { V.push({ name: X.name || path.basename(f, ".json"), desc: X.desc || "", text: "", T: [] }); continue; }   // gộp: chỉ cần tên, giữ đúng thứ tự như lúc chạy
       for (const p of X.patch || []) { if (!t.includes(p.find)) throw new Error("không tìm thấy đoạn cần vá: " + p.find.slice(0, 60)); t = t.split(p.find).join(p.replace); }
       loadCore(null, t);                                                      // kiểm tra bản vá chạy được
       V.push({ name: X.name || path.basename(f, ".json"), desc: X.desc || "", text: t, T: [] });

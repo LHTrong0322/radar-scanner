@@ -7,7 +7,7 @@
    "replace": "const HTF_MIN=null;"
   },
   {
-   "find": "const REGIME=true;   // chỉ LONG khi BTC 1D trên EMA200 (SHORT: dưới) — Trọng bật 11/11/2026 (A3)   // điểm cộng thêm vào ngưỡng theo khung (để thử nghiệm)     // số TP tối đa (backtest 2 năm: 2 TP tốt hơn 3–4 TP)   // stop loss spot tối đa 35% tính từ Entry",
+   "find": "const REGIME=true;   // crypto: chỉ LONG khi BTC 1D trên EMA200 (SHORT: dưới) — Trọng bật 11/11/2026 (A3); cổ phiếu không áp dụng   // điểm cộng thêm vào ngưỡng theo khung (để thử nghiệm)     // số TP tối đa (backtest 2 năm: 2 TP tốt hơn 3–4 TP)   // stop loss spot tối đa 35% tính từ Entry",
    "replace": "const REGIME=false;"
   },
   {
