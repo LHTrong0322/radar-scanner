@@ -48,7 +48,7 @@ const KNOBS = [
   W("regema", "Lọc BTC: giá trên EMA bao nhiêu ngày", [[/const REGIME_EMA=\d+;/, "const REGIME_EMA={v};"]], 200, [50, 100, 150, 200], "Thuật toán mới"),
   W("rsd", "Coin phải mạnh hơn BTC trong N ngày", [["const RS_DAYS=null;", "const RS_DAYS={v};"]], null, [null, 14, 30, 60, 90], "Thuật toán mới"),
   W("volx", "Bỏ kèo khi biến động > N lần bình thường", [["const VOL_X=null;", "const VOL_X={v};"]], null, [null, 1.5, 2, 2.5, 3], "Thuật toán mới"),
-  W("tstop", "Thoát lệnh ì sau N nến chưa tới TP1", [["const TIME_STOP=null;", "const TIME_STOP={v};"]], null, [null, 3, 5, 8, 12, 20], "Thuật toán mới"),
+  W("tstop", "Thoát lệnh ì sau N nến chưa tới TP1", [["const TIME_STOP=null;", "const TIME_STOP={v};"]], null, [null, 3, 5, 7, 8, 10, 12, 15, 20], "Thuật toán mới"),
   W("trail", "Sau TP1: SL bám giá cao nhất − N×R", [["const TRAIL_R=null;", "const TRAIL_R={v};"]], null, [null, .5, 1, 1.5, 2, 3], "Thuật toán mới"),
   // trọng số /100
   ...[["Trend", "T", 30], ["Momentum", "M", 15], ["Elliott", "W", 15], ["Entry", "En", 20], ["R:R", "RR", 20], ["Divergence", "D", 10], ["SL", "SLq", 5]].map(([n, vn, w]) =>
