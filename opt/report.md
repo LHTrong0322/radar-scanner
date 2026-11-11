@@ -1,4 +1,4 @@
-# Tối ưu tự động (chạy liên tục) — vòng 22
+# Tối ưu tự động (chạy liên tục) — vòng 23
 
 Bot thật KHÔNG bị thay đổi cho tới khi Trọng duyệt. Backtest mọi nến 4H/1D/1W trong từ 01/2023 tới nay, có phí + funding, không tính BTC (BTC dành cho chiến lược RSI).
 
@@ -7,7 +7,7 @@ Chỉ chọn thông số trên **01/2023 → 12/2025** (Trọng chốt). **năm 
 Nhận thay đổi khi: chỉ số tăng ≥ 3%, tổng R không giảm quá 3%, win rate không giảm quá 0.5 điểm, sụt vốn MC95 không tệ hơn 5%, không xấu đi ở cả 2 nửa 2023–2025 (01/2023–06/2024 và 07/2024–12/2025), số lệnh không giảm quá 30%.
 ⚠️ Các thay đổi Trọng duyệt trước 11/11/2026 21:30 đã được chọn khi nhìn toàn bộ dữ liệu, kể cả giai đoạn kiểm tra kín → với chúng, phần kiểm tra kín không còn kín hoàn toàn.
 
-Chế độ dò hiện tại: **từng thông số** · đã thử 36 phương án.
+Chế độ dò hiện tại: **từng thông số** · đã thử 48 phương án.
 
 ## Bot thật so với cấu hình tốt nhất
 
@@ -15,16 +15,16 @@ Cấu hình mới chỉ đáng tin khi THẮNG bot thật ở phần kiểm tra 
 
 | | Lệnh 2023–2025 | Win rate | Tổng R | R/lệnh | Sụt vốn lớn nhất | Sụt vốn MC95 | Tổng R ÷ MC95 | Lệnh 2026 (kín) | Win rate | Tổng R | R/lệnh | Sụt vốn |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Bot thật | 215 | 37.7% | 52.84R | 0.246 | 12.91R | 19.16R | 2.76 | 47 | 23.4% | -7.54R | -0.16 | 14.92R |
-| **Tốt nhất** | 220 | 39.5% | 73.82R | 0.336 | 10R | 15.76R | 4.68 | 48 | 22.9% | -6.46R | -0.135 | 10.2R |
+| Bot thật | 215 | 37.7% | 52.84R | 0.246 | 12.91R | 19.4R | 2.72 | 47 | 23.4% | -7.54R | -0.16 | 14.92R |
+| **Tốt nhất** | 220 | 40.9% | 91.95R | 0.418 | 7.78R | 13.8R | 6.66 | 67 | 22.4% | -12.31R | -0.184 | 13.98R |
 
 ## Theo khung (cấu hình tốt nhất)
 
 | Khung | Lệnh 2023–2025 | Win rate | Tổng R | Lệnh 2026 (kiểm tra kín) | Win rate | Tổng R |
 |---|---|---|---|---|---|---|
-| 1D | 32 | 31.3% | 10.02R | 4 | 0% | -3.47R |
+| 1D | 28 | 32.1% | 12.21R | 6 | 0% | -4.83R |
 | 1W | 9 | 44.4% | -0.58R | 2 | 0% | -2.04R |
-| 4H | 179 | 40.8% | 64.38R | 42 | 26.2% | -0.94R |
+| 4H | 183 | 42.1% | 80.33R | 59 | 25.4% | -5.43R |
 
 ## Thông số khác với bot thật
 
@@ -46,6 +46,23 @@ Cấu hình mới chỉ đáng tin khi THẮNG bot thật ở phần kiểm tra 
 | 19 (hoàn tác) | Ngưỡng điểm 'vào ngay' (tín hiệu mạnh) | 6 → 5 | 104.08R | 43.9% | 13.85R | 7.51 |
 
 ## 10 vòng gần nhất
+
+### Vòng 23 — từng thông số · mốc: tổng 91.95R, win 40.9%, MC95 13.8R, chỉ số 6.66
+
+| Phương án | Tổng R | Win rate | R/lệnh | MC95 | Chỉ số | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
+|---|---|---|---|---|---|---|---|---|---|
+| Điểm ADX < 13 cạn lực giảm (Momentum): 1.5 → 0.75 | 91.95 | 40.9% | 0.418 | 13.8 | 6.66 | 0.392 | 0.445 | -12.31 |  |
+| Điểm ADX < 13 cạn lực giảm (Momentum): 1.5 → 2.5 | 91.95 | 40.9% | 0.418 | 13.8 | 6.66 | 0.392 | 0.445 | -12.31 |  |
+| Cộng điểm phân kỳ dương ẩn: 3 → 1.5 | 91.06 | 41.1% | 0.416 | 13.76 | 6.62 | 0.392 | 0.441 | -13.09 |  |
+| Cộng điểm phân kỳ dương ẩn: 3 → 5 | 91.64 | 40.7% | 0.415 | 14.02 | 6.54 | 0.392 | 0.438 | -12.31 |  |
+| Trọng số phần Trend (/100): 30 → 15 | 93.12 | 40.9% | 0.433 | 13.63 | 6.83 | 0.397 | 0.471 | -12.91 |  |
+| Trọng số phần Trend (/100): 30 → 45 | 84.41 | 40.3% | 0.382 | 14.12 | 5.98 | 0.333 | 0.433 | -11.46 |  |
+| Trọng số phần Momentum (/100): 15 → 8 | 92.16 | 40.9% | 0.419 | 13.71 | 6.72 | 0.392 | 0.447 | -10.42 |  |
+| Trọng số phần Momentum (/100): 15 → 23 | 91.95 | 40.9% | 0.418 | 13.8 | 6.66 | 0.392 | 0.445 | -12.31 |  |
+| Trọng số phần Elliott (/100): 8 → 0 | 89.33 | 40.5% | 0.402 | 13.81 | 6.47 | 0.373 | 0.433 | -12.31 |  |
+| Trọng số phần Elliott (/100): 8 → 15 | 91.63 | 41.1% | 0.418 | 13.68 | 6.7 | 0.392 | 0.447 | -11.21 |  |
+| Trọng số phần Entry (/100): 30 → 20 | 91.52 | 40.5% | 0.412 | 13.68 | 6.69 | 0.392 | 0.433 | -10.42 |  |
+| Trọng số phần Entry (/100): 30 → 40 | 91.28 | 40.8% | 0.419 | 13.87 | 6.58 | 0.392 | 0.447 | -13.09 |  |
 
 ### Vòng 22 — từng thông số · mốc: tổng 73.82R, win 39.5%, MC95 15.76R, chỉ số 4.68
 
