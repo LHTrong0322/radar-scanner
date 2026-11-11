@@ -1,0 +1,14 @@
+{
+ "name": "x4-bo-pivot-dow",
+ "desc": "Bỏ đỉnh/đáy pivot Dow khỏi vùng giá",
+ "patch": [
+  {
+   "find": "add(c[i].h,\"đỉnh phản ứng trước đó (Dow)\",2.5)",
+   "replace": "add(c[i].h,\"đỉnh phản ứng trước đó (Dow)\",0)"
+  },
+  {
+   "find": "if(pl) add(c[i].l,\"đáy phản ứng (Dow)\",forSL?4:2.5);",
+   "replace": "if(pl) add(c[i].l,\"đáy phản ứng (Dow)\",forSL?4:0);"
+  }
+ ]
+}

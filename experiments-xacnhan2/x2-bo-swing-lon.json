@@ -1,0 +1,14 @@
+{
+ "name": "x2-bo-swing-lon",
+ "desc": "Bỏ đỉnh/đáy swing lớn khỏi vùng giá",
+ "patch": [
+  {
+   "find": "add(p.v,\"đỉnh swing lớn\",2)",
+   "replace": "add(p.v,\"đỉnh swing lớn\",0)"
+  },
+  {
+   "find": "add(p.v,p.tp===\"L\"?\"đáy swing lớn\":\"đỉnh swing cũ (nay là hỗ trợ)\",2);",
+   "replace": "add(p.v,p.tp===\"L\"?\"đáy swing lớn\":\"đỉnh swing cũ (nay là hỗ trợ)\",0);"
+  }
+ ]
+}

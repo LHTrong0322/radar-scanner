@@ -1,0 +1,18 @@
+{
+ "name": "x3-bo-ca-hai",
+ "desc": "Bỏ cổng Dow + bỏ swing lớn",
+ "patch": [
+  {
+   "find": "const dw=i.dow, dowOK=dw&&(dw.state===1||/^Gãy cấu trúc giảm/.test(dw.why||\"\"));",
+   "replace": "const dw=i.dow, dowOK=true;"
+  },
+  {
+   "find": "add(p.v,\"đỉnh swing lớn\",2)",
+   "replace": "add(p.v,\"đỉnh swing lớn\",0)"
+  },
+  {
+   "find": "add(p.v,p.tp===\"L\"?\"đáy swing lớn\":\"đỉnh swing cũ (nay là hỗ trợ)\",2);",
+   "replace": "add(p.v,p.tp===\"L\"?\"đáy swing lớn\":\"đỉnh swing cũ (nay là hỗ trợ)\",0);"
+  }
+ ]
+}

@@ -1,0 +1,26 @@
+{
+ "name": "x5-bo-dow-swing-pivot",
+ "desc": "Bỏ cổng Dow + swing lớn + pivot Dow",
+ "patch": [
+  {
+   "find": "const dw=i.dow, dowOK=dw&&(dw.state===1||/^Gãy cấu trúc giảm/.test(dw.why||\"\"));",
+   "replace": "const dw=i.dow, dowOK=true;"
+  },
+  {
+   "find": "add(c[i].h,\"đỉnh phản ứng trước đó (Dow)\",2.5)",
+   "replace": "add(c[i].h,\"đỉnh phản ứng trước đó (Dow)\",0)"
+  },
+  {
+   "find": "if(pl) add(c[i].l,\"đáy phản ứng (Dow)\",forSL?4:2.5);",
+   "replace": "if(pl) add(c[i].l,\"đáy phản ứng (Dow)\",forSL?4:0);"
+  },
+  {
+   "find": "add(p.v,\"đỉnh swing lớn\",2)",
+   "replace": "add(p.v,\"đỉnh swing lớn\",0)"
+  },
+  {
+   "find": "add(p.v,p.tp===\"L\"?\"đáy swing lớn\":\"đỉnh swing cũ (nay là hỗ trợ)\",2);",
+   "replace": "add(p.v,p.tp===\"L\"?\"đáy swing lớn\":\"đỉnh swing cũ (nay là hỗ trợ)\",0);"
+  }
+ ]
+}
