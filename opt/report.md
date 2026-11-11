@@ -2,21 +2,16 @@
 
 Đây là báo cáo để thảo luận. Bot thật KHÔNG bị thay đổi cho tới khi Trọng duyệt.
 
-Mỗi vòng: backtest toàn bộ dữ liệu (từ 2018, mọi nến, có phí + funding), đổi từng thông số một so với cấu hình tốt nhất hiện tại. Chỉ nhận thay đổi khi R/lệnh tăng ≥ 0.005R, KHÔNG xấu đi ở cả nửa đầu lẫn nửa sau dữ liệu, sụt vốn không tệ hơn 15%, số lệnh không giảm quá nửa.
+Mỗi vòng: backtest toàn bộ dữ liệu (từ 2018, mọi nến, có phí + funding), đổi từng thông số một so với cấu hình tốt nhất hiện tại. Chỉ nhận thay đổi khi R/lệnh tăng ≥ 0.005R, KHÔNG xấu đi ở cả nửa đầu lẫn nửa sau dữ liệu, sụt vốn không tệ hơn 10%, tổng R không giảm quá 10%, số lệnh không giảm quá nửa.
 
 **Mốc ban đầu:** 1669 lệnh · win rate 30% · 0.055R/lệnh · tổng 92.39R · sụt vốn 65.43R
-**Cấu hình tốt nhất hiện tại:** 177 lệnh · win rate 38.4% · 0.489R/lệnh · tổng 86.55R · sụt vốn 15.43R
+**Cấu hình tốt nhất hiện tại:** 454 lệnh · win rate 40.5% · 0.335R/lệnh · tổng 152.12R · sụt vốn 17.82R
 
 ## Thông số khác với bot thật
 
 | Thông số | Bot thật | Đề xuất |
 |---|---|---|
-| Ngưỡng điểm 'vào ngay' (tín hiệu mạnh) | 5 | **6** |
-| % chốt ở TP1 | 0.5 | **0.33** |
-| Lệnh chờ hết hạn sau (nến) | 12 | **8** |
-| Điểm tối thiểu vùng đặt lệnh chờ | 2 | **3** |
-| Trọng số phần Momentum (/100) | 15 | **8** |
-| Điểm vùng: POC anchored | 2 | **3** |
+| (chưa có) | | |
 
 ## Lịch sử các vòng
 
@@ -109,19 +104,22 @@ Nhận: Trọng số phần Momentum (/100) 15 → 8
 
 Nhận: Điểm vùng: POC anchored 2 → 3
 
-### Vòng 6 — mốc: 0.489R/lệnh, win 38.4%, DD 15.43R, 177 lệnh
+### Vòng 5
+Trọng duyệt áp 5 thay đổi lên bot thật (TP1 30%, vào ngay 6, đệm SL 1 ATR, lệnh chờ 8 nến, vùng chờ ≥ 3) + Dow lỏng + R:R 2.5 → tối ưu chạy lại từ cấu hình bot thật mới; tiêu chí nhận chặt hơn (sụt vốn ≤ +10%, tổng R ≥ 90%)
+
+### Vòng 6 — mốc: 0.335R/lệnh, win 40.5%, DD 17.82R, 454 lệnh
 
 | Thông số | Từ → Thử | Điểm 0–10 | R/lệnh | Win rate | Lệnh | Max DD | Nửa đầu | Nửa sau | Nhận? |
 |---|---|---|---|---|---|---|---|---|---|
-| Điểm vùng: Break mây Ichimoku | 2 → 1 | 5.6 | 0.519 | 39% | 182 | 12.79 | 0.721 | 0.427 |  |
-| Điểm vùng: Break mây Ichimoku | 2 → 3 | 2.5 | 0.365 | 36.9% | 176 | 15.86 | 0.464 | 0.317 |  |
-| Điểm vùng: Kháng cự cũ bị phá | 1.5 → 0.75 | 4.2 | 0.45 | 38.5% | 187 | 16.45 | 0.475 | 0.439 |  |
-| Điểm vùng: Kháng cự cũ bị phá | 1.5 → 2.25 | 3.4 | 0.408 | 37.7% | 167 | 13.41 | 0.597 | 0.318 |  |
-| Điểm vùng: Fib 0.618 sóng 2 | 2.5 → 1.25 | 4.9 | 0.484 | 39.2% | 176 | 15.43 | 0.517 | 0.47 |  |
-| Điểm vùng: Fib 0.618 sóng 2 | 2.5 → 3.75 | 4.5 | 0.464 | 38.1% | 176 | 15.43 | 0.531 | 0.431 |  |
-| Điểm vùng: Đỉnh sóng 1 (sàn sóng 4) | 2.5 → 1.25 | 3.4 | 0.41 | 38.5% | 169 | 15.43 | 0.558 | 0.335 |  |
-| Điểm vùng: Đỉnh sóng 1 (sàn sóng 4) | 2.5 → 3.75 | 4.8 | 0.478 | 37.1% | 175 | 15.43 | 0.52 | 0.458 |  |
-| Điểm vùng: Mức RSI 30/70 | 1 → 0.5 | 3.8 | 0.427 | 37.2% | 180 | 16.44 | 0.582 | 0.355 |  |
-| Điểm vùng: Mức RSI 30/70 | 1 → 1.5 | 6 | 0.538 | 39.7% | 156 | 13.35 | 0.743 | 0.429 |  |
-| Điểm vùng: Mức MACD | 1 → 0.5 | 5 | 0.49 | 38.2% | 173 | 14.43 | 0.494 | 0.488 |  |
-| Điểm vùng: Mức MACD | 1 → 1.5 | 3.6 | 0.42 | 37.2% | 172 | 14.38 | 0.515 | 0.373 |  |
+| Ngưỡng điểm vào kèo | 70 → 65 | 4.8 | 0.327 | 40.6% | 458 | 16.43 | 0.632 | 0.17 |  |
+| Ngưỡng điểm vào kèo | 70 → 75 | 4.9 | 0.33 | 40.1% | 434 | 18.11 | 0.646 | 0.166 |  |
+| R:R tối thiểu tới TP1 | 2.5 → 2 | 3 | 0.236 | 37.2% | 787 | 17.66 | 0.407 | 0.158 |  |
+| R:R tối thiểu tới TP1 | 2.5 → 3 | 5.1 | 0.339 | 36.4% | 247 | 13.07 | 0.599 | 0.208 |  |
+| Ngưỡng điểm 'vào ngay' (tín hiệu mạnh) | 6 → 5 | 4.7 | 0.32 | 39.8% | 440 | 17.37 | 0.626 | 0.167 |  |
+| Ngưỡng điểm 'vào ngay' (tín hiệu mạnh) | 6 → 7 | 4.7 | 0.322 | 40.3% | 459 | 17.33 | 0.623 | 0.163 |  |
+| SL tối đa (% Entry) | 0.35 → 0.2 | 5.2 | 0.347 | 39.9% | 429 | 14.83 | 0.623 | 0.206 |  |
+| SL tối đa (% Entry) | 0.35 → 0.5 | 4.7 | 0.319 | 40.7% | 454 | 17.51 | 0.642 | 0.15 |  |
+| Đệm SL dưới vùng hỗ trợ (ATR) | 1 → 0.8 | 5.2 | 0.344 | 38.3% | 582 | 23.94 | 0.59 | 0.223 |  |
+| Đệm SL dưới vùng hỗ trợ (ATR) | 1 → 1.2 | 5.7 | 0.369 | 42.5% | 367 | 15 | 0.658 | 0.21 |  |
+| Điểm tối thiểu của vùng đặt SL | 2 → 1 | 5 | 0.335 | 40.5% | 454 | 17.82 | 0.65 | 0.173 |  |
+| Điểm tối thiểu của vùng đặt SL | 2 → 3 | 4.9 | 0.33 | 40.6% | 451 | 16.79 | 0.631 | 0.177 |  |
