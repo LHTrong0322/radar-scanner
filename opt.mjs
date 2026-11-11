@@ -83,7 +83,7 @@ const KNOBS = [
   ].map(([id, label, finds, w]) => W(id, `Điểm vùng: ${label}`, finds, w, [0, +(w / 2).toFixed(2), w, +(w * 1.5).toFixed(2), w * 2], "Điểm vùng giá")),
 ];
 // Các quyết định Trọng chốt, bot tối ưu không được đổi lại (hiện không có)
-const FIXED_BY_TRONG = new Set([]);   // 11/11 22:00: Trọng hoàn tác 5 thay đổi lúc 21:45 (kiểm chứng cho thấy tệ hơn) → bot tối ưu được dò lại tất cả
+const FIXED_BY_TRONG = new Set(["regime", "regsrc", "regloose"]);   // Trọng chốt 12/11: altcoin CHỈ vào lệnh khi BTC 1D trên EMA200 + có cấu trúc Dow tăng → bot tối ưu không được đề xuất bỏ/đổi   // 11/11 22:00: Trọng hoàn tác 5 thay đổi lúc 21:45 (kiểm chứng cho thấy tệ hơn) → bot tối ưu được dò lại tất cả
 for (let i = KNOBS.length - 1; i >= 0; i--) if (FIXED_BY_TRONG.has(KNOBS[i].id)) KNOBS.splice(i, 1);
 const SPECIAL = {
   a2: { OFF: "{}", W: '{"1w":"1d"}', ON: '{"1w":"1d","1d":"4h","4h":"1h","1h":"15m"}' },
