@@ -150,6 +150,7 @@ function syncLive(S, html) {
   S.liveCur = S.liveCur || {}; let chg = false;
   for (const k of KNOBS) { if (S.liveCur[k.id] !== undefined && !eq(S.liveCur[k.id], k.cur)) { S.best[k.id] = k.cur; chg = true; } S.liveCur[k.id] = k.cur; }
   for (const id of Object.keys(S.best)) if (!KNOBS.some(k => k.id === id)) delete S.best[id];
+  if (S.verified && Object.keys(S.verified.cfg || {}).some(id => FIXED_BY_TRONG.has(id))) S.verified = null;   // đề xuất cũ có đụng luật Trọng đã khoá → bỏ
   if (chg) { S.seen = {}; S.mode = "coord"; S.near = []; }
   for (const [id, f] of Object.entries(liveOf)) { const v = f(); if (v === undefined) continue; const k = KNOBS.find(x => x.id === id); k.cur = v;
     if (!eq(S.live[id], v)) { if (S.live[id] !== undefined || !eq(S.best[id], v)) S.best[id] = v; S.live[id] = v; } }
