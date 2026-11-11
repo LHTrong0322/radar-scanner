@@ -1,4 +1,4 @@
-# Tối ưu tự động (chạy liên tục) — vòng 37
+# Tối ưu tự động (chạy liên tục) — vòng 38
 
 Bot thật KHÔNG bị thay đổi cho tới khi Trọng duyệt. Backtest mọi nến 4H/1D/1W trong từ 01/2023 tới nay, có phí + funding, không tính BTC (BTC dành cho chiến lược RSI).
 
@@ -15,7 +15,7 @@ Cấu hình mới chỉ đáng tin khi THẮNG bot thật ở phần kiểm tra 
 
 | | Lệnh 2023–2025 | Win rate | Tổng R | R/lệnh | Sụt vốn lớn nhất | Sụt vốn MC95 | Tổng R ÷ MC95 | Lệnh 2026 (kín) | Win rate | Tổng R | R/lệnh | Sụt vốn |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Bot thật | 214 | 42.5% | 98.87R | 0.462 | 8.35R | 12.67R | 7.80 | 47 | 21.3% | -5.84R | -0.124 | 11.17R |
+| Bot thật | 332 | 33.7% | 70.61R | 0.213 | 13.13R | 23.36R | 3.02 | 74 | 25.7% | -1.54R | -0.021 | 10.61R |
 | **Tốt nhất** | 218 | 43.1% | 107.97R | 0.495 | 7.13R | 12R | 9.00 | 66 | 21.2% | -12.55R | -0.19 | 13.81R |
 
 ## Theo khung (cấu hình tốt nhất)
@@ -35,15 +35,14 @@ Chưa có cấu hình nào vừa hơn bot thật ở 2023–2025 vừa hơn ở 
 | Thông số | Bot thật | Đề xuất |
 |---|---|---|
 | Lọc BTC trên EMA200 (crypto) | true | **false** |
-| Điểm vùng: POC volume profile cố định | 0.75 | **1** |
-| Điểm vùng: HVN anchored | 0.25 | **0.5** |
+| Cổng Dow | LỎNG | **TẮT** |
 
 ## Các thay đổi đã nhận (mới nhất trước)
 
 | Vòng | Thông số | Từ → Thành | Tổng R | Win rate | MC95 | Chỉ số |
 |---|---|---|---|---|---|---|
-| 37 | Điểm vùng: POC volume profile cố định | 0.75 → 1 | 110.11R | 43.4% | 11.87R | 9.28 |
-| 37 | Điểm vùng: HVN anchored | 0.25 → 0.5 | 111.03R | 43.4% | 11.88R | 9.35 |
+| 37 (hoàn tác) | Điểm vùng: POC volume profile cố định | 0.75 → 1 | 110.11R | 43.4% | 11.87R | 9.28 |
+| 37 (hoàn tác) | Điểm vùng: HVN anchored | 0.25 → 0.5 | 111.03R | 43.4% | 11.88R | 9.35 |
 | 30 | Cộng thêm ngưỡng điểm khung 1D | 0 → 5 | 65.24R | 50% | 11.32R | 5.76 |
 | 27 | Điểm vùng: POC volume profile cố định | 0.5 → 0.75 | 96.81R | 41.7% | 13.3R | 7.28 |
 | 27 | Điểm vùng: HVN anchored | 0.5 → 0.25 | 100.23R | 42.2% | 12.29R | 8.16 |
@@ -59,6 +58,9 @@ Chưa có cấu hình nào vừa hơn bot thật ở 2023–2025 vừa hơn ở 
 | 19 (hoàn tác) | Ngưỡng điểm 'vào ngay' (tín hiệu mạnh) | 6 → 5 | 104.08R | 43.9% | 13.85R | 7.51 |
 
 ## 10 vòng gần nhất
+
+### Vòng 38 — từng thông số · mốc: tổng 83.74R, win 34.5%, MC95 21.83R, chỉ số 3.84
+Gộp các thay đổi vòng 37 làm chỉ số giảm (9.00 → 3.84) → hoàn tác
 
 ### Vòng 37 — từng thông số · mốc: tổng 107.97R, win 43.1%, MC95 12R, chỉ số 9.00
 
@@ -217,20 +219,3 @@ Nhận: Cộng thêm ngưỡng điểm khung 1D 0 → 5
 | SL tối đa (% Entry): 0.35 → 0.5 | 98.63 | 42.9% | 0.454 | 12.53 | 7.87 | 0.382 | 0.532 | -12.55 |  |
 | Đệm SL dưới vùng hỗ trợ (ATR): 1 → 0.8 | 131.27 | 41% | 0.49 | 14.46 | 9.08 | 0.476 | 0.504 | -10.2 |  |
 | Đệm SL dưới vùng hỗ trợ (ATR): 1 → 1.2 | 68.91 | 41.2% | 0.379 | 12.86 | 5.36 | 0.305 | 0.461 | -4.11 |  |
-
-### Vòng 28 — từng thông số · mốc: tổng 104.06R, win 42.9%, MC95 12.26R, chỉ số 8.49
-
-| Phương án | Tổng R | Win rate | R/lệnh | MC95 | Chỉ số | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
-|---|---|---|---|---|---|---|---|---|---|
-| Điểm vùng: Vùng RSI 45–55: 1 → 0.5 | 78.03 | 40.5% | 0.363 | 14.04 | 5.56 | 0.217 | 0.511 | -4.53 |  |
-| Điểm vùng: Vùng RSI 45–55: 1 → 1.5 | 82.57 | 40.4% | 0.362 | 14.92 | 5.53 | 0.305 | 0.425 | -17.56 |  |
-| Điểm vùng: Biên mây Ichimoku: 1.2 → 0.6 | 87.87 | 41.4% | 0.396 | 13.38 | 6.57 | 0.368 | 0.424 | -15.22 |  |
-| Điểm vùng: Biên mây Ichimoku: 1.2 → 1.8 | 83.55 | 40.4% | 0.383 | 14.38 | 5.81 | 0.28 | 0.501 | -8.11 |  |
-| Điểm vùng: Mức sai Elliott (cho SL): 2 → 1 | 97.46 | 41.9% | 0.439 | 12.81 | 7.61 | 0.408 | 0.472 | -14.53 |  |
-| Điểm vùng: Mức sai Elliott (cho SL): 2 → 3 | 98.41 | 42.2% | 0.451 | 12.51 | 7.87 | 0.443 | 0.46 | -9.79 |  |
-| Điểm vùng: Hỗ trợ cũ bị phá (thành kháng cự): 1 → 0.5 | 102.02 | 42.5% | 0.462 | 12.55 | 8.13 | 0.425 | 0.5 | -12.55 |  |
-| Điểm vùng: Hỗ trợ cũ bị phá (thành kháng cự): 1 → 1.5 | 102.88 | 43.1% | 0.472 | 12.02 | 8.56 | 0.432 | 0.515 | -11.52 |  |
-| Điểm vùng: MACD cắt lên Signal: 0.5 → 0.25 | 103.34 | 42.2% | 0.449 | 13.36 | 7.74 | 0.389 | 0.51 | -6.25 |  |
-| Điểm vùng: MACD cắt lên Signal: 0.5 → 0.75 | 104.06 | 42.9% | 0.475 | 12.26 | 8.49 | 0.425 | 0.529 | -12.55 |  |
-| Điểm vùng: Fib 0.5 / 0.382 sóng 2: 3 → 2 | 101.39 | 42.3% | 0.461 | 13.02 | 7.79 | 0.398 | 0.529 | -12.58 |  |
-| Điểm vùng: Fib 0.5 / 0.382 sóng 2: 3 → 4 | 103.81 | 42.7% | 0.476 | 12.37 | 8.39 | 0.438 | 0.517 | -16.86 |  |
