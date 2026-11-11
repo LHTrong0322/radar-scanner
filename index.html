@@ -1001,7 +1001,7 @@ const LTF_CONFIRM={"1w":"1d","1d":"4h","4h":"1h","1h":"15m"};   // khung nhỏ h
 const dowUp=t=>!!(t&&t.ind&&t.ind.dow&&t.ind.dow.state===1);   // khung xác nhận đã có cấu trúc tăng: tối thiểu 2 đỉnh + 2 đáy cao dần
 const ltfOK=(tf,t)=>tf==="1w"?upClear(t):dowUp(t);
 const upClear=t=>{ if(!t||!t.ind) return false; const d=t.ind.dow, T=trendOf(t); return !!d&&d.state===1&&T!=null&&T>=(HTF_MIN??.3) };   // mã được quét thêm khung 15m và 1h
-const REGIME=true;   // chỉ LONG khi BTC 1D trên EMA200 (SHORT: dưới) — Trọng bật 11/11/2026 (A3)   // điểm cộng thêm vào ngưỡng theo khung (để thử nghiệm)     // số TP tối đa (backtest 2 năm: 2 TP tốt hơn 3–4 TP)   // stop loss spot tối đa 35% tính từ Entry
+const REGIME=true;   // crypto: chỉ LONG khi BTC 1D trên EMA200 (SHORT: dưới) — Trọng bật 11/11/2026 (A3); cổ phiếu không áp dụng   // điểm cộng thêm vào ngưỡng theo khung (để thử nghiệm)     // số TP tối đa (backtest 2 năm: 2 TP tốt hơn 3–4 TP)   // stop loss spot tối đa 35% tính từ Entry
 const pctOf=(v,b)=>{const x=(v/b-1)*100;return (x>=0?"+":"")+x.toFixed(1)+"%"};
 const zoneOS=()=>S.os, zoneOB=()=>S.ob-5;   // phân kỳ dương: RSI ≤ ngưỡng quá bán (30) · phân kỳ âm: RSI ≥ ngưỡng quá mua − 5 (65)
 const wavg=parts=>{let s=0,w=0;for(const [v,k] of parts) if(v!=null&&isFinite(v)){s+=v*k;w+=k} return w?s/w:null};

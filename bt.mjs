@@ -155,7 +155,7 @@ function partial(htfBars, lowBars, upto, htf) {
   if (part.length) closed.push({ t: part[0].t, o: part[0].o, h: Math.max(...part.map(x => x.h)), l: Math.min(...part.map(x => x.l)), c: part.at(-1).c, v: part.reduce((a, x) => a + x.v, 0) });
   return closed;
 }
-function signals(K, D, startT, base) {
+function signals(K, D, startT, base, stock) {
   const out = [], low = LOWTF_ON && (K.LOW_TF_ASSETS || []).includes(base), tfs = low ? [...LOWTFS, ...TFS] : TFS, lowStart = Date.now() - LOW_DAYS * 864e5;
   for (const tf of tfs) {
     const bars = D[tf]; if (!bars || bars.length < 80) continue;
@@ -171,7 +171,7 @@ function signals(K, D, startT, base) {
         if (hc.length >= 60) { const h = { src: "ex", c: hc, tf: htf, side: SIDE }; K.compute(h); hT = K.trendOf(h); if (hT != null) { if (hT > .3) sc += 3; else if (hT < -.3) sc -= 5; } }
         if (K.HTF_MIN != null && (hT == null || hT < K.HTF_MIN)) continue;
       }
-      if (K.REGIME && !regimeOK(bars[i].t + MS[tf])) continue;
+      if (K.REGIME && !stock && !regimeOK(bars[i].t + MS[tf])) continue;   // lọc BTC chỉ áp cho crypto
       const ltf = K.LTF_CONFIRM[tf];
       if (ltf && D[ltf]) {                                   // kèo W: cấu trúc khung D tại thời điểm đó cũng phải tăng rõ
         const end = bars[i].t + MS[tf], L = D[ltf]; let lo = 0, hi = L.length - 1, e = -1;
@@ -185,8 +185,8 @@ function signals(K, D, startT, base) {
   }
   return out.sort((a, b) => a.t - b.t || b.rank - a.rank);
 }
-function trades(K, D, base, startT) {
-  const S = signals(K, D, startT, base), res = []; let busy = 0;
+function trades(K, D, base, startT, stock) {
+  const S = signals(K, D, startT, base, stock), res = []; let busy = 0;
   for (const s of S) {
     if (s.t < busy) continue;
     const P = s.P, j = { side: SIDE, tf: s.tf, at: s.t, mode: P.mode, entry: P.entry, stop: P.stop, tp1: P.tp1, tp2: P.tp2, tps: P.tps, tpf: P.tpf };
@@ -299,8 +299,8 @@ function regimeOK(t) {
 // Luồng phụ (worker): nhận dữ liệu 1 mã + chỉ số phiên bản → trả về danh sách lệnh. Chạy song song trên mọi nhân CPU.
 if (!isMainThread) {
   const KS = workerData.texts.map(t => loadCore(null, t)); REG = workerData.reg || [];
-  parentPort.on("message", ({ id, vi, D, base, startT }) => {
-    try { parentPort.postMessage({ id, T: trades(KS[vi], D, base, startT) }); }
+  parentPort.on("message", ({ id, vi, D, base, startT, stock }) => {
+    try { parentPort.postMessage({ id, T: trades(KS[vi], D, base, startT, stock) }); }
     catch (e) { parentPort.postMessage({ id, T: [], err: e.message }); }
   });
 } else {
@@ -349,14 +349,14 @@ catch (e) { console.log("Không lấy được BTC cho bộ lọc thị trườn
 const workers = Array.from({ length: NW }, () => new Worker(new URL(import.meta.url), { workerData: { texts, reg: REG }, argv: process.argv.slice(2) }));
 const wait = new Map(); let seq = 0, rr = 0;
 for (const w of workers) w.on("message", m => { const f = wait.get(m.id); wait.delete(m.id); if (m.err) console.log("  lỗi luồng:", m.err); f(m.T); });
-const task = (vi, D, base) => new Promise(res => { const id = ++seq; wait.set(id, res); workers[rr++ % NW].postMessage({ id, vi, D, base, startT }); });
+const task = (vi, D, base, stock) => new Promise(res => { const id = ++seq; wait.set(id, res); workers[rr++ % NW].postMessage({ id, vi, D, base, startT, stock }); });
 const keep = setInterval(() => { }, 10000);                  // giữ tiến trình sống khi chờ mạng
 let done = 0;
 async function runOne({ b, sym, stock }) {
   const D = {}, low = LOWTF_ON && (K1.lowAssets || []).includes(b) && !stock;
   for (const tf of [...TFS, "1h", ...(low ? ["15m"] : [])]) { try { D[tf] = stock ? await stockCandles(sym, tf) : await candles(b, tf, from[tf]); } catch (e) { } }   // 1h: xác nhận + chấm SL/TP
   if (!D["4h"] || !D["1d"]) { miss.push(b); return; }
-  const R = await Promise.all(texts.map((_, vi) => task(vi, D, b)));
+  const R = await Promise.all(texts.map((_, vi) => task(vi, D, b, !!stock)));
   A.push(...R[0]); V.forEach((v, i) => v.T.push(...R[i + 1]));
   if (++done % 10 === 0) console.log(`  ${done}/${ALL.length} mã · ${((Date.now() - t0) / 1000).toFixed(0)}s`);
 }

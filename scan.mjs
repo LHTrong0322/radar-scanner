@@ -344,7 +344,7 @@ async function main() {
   if (K.REGIME) {
     try { const bc = (await cryptoCandles("BTC", "1d", 400)).c, e = K.ema(bc.map(x => x.c), 200), up = bc.at(-1).c > e.at(-1); regimeOK = SIDE === "short" ? !up : up;
       if (!regimeOK) console.log(`Bộ lọc thị trường: BTC ${up ? "trên" : "dưới"} EMA200 1D → không mở kèo ${SIDE}`); } catch (e) { }
-    if (!regimeOK) ok.length = 0;
+    if (!regimeOK) for (let i = ok.length - 1; i >= 0; i--) if (ok[i].a.kind !== "stock") ok.splice(i, 1);   // chỉ áp cho crypto, cổ phiếu không phụ thuộc BTC
   }
   const picks = best(ok), pickSet = new Set(picks.map(x => x.base)), nears = best(near).filter(x => !pickSet.has(x.base)).slice(0, 12);
 
