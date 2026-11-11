@@ -1,0 +1,10 @@
+{
+ "name": "72-bo-loc-btc",
+ "desc": "Bộ luật mới nhưng BỎ lọc BTC trên EMA200",
+ "patch": [
+  {
+   "find": "const REGIME=true;   // chỉ LONG khi BTC 1D trên EMA200 (SHORT: dưới) — Trọng bật 11/11/2026 (A3)   // điểm cộng thêm vào ngưỡng theo khung (để thử nghiệm)     // số TP tối đa (backtest 2 năm: 2 TP tốt hơn 3–4 TP)   // stop loss spot tối đa 35% tính từ Entry",
+   "replace": "const REGIME=false;"
+  }
+ ]
+}

@@ -31,3 +31,7 @@ Nhận xét: chênh lệch giữa các bản cỡ ±0.04R/lệnh ≈ sai số th
 ## Kết quả vòng 3 (nhãn vong3) — main −15.5R
 52 khung lớn tăng (HTF ≥ 0.3) **8.0 ✅** 544 lệnh, +72.5R, 0.133R/lệnh, PF 1.28, DD 33, năm1 +51.9 / năm2 +20.6 · 58 gộp v4 (v2 + HTF ≥ 0.3) 7.8 ✅ +64.1R, DD 40, năm1 +34 / năm2 +30 · 53 HTF ≥ 0 6.9 ✅ · 59 BTC + trend 6.8 ✅ · 54 BTC>EMA200 6.7 ✅ · 56 gộp v2 5.8 ⚠️ · 30 gộp v1 5.6 ⚠️ · 57 gộp v3 5.2 ⚠️ · 50/51 trend chặt 4.9 · 55 bỏ 4H + break mây 3.8
 Phát hiện lớn: bắt buộc khung lớn đang tăng là bộ lọc hiệu quả nhất. Vòng 4: dò ngưỡng HTF 0.2–0.5 và kết hợp.
+
+## Kết quả vòng 4 (nhãn vong4, chạy 05:02Z 11/11) — main −47.6R (cùng code với vòng 3 nhưng khác 7 giờ!)
+60 HTF .2 5.3 ⚠️ −22R · 61 HTF .3 5.6 ⚠️ −12R (vòng 3: +72.5R!) · 62 HTF .4 5.7 ⚠️ · 63 HTF .5 6.1 ⚠️ +1R · 64 HTF+BTC 5.1 ⚠️ · 65 HTF + bỏ break mây 7.3 ✅ +33R · 66 HTF + bỏ phần SL 5.8 ⚠️
+CẢNH BÁO: kết quả rất nhạy với pha lấy mẫu 4H (bước 3 nến) → vòng 5 chuyển sang xét MỌI nến 4H (step 1) để loại nhiễu này, và đo đóng góp từng luật mới đã bật live.

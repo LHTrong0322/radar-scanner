@@ -1,0 +1,10 @@
+{
+ "name": "71-bo-khung-lon-tang",
+ "desc": "Bộ luật mới nhưng BỎ 'khung lớn phải tăng'",
+ "patch": [
+  {
+   "find": "const HTF_MIN=.3;    // khung lớn hơn phải đang tăng (trend ≥ 0.3) mới vào kèo — backtest 2 năm: −15.5R → +72.5R, cả 2 năm đều lời (Trọng duyệt 11/11/2026)",
+   "replace": "const HTF_MIN=null;"
+  }
+ ]
+}

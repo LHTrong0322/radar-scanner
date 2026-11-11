@@ -1,0 +1,10 @@
+{
+ "name": "75-them-bo-break-may",
+ "desc": "Bộ luật mới + bỏ điểm 'break mây Ichimoku'",
+ "patch": [
+  {
+   "find": "if(ichi.state===1) add(ichi.top,\"đã break lên mây Ichimoku\",2)",
+   "replace": ""
+  }
+ ]
+}

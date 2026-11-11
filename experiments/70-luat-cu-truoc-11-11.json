@@ -1,0 +1,22 @@
+{
+ "name": "70-luat-cu-truoc-11-11",
+ "desc": "Bộ luật CŨ (trước 11/11): không bắt khung lớn tăng, không lọc BTC, không xác nhận khung nhỏ, cổng Dow cho phép 'vừa phá đỉnh thấp hơn'",
+ "patch": [
+  {
+   "find": "const HTF_MIN=.3;    // khung lớn hơn phải đang tăng (trend ≥ 0.3) mới vào kèo — backtest 2 năm: −15.5R → +72.5R, cả 2 năm đều lời (Trọng duyệt 11/11/2026)",
+   "replace": "const HTF_MIN=null;"
+  },
+  {
+   "find": "const REGIME=true;   // chỉ LONG khi BTC 1D trên EMA200 (SHORT: dưới) — Trọng bật 11/11/2026 (A3)   // điểm cộng thêm vào ngưỡng theo khung (để thử nghiệm)     // số TP tối đa (backtest 2 năm: 2 TP tốt hơn 3–4 TP)   // stop loss spot tối đa 35% tính từ Entry",
+   "replace": "const REGIME=false;"
+  },
+  {
+   "find": "const LTF_CONFIRM={\"1w\":\"1d\",\"1d\":\"4h\",\"4h\":\"1h\",\"1h\":\"15m\"};",
+   "replace": "const LTF_CONFIRM={};"
+  },
+  {
+   "find": "const dw=i.dow, dowOK=!!dw&&dw.state===1;",
+   "replace": "const dw=i.dow, dowOK=dw&&(dw.state===1||/^Gãy cấu trúc giảm/.test(dw.why||\"\"));"
+  }
+ ]
+}
