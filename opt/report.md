@@ -1,17 +1,16 @@
-# Tối ưu tự động — vòng 3
+# Tối ưu tự động — vòng 4
 
 Đây là báo cáo để thảo luận. Bot thật KHÔNG bị thay đổi cho tới khi Trọng duyệt.
 
 Mỗi vòng: backtest toàn bộ dữ liệu (từ 2018, mọi nến, có phí + funding), đổi từng thông số một so với cấu hình tốt nhất hiện tại. Chỉ nhận thay đổi khi R/lệnh tăng ≥ 0.005R, KHÔNG xấu đi ở cả nửa đầu lẫn nửa sau dữ liệu, sụt vốn không tệ hơn 15%, số lệnh không giảm quá nửa.
 
 **Mốc ban đầu:** 1669 lệnh · win rate 30% · 0.055R/lệnh · tổng 92.39R · sụt vốn 65.43R
-**Cấu hình tốt nhất hiện tại:** 609 lệnh · win rate 33.8% · 0.261R/lệnh · tổng 159.05R · sụt vốn 39.72R
+**Cấu hình tốt nhất hiện tại:** 739 lệnh · win rate 34.8% · 0.332R/lệnh · tổng 245.34R · sụt vốn 34.05R
 
 ## Thông số khác với bot thật
 
 | Thông số | Bot thật | Đề xuất |
 |---|---|---|
-| R:R tối thiểu tới TP1 | 2 | **2.5** |
 | Ngưỡng điểm 'vào ngay' (tín hiệu mạnh) | 5 | **6** |
 | % chốt ở TP1 | 0.5 | **0.33** |
 | Lệnh chờ hết hạn sau (nến) | 12 | **8** |
@@ -72,3 +71,20 @@ Nhận: % chốt ở TP1 0.5 → 0.33 · Lệnh chờ hết hạn sau (nến) 12
 | Trọng số phần Momentum (/100) | 15 → 8 | 5.1 | 0.268 | 34% | 605 | 38.69 | 0.631 | 0.101 | ✅ |
 
 Nhận: Trọng số phần Momentum (/100) 15 → 8
+
+### Vòng 4 — mốc: 0.332R/lệnh, win 34.8%, DD 34.05R, 739 lệnh
+
+| Thông số | Từ → Thử | Điểm 0–10 | R/lệnh | Win rate | Lệnh | Max DD | Nửa đầu | Nửa sau | Nhận? |
+|---|---|---|---|---|---|---|---|---|---|
+| Trọng số phần Elliott (/100) | 15 → 23 | 4.9 | 0.326 | 34.6% | 737 | 34.45 | 0.583 | 0.217 |  |
+| Trọng số phần Elliott (/100) | 15 → 8 | 5 | 0.33 | 34.9% | 739 | 30.39 | 0.586 | 0.222 |  |
+| Trọng số phần Entry (/100) | 20 → 10 | 5.1 | 0.335 | 34.9% | 740 | 30.94 | 0.608 | 0.219 |  |
+| Trọng số phần Entry (/100) | 20 → 30 | 4.9 | 0.329 | 34.5% | 737 | 33.9 | 0.597 | 0.214 |  |
+| Trọng số phần R:R (/100) | 20 → 10 | 4.9 | 0.328 | 34.4% | 736 | 33.89 | 0.594 | 0.214 |  |
+| Trọng số phần R:R (/100) | 20 → 30 | 5.1 | 0.336 | 34.8% | 738 | 31.42 | 0.609 | 0.22 |  |
+| Trọng số phần Divergence (/100) | 10 → 15 | 5 | 0.332 | 34.7% | 735 | 32 | 0.605 | 0.217 |  |
+| Trọng số phần Divergence (/100) | 10 → 5 | 4.9 | 0.327 | 34.7% | 738 | 34.04 | 0.587 | 0.217 |  |
+| Trọng số phần SL (/100) | 5 → 3 | 5 | 0.332 | 34.8% | 739 | 34.05 | 0.609 | 0.215 |  |
+| Trọng số phần SL (/100) | 5 → 8 | 5 | 0.332 | 34.8% | 739 | 35.08 | 0.609 | 0.215 |  |
+| Điểm vùng: Đỉnh/đáy pivot Dow | 2.5 → 1.25 | 4.4 | 0.302 | 33.9% | 763 | 39.93 | 0.589 | 0.177 |  |
+| Điểm vùng: Đỉnh/đáy pivot Dow | 2.5 → 3.75 | 4.5 | 0.305 | 34.2% | 568 | 34.94 | 0.557 | 0.191 |  |
