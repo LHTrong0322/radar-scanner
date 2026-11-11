@@ -2,9 +2,9 @@
 
 Bot thật KHÔNG bị thay đổi cho tới khi Trọng duyệt. Backtest mọi nến 4H/1D/1W trong từ 01/2023 tới nay, có phí + funding, không tính BTC (BTC dành cho chiến lược RSI).
 
-**Mục tiêu:** tăng tổng R + win rate, rủi ro thấp nhất → chỉ số chính = tổng R ÷ sụt vốn Monte Carlo 95% (xáo trộn thứ tự lệnh 2000 lần, lấy mức sụt vốn mà 95% trường hợp không vượt quá).
+**Mục tiêu:** tăng tổng R + win rate, rủi ro thấp nhất → chỉ số chính = **Lời ÷ rủi ro** = tổng R chia cho **rủi ro tụt vốn (95%)**. Rủi ro tụt vốn (95%): xáo trộn thứ tự các lệnh 2000 lần, lấy mức tụt vốn mà 95% số lần không vượt quá — tức là “lúc xui nhất thường gặp, ví có thể tụt bao nhiêu”. Chỉ số càng cao càng tốt: lời nhiều trên mỗi đồng rủi ro.
 Chỉ chọn thông số trên **01/2023 → 12/2025** (Trọng chốt). **năm 2026 là kiểm tra kín** (dữ liệu mới nhất): không dùng để chọn, chỉ để chấm hiệu quả thật.
-Nhận thay đổi khi: chỉ số tăng ≥ 3%, tổng R không giảm quá 3%, win rate không giảm quá 0.5 điểm, sụt vốn MC95 không tệ hơn 5%, không xấu đi ở cả 2 nửa 2023–2025 (01/2023–06/2024 và 07/2024–12/2025), số lệnh không giảm quá 30%.
+Nhận thay đổi khi: Lời ÷ rủi ro tăng ít nhất 3%, tổng R không giảm quá 3%, win rate không giảm quá 0.5 điểm, rủi ro tụt vốn (95%) không tăng quá 5%, không xấu đi ở cả 2 nửa 2023–2025 (01/2023–06/2024 và 07/2024–12/2025), số lệnh không giảm quá 30%.
 ⚠️ Các thay đổi Trọng duyệt trước 11/11/2026 21:30 đã được chọn khi nhìn toàn bộ dữ liệu, kể cả giai đoạn kiểm tra kín → với chúng, phần kiểm tra kín không còn kín hoàn toàn.
 
 Chế độ dò hiện tại: **từng thông số** · đã thử 205 phương án.
@@ -13,14 +13,14 @@ Chế độ dò hiện tại: **từng thông số** · đã thử 205 phương 
 
 Cấu hình mới chỉ đáng tin khi THẮNG bot thật ở phần kiểm tra kín (năm 2026). Thua ở đó thì bỏ, dù phần huấn luyện đẹp đến đâu.
 
-| | Lệnh 2023–2025 | Win rate | Tổng R | R/lệnh | Sụt vốn lớn nhất | Sụt vốn MC95 | Tổng R ÷ MC95 | Lệnh 2026 (kín) | Win rate | Tổng R | R/lệnh | Sụt vốn |
+| | Lệnh 2023–2025 | Tỷ lệ thắng | Tổng R | R/lệnh | Tụt vốn lớn nhất (thực tế) | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | Lệnh 2026 (kín) | Tỷ lệ thắng | Tổng R | R/lệnh | Tụt vốn |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | Bot thật | 332 | 33.7% | 70.61R | 0.213 | 13.13R | 23.36R | 3.02 | 74 | 25.7% | -1.54R | -0.021 | 10.61R |
 | **Tốt nhất** | 218 | 43.1% | 107.97R | 0.495 | 7.13R | 12R | 9.00 | 66 | 21.2% | -12.55R | -0.19 | 13.81R |
 
 ## Theo khung (cấu hình tốt nhất)
 
-| Khung | Lệnh 2023–2025 | Win rate | Tổng R | Lệnh 2026 (kiểm tra kín) | Win rate | Tổng R |
+| Khung | Lệnh 2023–2025 | Tỷ lệ thắng | Tổng R | Lệnh 2026 (kiểm tra kín) | Tỷ lệ thắng | Tổng R |
 |---|---|---|---|---|---|---|
 | 1D | 29 | 41.4% | 20.01R | 7 | 0% | -5.62R |
 | 1W | 10 | 50% | 2.45R | 2 | 0% | -2.04R |
@@ -36,10 +36,12 @@ Chưa có cấu hình nào vừa hơn bot thật ở 2023–2025 vừa hơn ở 
 |---|---|---|
 | Lọc BTC trên EMA200 (crypto) | true | **false** |
 | Cổng Dow | LỎNG | **TẮT** |
+| Nguồn lọc thị trường BTC (EMA / cấu trúc Dow 4H / 1D) | ema+dow1d | **undefined** |
+| Lọc Dow BTC: tính cả lúc vừa vượt đỉnh thấp hơn | false | **undefined** |
 
 ## Các thay đổi đã nhận (mới nhất trước)
 
-| Vòng | Thông số | Từ → Thành | Tổng R | Win rate | MC95 | Chỉ số |
+| Vòng | Thông số | Từ → Thành | Tổng R | Tỷ lệ thắng | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro |
 |---|---|---|---|---|---|---|
 | 37 (hoàn tác) | Điểm vùng: POC volume profile cố định | 0.75 → 1 | 110.11R | 43.4% | 11.87R | 9.28 |
 | 37 (hoàn tác) | Điểm vùng: HVN anchored | 0.25 → 0.5 | 111.03R | 43.4% | 11.88R | 9.35 |
@@ -59,12 +61,12 @@ Chưa có cấu hình nào vừa hơn bot thật ở 2023–2025 vừa hơn ở 
 
 ## 10 vòng gần nhất
 
-### Vòng 38 — từng thông số · mốc: tổng 83.74R, win 34.5%, MC95 21.83R, chỉ số 3.84
+### Vòng 38 — từng thông số · mốc: tổng 83.74R, win 34.5%, rủi ro tụt vốn 21.83R, lời÷rủi ro 3.84
 Gộp các thay đổi vòng 37 làm chỉ số giảm (9.00 → 3.84) → hoàn tác
 
-### Vòng 37 — từng thông số · mốc: tổng 107.97R, win 43.1%, MC95 12R, chỉ số 9.00
+### Vòng 37 — từng thông số · mốc: tổng 107.97R, win 43.1%, rủi ro tụt vốn 12R, lời÷rủi ro 9.00
 
-| Phương án | Tổng R | Win rate | R/lệnh | MC95 | Chỉ số | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
+| Phương án | Tổng R | Tỷ lệ thắng | R/lệnh | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
 |---|---|---|---|---|---|---|---|---|---|
 | Điểm vùng: POC volume profile cố định: 0.75 → 0.5 | 105.85 | 43.1% | 0.49 | 11.84 | 8.94 | 0.438 | 0.546 | -12.37 |  |
 | Điểm vùng: POC volume profile cố định: 0.75 → 1 | 110.11 | 43.4% | 0.503 | 11.87 | 9.28 | 0.422 | 0.589 | -13.56 | ✅ |
@@ -81,9 +83,9 @@ Gộp các thay đổi vòng 37 làm chỉ số giảm (9.00 → 3.84) → hoàn
 
 Nhận: Điểm vùng: HVN anchored 0.25 → 0.5 · Điểm vùng: POC volume profile cố định 0.75 → 1
 
-### Vòng 36 — từng thông số · mốc: tổng 107.97R, win 43.1%, MC95 11.89R, chỉ số 9.08
+### Vòng 36 — từng thông số · mốc: tổng 107.97R, win 43.1%, rủi ro tụt vốn 11.89R, lời÷rủi ro 9.08
 
-| Phương án | Tổng R | Win rate | R/lệnh | MC95 | Chỉ số | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
+| Phương án | Tổng R | Tỷ lệ thắng | R/lệnh | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
 |---|---|---|---|---|---|---|---|---|---|
 | Điểm vùng: Break mây Ichimoku: 2 → 1 | 100.67 | 42.4% | 0.449 | 12.93 | 7.79 | 0.435 | 0.464 | -19.2 |  |
 | Điểm vùng: Break mây Ichimoku: 2 → 3 | 74.56 | 39.5% | 0.327 | 15.88 | 4.7 | 0.166 | 0.506 | -15.37 |  |
@@ -98,9 +100,9 @@ Nhận: Điểm vùng: HVN anchored 0.25 → 0.5 · Điểm vùng: POC volume pr
 | Điểm vùng: Mức MACD: 1 → 0.5 | 93.15 | 41.8% | 0.423 | 13.2 | 7.06 | 0.4 | 0.449 | -14.33 |  |
 | Điểm vùng: Mức MACD: 1 → 1.5 | 98.59 | 40.5% | 0.444 | 13.3 | 7.41 | 0.374 | 0.521 | -14.39 |  |
 
-### Vòng 35 — từng thông số · mốc: tổng 107.97R, win 43.1%, MC95 12.09R, chỉ số 8.93
+### Vòng 35 — từng thông số · mốc: tổng 107.97R, win 43.1%, rủi ro tụt vốn 12.09R, lời÷rủi ro 8.93
 
-| Phương án | Tổng R | Win rate | R/lệnh | MC95 | Chỉ số | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
+| Phương án | Tổng R | Tỷ lệ thắng | R/lệnh | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
 |---|---|---|---|---|---|---|---|---|---|
 | Điểm vùng: Đỉnh/đáy swing lớn: 2 → 1 | 92.7 | 38.1% | 0.294 | 18.15 | 5.11 | 0.306 | 0.282 | 0.03 |  |
 | Điểm vùng: Đỉnh/đáy swing lớn: 2 → 3 | 36.97 | 37.9% | 0.319 | 13.01 | 2.84 | 0.413 | 0.237 | -13.31 |  |
@@ -115,9 +117,9 @@ Nhận: Điểm vùng: HVN anchored 0.25 → 0.5 · Điểm vùng: POC volume pr
 | Điểm vùng: EMA 21: 1 → 0.5 | 101.48 | 43.3% | 0.483 | 12.27 | 8.27 | 0.429 | 0.539 | -14.49 |  |
 | Điểm vùng: EMA 21: 1 → 1.5 | 97.94 | 41.6% | 0.443 | 13.31 | 7.36 | 0.404 | 0.485 | -15.85 |  |
 
-### Vòng 34 — từng thông số · mốc: tổng 107.97R, win 43.1%, MC95 12.1R, chỉ số 8.92
+### Vòng 34 — từng thông số · mốc: tổng 107.97R, win 43.1%, rủi ro tụt vốn 12.1R, lời÷rủi ro 8.92
 
-| Phương án | Tổng R | Win rate | R/lệnh | MC95 | Chỉ số | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
+| Phương án | Tổng R | Tỷ lệ thắng | R/lệnh | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
 |---|---|---|---|---|---|---|---|---|---|
 | Trọng số phần Elliott (/100): 8 → 0 | 106.25 | 42.5% | 0.485 | 12.45 | 8.53 | 0.412 | 0.565 | -11.77 |  |
 | Trọng số phần Elliott (/100): 8 → 15 | 108.02 | 43.7% | 0.502 | 11.83 | 9.13 | 0.437 | 0.572 | -12.37 |  |
@@ -132,9 +134,9 @@ Nhận: Điểm vùng: HVN anchored 0.25 → 0.5 · Điểm vùng: POC volume pr
 | Điểm vùng: Đỉnh/đáy pivot Dow: 2.5 → 1.25 | 86.19 | 39.8% | 0.381 | 14.43 | 5.97 | 0.288 | 0.478 | 0.47 |  |
 | Điểm vùng: Đỉnh/đáy pivot Dow: 2.5 → 3.75 | 86.27 | 42.5% | 0.477 | 11.1 | 7.77 | 0.564 | 0.369 | -13.73 |  |
 
-### Vòng 33 — từng thông số · mốc: tổng 107.97R, win 43.1%, MC95 12.23R, chỉ số 8.83
+### Vòng 33 — từng thông số · mốc: tổng 107.97R, win 43.1%, rủi ro tụt vốn 12.23R, lời÷rủi ro 8.83
 
-| Phương án | Tổng R | Win rate | R/lệnh | MC95 | Chỉ số | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
+| Phương án | Tổng R | Tỷ lệ thắng | R/lệnh | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
 |---|---|---|---|---|---|---|---|---|---|
 | Điểm ADX < 13 cạn lực giảm (Momentum): 1.5 → 0.75 | 107.97 | 43.1% | 0.495 | 12.23 | 8.83 | 0.425 | 0.571 | -12.55 |  |
 | Điểm ADX < 13 cạn lực giảm (Momentum): 1.5 → 2.5 | 107.97 | 43.1% | 0.495 | 12.23 | 8.83 | 0.425 | 0.571 | -12.55 |  |
@@ -150,9 +152,9 @@ Nhận: Điểm vùng: HVN anchored 0.25 → 0.5 · Điểm vùng: POC volume pr
 | Trọng số phần Momentum (/100): 15 → 8 | 107.97 | 43.1% | 0.495 | 12.23 | 8.83 | 0.425 | 0.571 | -12.55 |  |
 | Trọng số phần Momentum (/100): 15 → 23 | 106.71 | 43.4% | 0.503 | 11.89 | 8.97 | 0.437 | 0.574 | -12.55 |  |
 
-### Vòng 32 — từng thông số · mốc: tổng 107.97R, win 43.1%, MC95 12.15R, chỉ số 8.89
+### Vòng 32 — từng thông số · mốc: tổng 107.97R, win 43.1%, rủi ro tụt vốn 12.15R, lời÷rủi ro 8.89
 
-| Phương án | Tổng R | Win rate | R/lệnh | MC95 | Chỉ số | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
+| Phương án | Tổng R | Tỷ lệ thắng | R/lệnh | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
 |---|---|---|---|---|---|---|---|---|---|
 | Trần điểm khi chart yếu (Trend < x): -0.3 → -0.6 | 107.97 | 43.1% | 0.495 | 12.15 | 8.89 | 0.425 | 0.571 | -12.55 |  |
 | Trần điểm khi chart yếu (Trend < x): -0.3 → 0 | 107.97 | 43.1% | 0.495 | 12.15 | 8.89 | 0.425 | 0.571 | -12.55 |  |
@@ -167,9 +169,9 @@ Nhận: Điểm vùng: HVN anchored 0.25 → 0.5 · Điểm vùng: POC volume pr
 | Điểm ADX > 25 và +DI trội (Momentum): 3 → 2 | 95.39 | 42.5% | 0.436 | 12.85 | 7.42 | 0.36 | 0.519 | -12.71 |  |
 | Điểm ADX > 25 và +DI trội (Momentum): 3 → 4 | 101.23 | 41.9% | 0.471 | 12.52 | 8.09 | 0.429 | 0.516 | -10.91 |  |
 
-### Vòng 31 — từng thông số · mốc: tổng 107.97R, win 43.1%, MC95 11.89R, chỉ số 9.08
+### Vòng 31 — từng thông số · mốc: tổng 107.97R, win 43.1%, rủi ro tụt vốn 11.89R, lời÷rủi ro 9.08
 
-| Phương án | Tổng R | Win rate | R/lệnh | MC95 | Chỉ số | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
+| Phương án | Tổng R | Tỷ lệ thắng | R/lệnh | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
 |---|---|---|---|---|---|---|---|---|---|
 | Điểm tối thiểu của vùng đặt SL: 3 → 2 | 117.88 | 43.2% | 0.531 | 12.05 | 9.78 | 0.508 | 0.556 | -11.53 |  |
 | Điểm tối thiểu của vùng đặt SL: 3 → 4 | 106.08 | 43.7% | 0.493 | 11.66 | 9.1 | 0.425 | 0.566 | -12.55 |  |
@@ -184,9 +186,9 @@ Nhận: Điểm vùng: HVN anchored 0.25 → 0.5 · Điểm vùng: POC volume pr
 | Số nến mỗi bên để xác định đỉnh/đáy Dow: 4 → 3 | 76.2 | 38.9% | 0.333 | 16.51 | 4.62 | 0.371 | 0.297 | 4.08 |  |
 | Số nến mỗi bên để xác định đỉnh/đáy Dow: 4 → 5 | 63.95 | 37.5% | 0.296 | 17.83 | 3.59 | 0.267 | 0.325 | -2.83 |  |
 
-### Vòng 30 — từng thông số · mốc: tổng 63.12R, win 49.6%, MC95 11.6R, chỉ số 5.44
+### Vòng 30 — từng thông số · mốc: tổng 63.12R, win 49.6%, rủi ro tụt vốn 11.6R, lời÷rủi ro 5.44
 
-| Phương án | Tổng R | Win rate | R/lệnh | MC95 | Chỉ số | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
+| Phương án | Tổng R | Tỷ lệ thắng | R/lệnh | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
 |---|---|---|---|---|---|---|---|---|---|
 | R:R tối thiểu riêng khung 4H: null → 2 | 97.97 | 46.8% | 0.216 | 13.84 | 7.08 | 0.226 | 0.207 | -17.79 |  |
 | Đệm SL riêng khung 4H (ATR): null → 0.3 | 126.65 | 42.9% | 0.286 | 21.9 | 5.78 | 0.225 | 0.351 | -9.47 |  |
@@ -203,9 +205,9 @@ Nhận: Điểm vùng: HVN anchored 0.25 → 0.5 · Điểm vùng: POC volume pr
 
 Nhận: Cộng thêm ngưỡng điểm khung 1D 0 → 5
 
-### Vòng 29 — từng thông số · mốc: tổng 104.06R, win 42.9%, MC95 12.45R, chỉ số 8.36
+### Vòng 29 — từng thông số · mốc: tổng 104.06R, win 42.9%, rủi ro tụt vốn 12.45R, lời÷rủi ro 8.36
 
-| Phương án | Tổng R | Win rate | R/lệnh | MC95 | Chỉ số | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
+| Phương án | Tổng R | Tỷ lệ thắng | R/lệnh | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
 |---|---|---|---|---|---|---|---|---|---|
 | Điểm vùng: Fib sóng 4: 1.25 → 0 | 101.54 | 42.6% | 0.47 | 12.47 | 8.14 | 0.403 | 0.541 | -12.55 |  |
 | Điểm vùng: Fib sóng 4: 1.25 → 2.5 | 102.24 | 42.3% | 0.461 | 12.54 | 8.15 | 0.412 | 0.511 | -13.28 |  |
