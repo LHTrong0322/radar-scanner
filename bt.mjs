@@ -15,7 +15,7 @@ const HTML = arg("html", "index.html"), HTML2 = arg("html2", ""), NAMES = arg("n
 const TFS = ["4h", "1d", "1w"], HTF = { "4h": "1d", "1d": "1w", "1w": null }, EXEC = { "4h": "4h", "1d": "4h", "1w": "1d" };
 const STEP = { "4h": 3, "1d": 1, "1w": 1 };                 // 4H: xét mỗi 12 giờ cho nhẹ; 1D/1W: mọi nến
 const WIN = 400;                                             // số nến đưa vào thuật toán mỗi lần (giống bot)
-const MS = { "4h": 144e5, "1d": 864e5, "1w": 6048e5 };
+const MS = { "15m": 9e5, "1h": 36e5, "4h": 144e5, "1d": 864e5, "1w": 6048e5 };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 function loadCore(file, text) {
@@ -25,7 +25,7 @@ function loadCore(file, text) {
   const src = [grab(/const TFMS=[^\n]*/), grab(/const SETS=[^\n]*/), grab(/const SKIP=[^\n]*/), grab(/const STOCKS=[^\n]*/), js.slice(a, b),
     grab(/const trendOf=[^\n]*/), grab(/function simulate\([\s\S]*?\n\}/)].join("\n");
   const extra = (js.match(/const EXTRA_CRYPTO=(\[[^\]]*\])/) || [])[1];
-  const K = new Function("S", src + "\nreturn {compute,trendOf,simulate,clamp,TFMS,PICK_MIN:typeof PICK_MIN!=='undefined'?PICK_MIN:70,MIN_RR:typeof MIN_RR!=='undefined'?MIN_RR:2,TF_ADD:typeof TF_ADD!=='undefined'?TF_ADD:{},HTF_MIN:typeof HTF_MIN!=='undefined'?HTF_MIN:null,REGIME:typeof REGIME!=='undefined'?REGIME:false,LTF_CONFIRM:typeof LTF_CONFIRM!=='undefined'?LTF_CONFIRM:{},upClear:typeof upClear!=='undefined'?upClear:()=>true,ema};")({ tf: "4h", win: 3, os: 30, ob: 70 });
+  const K = new Function("S", src + "\nreturn {compute,trendOf,simulate,clamp,TFMS,PICK_MIN:typeof PICK_MIN!=='undefined'?PICK_MIN:70,MIN_RR:typeof MIN_RR!=='undefined'?MIN_RR:2,TF_ADD:typeof TF_ADD!=='undefined'?TF_ADD:{},HTF_MIN:typeof HTF_MIN!=='undefined'?HTF_MIN:null,REGIME:typeof REGIME!=='undefined'?REGIME:false,LTF_CONFIRM:typeof LTF_CONFIRM!=='undefined'?LTF_CONFIRM:{},upClear:typeof upClear!=='undefined'?upClear:()=>true,ltfOK:typeof ltfOK!=='undefined'?ltfOK:null,ema};")({ tf: "4h", win: 3, os: 30, ob: 70 });
   K.extra = extra ? JSON.parse(extra) : [];
   return K;
 }
@@ -59,7 +59,7 @@ async function hyper(b, tf, from) {
   try { return await one(b, 1); } catch (e) { return await one("k" + b, 1000); }
 }
 async function bybit(b, tf, from) {
-  const iv = { "4h": "240", "1d": "D", "1w": "W" }[tf]; let out = [], end = Date.now();
+  const iv = { "1h": "60", "4h": "240", "1d": "D", "1w": "W" }[tf]; let out = [], end = Date.now();
   for (let p = 0; p < 20; p++) {
     const j = await getJ(`https://api.bybit.com/v5/market/kline?category=spot&symbol=${b}USDT&interval=${iv}&limit=1000&start=${from}&end=${end}`);
     const L = j && j.retCode === 0 ? j.result.list : []; if (!L.length) break;
@@ -70,7 +70,7 @@ async function bybit(b, tf, from) {
   return out;
 }
 async function okx(b, tf, from) {
-  const bar = { "4h": "4H", "1d": "1Dutc", "1w": "1Wutc" }[tf]; let out = [], after = "";
+  const bar = { "1h": "1H", "4h": "4H", "1d": "1Dutc", "1w": "1Wutc" }[tf]; let out = [], after = "";
   for (let p = 0; p < 40; p++) {
     const j = await getJ(`https://www.okx.com/api/v5/market/history-candles?instId=${b}-USDT&bar=${bar}&limit=100${after ? "&after=" + after : ""}`);
     const L = j && j.code === "0" ? j.data : []; if (!L.length) break;
@@ -81,7 +81,7 @@ async function okx(b, tf, from) {
   return out.filter(k => k.t >= from);
 }
 async function gate(b, tf, from) {
-  const iv = { "4h": "4h", "1d": "1d", "1w": "7d" }[tf];
+  const iv = { "1h": "1h", "4h": "4h", "1d": "1d", "1w": "7d" }[tf];
   const j = await getJ(`https://api.gateio.ws/api/v4/spot/candlesticks?currency_pair=${b}_USDT&interval=${iv}&limit=1000`);
   if (!Array.isArray(j) || !j.length) throw new Error("gate trống");
   return j.map(a => ({ t: +a[0] * 1000, o: +a[5], h: +a[3], l: +a[4], c: +a[2], v: +a[6] })).filter(k => k.t >= from);
@@ -124,9 +124,10 @@ function signals(K, D, startT) {
       if (K.REGIME && !regimeOK(bars[i].t + MS[tf])) continue;
       const ltf = K.LTF_CONFIRM[tf];
       if (ltf && D[ltf]) {                                   // kèo W: cấu trúc khung D tại thời điểm đó cũng phải tăng rõ
-        const end = bars[i].t + MS[tf], lc = D[ltf].filter(x => x.t + MS[ltf] <= end).slice(-WIN);
-        const lt = { src: "ex", c: lc, tf: ltf, side: SIDE }; if (lc.length >= 60) K.compute(lt);
-        if (!K.upClear(lt)) continue;
+        const end = bars[i].t + MS[tf], L = D[ltf]; let lo = 0, hi = L.length - 1, e = -1;
+        while (lo <= hi) { const m = (lo + hi) >> 1; if (L[m].t + MS[ltf] <= end) { e = m; lo = m + 1; } else hi = m - 1; }
+        const lc = L.slice(Math.max(0, e - WIN + 1), e + 1), lt = { src: "ex", c: lc, tf: ltf, side: SIDE }; if (lc.length >= 60) K.compute(lt);
+        if (!(K.ltfOK ? K.ltfOK(tf, lt) : K.upClear(lt))) continue;
       }
       sc = K.clamp(sc, 0, 100);
       if (sc >= K.PICK_MIN + (K.TF_ADD[tf] || 0) && B.plan.rr1 >= K.MIN_RR) out.push({ t: bars[i].t + MS[tf], tf, sc, P: B.plan, parts: Object.fromEntries(B.parts.map(([n, v]) => [n, v == null ? null : +v.toFixed(3)])), rank: sc + Math.min(B.plan.rr1, 5) * 5 });
@@ -257,7 +258,7 @@ const K2 = V.length === 1 && !EXP;
 let uni = [];
 try { const st = JSON.parse(fs.readFileSync("state.json", "utf8")); uni = Object.keys(st.universe || {}); if (!uni.length) uni = [...new Set((st.journal || []).filter(j => j.src !== "st").map(j => j.base))]; } catch (e) { }
 uni = [...new Set([...uni, ...K1.extra])].filter(b => /^[A-Z0-9]{2,12}$/.test(b)).slice(0, MAX);
-const startT = Date.now() - DAYS * 864e5, from = { "4h": startT - WIN * MS["4h"], "1d": startT - WIN * MS["1d"], "1w": Date.UTC(2017, 0, 1) };
+const startT = Date.now() - DAYS * 864e5, from = { "1h": startT - WIN * MS["1h"], "4h": startT - WIN * MS["4h"], "1d": startT - WIN * MS["1d"], "1w": Date.UTC(2017, 0, 1) };
 const NW = Math.max(1, Math.min(8, os.cpus().length));
 console.log(`Backtest ${uni.length} mã · ${DAYS} ngày · ${SIDE} · ${NW} luồng${V.length ? ` · so sánh ${V.length} phiên bản: ${V.map(v => v.name).join(", ")}` : ""}`);
 const texts = [mainText, ...V.map(v => v.text)];
@@ -272,7 +273,7 @@ const A = [], B = [], miss = [];
 let done = 0;
 async function runOne(b) {
   const D = {};
-  for (const tf of TFS) { try { D[tf] = await candles(b, tf, from[tf]); } catch (e) { } }
+  for (const tf of [...TFS, "1h"]) { try { D[tf] = await candles(b, tf, from[tf]); } catch (e) { } }   // 1h: khung xác nhận cho kèo 4H
   if (!D["4h"] || !D["1d"]) { miss.push(b); return; }
   const R = await Promise.all(texts.map((_, vi) => task(vi, D, b)));
   A.push(...R[0]); V.forEach((v, i) => v.T.push(...R[i + 1]));

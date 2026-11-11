@@ -996,10 +996,12 @@ const MIN_RR=2;       // R:R tối thiểu tới TP1
 const TF_ADD={"4h":0,"1d":0,"1w":0};
 const HTF_MIN=.3;    // khung lớn hơn phải đang tăng (trend ≥ 0.3) mới vào kèo — backtest 2 năm: −15.5R → +72.5R, cả 2 năm đều lời (Trọng duyệt 11/11/2026)
 const LOW_TF_ASSETS=["BTC"];
-const LTF_CONFIRM={"1w":"1d"};   // kèo khung W: cấu trúc khung D cũng phải đang tăng rõ
+const LTF_CONFIRM={"1w":"1d","1d":"4h","4h":"1h","1h":"15m"};   // khung nhỏ hơn phải xác nhận: W cần D tăng rõ; D/4H/1H cần khung nhỏ đã có cấu trúc tăng (A2, Trọng bật 11/11/2026)
 // cấu trúc khung xác nhận "tăng rõ": Dow đang tăng (hoặc vừa phá đỉnh thấp hơn) và xu hướng ≥ HTF_MIN
+const dowUp=t=>!!(t&&t.ind&&t.ind.dow&&t.ind.dow.state===1);   // khung xác nhận đã có cấu trúc tăng: tối thiểu 2 đỉnh + 2 đáy cao dần
+const ltfOK=(tf,t)=>tf==="1w"?upClear(t):dowUp(t);
 const upClear=t=>{ if(!t||!t.ind) return false; const d=t.ind.dow, T=trendOf(t); return !!d&&d.state===1&&T!=null&&T>=(HTF_MIN??.3) };   // mã được quét thêm khung 15m và 1h
-const REGIME=false;  // true: chỉ LONG khi BTC 1D trên EMA200 (SHORT: dưới)   // điểm cộng thêm vào ngưỡng theo khung (để thử nghiệm)     // số TP tối đa (backtest 2 năm: 2 TP tốt hơn 3–4 TP)   // stop loss spot tối đa 35% tính từ Entry
+const REGIME=true;   // chỉ LONG khi BTC 1D trên EMA200 (SHORT: dưới) — Trọng bật 11/11/2026 (A3)   // điểm cộng thêm vào ngưỡng theo khung (để thử nghiệm)     // số TP tối đa (backtest 2 năm: 2 TP tốt hơn 3–4 TP)   // stop loss spot tối đa 35% tính từ Entry
 const pctOf=(v,b)=>{const x=(v/b-1)*100;return (x>=0?"+":"")+x.toFixed(1)+"%"};
 const zoneOS=()=>S.os, zoneOB=()=>S.ob-5;   // phân kỳ dương: RSI ≤ ngưỡng quá bán (30) · phân kỳ âm: RSI ≥ ngưỡng quá mua − 5 (65)
 const wavg=parts=>{let s=0,w=0;for(const [v,k] of parts) if(v!=null&&isFinite(v)){s+=v*k;w+=k} return w?s/w:null};
@@ -1493,11 +1495,12 @@ function computePicks(){
   for(const r of S.rows.values()){
     if(r.src!=="bn"&&r.src!=="st"&&r.src!=="ex") continue;
     const R={}; for(const tf of PICK_TFS) R[tf]=evalTF(r,tf,curSide());
+    { const h1=evalTF(r,"1h",curSide()); if(h1) R["1h"]=h1 }   // khung xác nhận cho kèo 4H (nếu đã có nến 1H)
     PICK_TFS.forEach((tf,k)=>{
       const t=R[tf]; if(!t||!t.buy||!t.buy.plan||t.buy.plan.reject) return;   // SL > 35% → bỏ
       const htf=PICK_TFS[k+1]||null, hT=htf?trendOf(R[htf]):null, T=trendOf(t);
       if(HTF_MIN!=null&&htf&&(hT==null||hT<HTF_MIN)) return;
-      if(LTF_CONFIRM[tf]&&!upClear(R[LTF_CONFIRM[tf]])) return;
+      if(LTF_CONFIRM[tf]&&R[LTF_CONFIRM[tf]]!==undefined&&!ltfOK(tf,R[LTF_CONFIRM[tf]])) return;
       let sc=t.buy.score; if(hT!=null){ if(hT>.3) sc+=3; else if(hT<-.3) sc-=5 }   // khung lớn chỉ cộng/trừ nhẹ
       sc=clamp(sc,0,100);
       const rs=pickReasons(t.ind), why=curSide()==='short'?{g:rs.g.map(swapTxt),w:rs.w.map(swapTxt)}:rs;

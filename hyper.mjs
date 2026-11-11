@@ -290,6 +290,23 @@ export async function hyperRun({ state, newIds, outbox, errors, esc, link, allow
 
   // 2) vào lệnh cho kèo mới
   if (MODE !== "auto") return;
+  // Cầu dao (B2): lỗ thực tế ≥ 3R trong ngày (giờ VN) → nghỉ tới hết ngày; ≥ 6R trong tuần (từ thứ Hai) → nghỉ tới tuần sau.
+  // Chỉ chặn lệnh MỚI; lệnh đang mở vẫn được quản lý SL/TP bình thường.
+  {
+    const DAY_R = parseFloat(process.env.TRADE_DAY_STOP_R || "3"), WEEK_R = parseFloat(process.env.TRADE_WEEK_STOP_R || "6");
+    const vn = Date.now() + 7 * 36e5, dayStart = Math.floor(vn / 864e5) * 864e5 - 7 * 36e5, weekStart = dayStart - ((new Date(vn).getUTCDay() + 6) % 7) * 864e5;
+    const real = state.journal.filter(j => j.hl && !["skip", "na", "fail", "cancel"].includes(j.hl.st) && ["tp2", "trail", "tp1_be", "struct", "sl", "manual"].includes(j.status) && j.exitAt && isFinite(j.r));
+    const sum = t0 => real.filter(j => j.exitAt >= t0).reduce((a, j) => a + j.r, 0), dR = sum(dayStart), wR = sum(weekStart);
+    const why = dR <= -DAY_R ? `đã lỗ ${dR.toFixed(1)}R hôm nay (giới hạn −${DAY_R}R/ngày) → nghỉ mở lệnh mới tới hết ngày`
+      : wR <= -WEEK_R ? `đã lỗ ${wR.toFixed(1)}R tuần này (giới hạn −${WEEK_R}R/tuần) → nghỉ mở lệnh mới tới thứ Hai` : null;
+    if (why) {
+      const key = new Date(vn).toISOString().slice(0, 10);
+      if (state.breakerMsg !== key) { state.breakerMsg = key; say(`⛔ <b>Cầu dao ngắt lỗ</b>: ${why}. Lệnh đang mở vẫn được quản lý SL/TP.`); }
+      state.hlMeta = { ...(state.hlMeta || {}), breaker: why };
+      return;
+    }
+    if (state.hlMeta && state.hlMeta.breaker) state.hlMeta = { ...state.hlMeta, breaker: null };
+  }
   // kèo mới của lượt này + kèo cũ còn mở/chờ khớp: vào giá thị trường nếu giá ≤ Entry và còn cách SL (chưa phá cấu trúc)
   const taken = new Set(state.journal.filter(j => j.hl && live(j.hl.st)).map(j => j.hl.coin));
   const ADOPT_MS = (parseFloat(process.env.TRADE_ADOPT_HOURS || "720") || 0) * 36e5;     // kèo cũ trong 30 ngày
