@@ -55,7 +55,7 @@ jobs:
         with:
           name: opt-plan
           path: .
-      - run: node bt.mjs --days 2020 --lowtf 0 --skip BTC --exp experiments-opt --shard ${{ matrix.k }}/16 --out shards
+      - run: node bt.mjs --days 2023 --lowtf 0 --skip BTC --exp experiments-opt --shard ${{ matrix.k }}/16 --out shards
       - uses: actions/upload-artifact@v4
         with:
           name: opt-shard-${{ matrix.k }}
@@ -85,7 +85,7 @@ jobs:
       - name: Gộp + chấm điểm vòng
         run: |
           R=$(node -e 'console.log(JSON.parse(require("fs").readFileSync("opt/state.json")).round)')
-          node bt.mjs --days 2020 --lowtf 0 --skip BTC --label "opt-r$R" --merge shards --exp experiments-opt --out opt-out
+          node bt.mjs --days 2023 --lowtf 0 --skip BTC --label "opt-r$R" --merge shards --exp experiments-opt --out opt-out
           node opt.mjs update --result "$(ls -t opt-out/*-opt-r$R.json | head -1)"
       - uses: actions/upload-artifact@v4
         with:
