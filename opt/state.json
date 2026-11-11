@@ -1,6 +1,6 @@
 {
- "round": 1,
- "ptr": 6,
+ "round": 2,
+ "ptr": 12,
  "best": {
   "pick": 70,
   "rr": 2.5,
@@ -8,12 +8,12 @@
   "maxsl": 0.35,
   "slbuf": 0.5,
   "slzone": 2,
-  "tp1f": 0.5,
+  "tp1f": 0.33,
   "tpmin": 0.75,
-  "exp": 12,
-  "limz": 2,
+  "exp": 8,
+  "limz": 3,
   "weak": -0.3,
-  "htf": null,
+  "htf": 0.3,
   "regime": true,
   "a2": "ON",
   "dow": "CHẶT",
@@ -39,13 +39,13 @@
   "z_macd": 1
  },
  "baseline": {
-  "n": 1669,
-  "exp": 0.055,
-  "win": 30,
-  "dd": 65.43,
-  "tot": 92.39,
-  "h1": 0.131,
-  "h2": 0.029
+  "n": 738,
+  "exp": 0.201,
+  "win": 32.7,
+  "dd": 38,
+  "tot": 148.22,
+  "h1": 0.514,
+  "h2": 0.063
  },
  "tested": {
   "pick=65": {
@@ -178,6 +178,127 @@
    "tot": 86.92,
    "h1": 0.128,
    "h2": 0.026,
+   "score": 4.9
+  },
+  "tp1f=0.33": {
+   "round": 2,
+   "n": 738,
+   "exp": 0.212,
+   "win": 32.7,
+   "dd": 38.24,
+   "tot": 156.17,
+   "h1": 0.54,
+   "h2": 0.066,
+   "score": 5.2
+  },
+  "tp1f=0.67": {
+   "round": 2,
+   "n": 738,
+   "exp": 0.19,
+   "win": 32.7,
+   "dd": 37.77,
+   "tot": 140.27,
+   "h1": 0.487,
+   "h2": 0.059,
+   "score": 4.8
+  },
+  "tpmin=0.5": {
+   "round": 2,
+   "n": 620,
+   "exp": 0.135,
+   "win": 30.5,
+   "dd": 39.99,
+   "tot": 83.81,
+   "h1": 0.468,
+   "h2": -0.015,
+   "score": 3.7
+  },
+  "tpmin=1": {
+   "round": 2,
+   "n": 815,
+   "exp": 0.175,
+   "win": 31.9,
+   "dd": 41.18,
+   "tot": 142.63,
+   "h1": 0.498,
+   "h2": 0.032,
+   "score": 4.5
+  },
+  "exp=18": {
+   "round": 2,
+   "n": 868,
+   "exp": 0.17,
+   "win": 32.9,
+   "dd": 41.67,
+   "tot": 147.14,
+   "h1": 0.466,
+   "h2": 0.04,
+   "score": 4.4
+  },
+  "exp=8": {
+   "round": 2,
+   "n": 606,
+   "exp": 0.223,
+   "win": 33.2,
+   "dd": 38.83,
+   "tot": 135.05,
+   "h1": 0.536,
+   "h2": 0.083,
+   "score": 5.4
+  },
+  "limz=1": {
+   "round": 2,
+   "n": 740,
+   "exp": 0.202,
+   "win": 32.7,
+   "dd": 38.12,
+   "tot": 149.51,
+   "h1": 0.514,
+   "h2": 0.066,
+   "score": 5
+  },
+  "limz=3": {
+   "round": 2,
+   "n": 745,
+   "exp": 0.227,
+   "win": 33.2,
+   "dd": 40.48,
+   "tot": 169.3,
+   "h1": 0.564,
+   "h2": 0.075,
+   "score": 5.5
+  },
+  "dowk=2": {
+   "round": 2,
+   "n": 797,
+   "exp": 0.18,
+   "win": 31.5,
+   "dd": 33.31,
+   "tot": 143.69,
+   "h1": 0.389,
+   "h2": 0.079,
+   "score": 4.6
+  },
+  "weak=-0.6": {
+   "round": 2,
+   "n": 738,
+   "exp": 0.201,
+   "win": 32.7,
+   "dd": 38,
+   "tot": 148.22,
+   "h1": 0.514,
+   "h2": 0.063,
+   "score": 5
+  },
+  "weak=0": {
+   "round": 2,
+   "n": 737,
+   "exp": 0.198,
+   "win": 32.6,
+   "dd": 38,
+   "tot": 145.9,
+   "h1": 0.506,
+   "h2": 0.063,
    "score": 4.9
   }
  },
@@ -391,16 +512,223 @@
      "good": false
     }
    ]
+  },
+  {
+   "round": 2,
+   "base": {
+    "n": 738,
+    "exp": 0.201,
+    "win": 32.7,
+    "dd": 38,
+    "tot": 148.22,
+    "h1": 0.514,
+    "h2": 0.063
+   },
+   "accepted": [
+    {
+     "knob": "tp1f",
+     "label": "% chốt ở TP1",
+     "from": 0.5,
+     "to": 0.33,
+     "exp": 0.212
+    },
+    {
+     "knob": "exp",
+     "label": "Lệnh chờ hết hạn sau (nến)",
+     "from": 12,
+     "to": 8,
+     "exp": 0.223
+    },
+    {
+     "knob": "limz",
+     "label": "Điểm tối thiểu vùng đặt lệnh chờ",
+     "from": 2,
+     "to": 3,
+     "exp": 0.227
+    }
+   ],
+   "rows": [
+    {
+     "knob": "tp1f",
+     "label": "% chốt ở TP1",
+     "from": 0.5,
+     "to": "0.33",
+     "n": 738,
+     "exp": 0.212,
+     "win": 32.7,
+     "dd": 38.24,
+     "tot": 156.17,
+     "h1": 0.54,
+     "h2": 0.066,
+     "score": 5.2,
+     "good": true
+    },
+    {
+     "knob": "tp1f",
+     "label": "% chốt ở TP1",
+     "from": 0.5,
+     "to": "0.67",
+     "n": 738,
+     "exp": 0.19,
+     "win": 32.7,
+     "dd": 37.77,
+     "tot": 140.27,
+     "h1": 0.487,
+     "h2": 0.059,
+     "score": 4.8,
+     "good": false
+    },
+    {
+     "knob": "tpmin",
+     "label": "Khoảng cách tối thiểu TP1 (ATR)",
+     "from": 0.75,
+     "to": "0.5",
+     "n": 620,
+     "exp": 0.135,
+     "win": 30.5,
+     "dd": 39.99,
+     "tot": 83.81,
+     "h1": 0.468,
+     "h2": -0.015,
+     "score": 3.7,
+     "good": false
+    },
+    {
+     "knob": "tpmin",
+     "label": "Khoảng cách tối thiểu TP1 (ATR)",
+     "from": 0.75,
+     "to": "1",
+     "n": 815,
+     "exp": 0.175,
+     "win": 31.9,
+     "dd": 41.18,
+     "tot": 142.63,
+     "h1": 0.498,
+     "h2": 0.032,
+     "score": 4.5,
+     "good": false
+    },
+    {
+     "knob": "exp",
+     "label": "Lệnh chờ hết hạn sau (nến)",
+     "from": 12,
+     "to": "18",
+     "n": 868,
+     "exp": 0.17,
+     "win": 32.9,
+     "dd": 41.67,
+     "tot": 147.14,
+     "h1": 0.466,
+     "h2": 0.04,
+     "score": 4.4,
+     "good": false
+    },
+    {
+     "knob": "exp",
+     "label": "Lệnh chờ hết hạn sau (nến)",
+     "from": 12,
+     "to": "8",
+     "n": 606,
+     "exp": 0.223,
+     "win": 33.2,
+     "dd": 38.83,
+     "tot": 135.05,
+     "h1": 0.536,
+     "h2": 0.083,
+     "score": 5.4,
+     "good": true
+    },
+    {
+     "knob": "limz",
+     "label": "Điểm tối thiểu vùng đặt lệnh chờ",
+     "from": 2,
+     "to": "1",
+     "n": 740,
+     "exp": 0.202,
+     "win": 32.7,
+     "dd": 38.12,
+     "tot": 149.51,
+     "h1": 0.514,
+     "h2": 0.066,
+     "score": 5,
+     "good": false
+    },
+    {
+     "knob": "limz",
+     "label": "Điểm tối thiểu vùng đặt lệnh chờ",
+     "from": 2,
+     "to": "3",
+     "n": 745,
+     "exp": 0.227,
+     "win": 33.2,
+     "dd": 40.48,
+     "tot": 169.3,
+     "h1": 0.564,
+     "h2": 0.075,
+     "score": 5.5,
+     "good": true
+    },
+    {
+     "knob": "dowk",
+     "label": "Số nến mỗi bên để xác định đỉnh/đáy Dow",
+     "to": "2",
+     "n": 797,
+     "exp": 0.18,
+     "win": 31.5,
+     "dd": 33.31,
+     "tot": 143.69,
+     "h1": 0.389,
+     "h2": 0.079,
+     "score": 4.6,
+     "good": false
+    },
+    {
+     "knob": "weak",
+     "label": "Trần điểm khi chart yếu (Trend < x)",
+     "from": -0.3,
+     "to": "-0.6",
+     "n": 738,
+     "exp": 0.201,
+     "win": 32.7,
+     "dd": 38,
+     "tot": 148.22,
+     "h1": 0.514,
+     "h2": 0.063,
+     "score": 5,
+     "good": false
+    },
+    {
+     "knob": "weak",
+     "label": "Trần điểm khi chart yếu (Trend < x)",
+     "from": -0.3,
+     "to": "0",
+     "n": 737,
+     "exp": 0.198,
+     "win": 32.6,
+     "dd": 38,
+     "tot": 145.9,
+     "h1": 0.506,
+     "h2": 0.063,
+     "score": 4.9,
+     "good": false
+    }
+   ]
   }
  ],
  "stale": 0,
  "done": false,
  "batch": [
-  "pick",
-  "rr",
-  "mkt",
-  "maxsl",
-  "slbuf",
-  "slzone"
- ]
+  "tp1f",
+  "tpmin",
+  "exp",
+  "limz",
+  "dowk",
+  "weak"
+ ],
+ "live": {
+  "htf": 0.3,
+  "regime": true,
+  "a2": "ON",
+  "dow": "CHẶT"
+ }
 }
