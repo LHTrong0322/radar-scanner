@@ -1,0 +1,10 @@
+{
+ "name": "n6-lenh-i-5-nen",
+ "desc": "Thoát lệnh ì sau 5 nến chưa tới TP1",
+ "patch": [
+  {
+   "find": "const TIME_STOP=null;",
+   "replace": "const TIME_STOP=5;"
+  }
+ ]
+}

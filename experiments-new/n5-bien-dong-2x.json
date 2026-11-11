@@ -1,0 +1,10 @@
+{
+ "name": "n5-bien-dong-2x",
+ "desc": "Bỏ kèo khi biến động > 2 lần bình thường",
+ "patch": [
+  {
+   "find": "const VOL_X=null;",
+   "replace": "const VOL_X=2;"
+  }
+ ]
+}

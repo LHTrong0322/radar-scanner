@@ -1,0 +1,10 @@
+{
+ "name": "n8-sl-bam-1R",
+ "desc": "Sau TP1: SL bám giá cao nhất − 1R",
+ "patch": [
+  {
+   "find": "const TRAIL_R=null;",
+   "replace": "const TRAIL_R=1;"
+  }
+ ]
+}

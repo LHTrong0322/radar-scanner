@@ -1,0 +1,10 @@
+{
+ "name": "n1-loc-btc-ema50",
+ "desc": "Lọc BTC: giá trên EMA50 (thay vì EMA200)",
+ "patch": [
+  {
+   "find": "const REGIME_EMA=200;",
+   "replace": "const REGIME_EMA=50;"
+  }
+ ]
+}

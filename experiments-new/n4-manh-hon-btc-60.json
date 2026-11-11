@@ -1,0 +1,10 @@
+{
+ "name": "n4-manh-hon-btc-60",
+ "desc": "Coin phải mạnh hơn BTC trong 60 ngày",
+ "patch": [
+  {
+   "find": "const RS_DAYS=null;",
+   "replace": "const RS_DAYS=60;"
+  }
+ ]
+}
