@@ -1033,7 +1033,8 @@ function pumpSig(dc,bc,t){
 // Nến ngày ĐÃ ĐÓNG vượt đỉnh 60 ngày + giá trị giao dịch ngày đó ≥ 2 lần TB 30 ngày → mua ở giá hiện tại (bỏ nếu giá đã chạy > BO_CHASE so với giá đóng cửa).
 // SL −15%, TP = 3R (+45%) chốt hết, giữ tối đa 14 ngày. Altcoin chỉ khi BTC 1D trên EMA200 VÀ Dow 1D tăng; cổ phiếu/hàng hoá luôn được. Không trade BTC.
 // B: ví tụt quá BO_DD_R (tính bằng R từ lệnh thật đã đóng) so với đỉnh → tạm dừng mở Breakout mới. D: BTC gãy (dưới EMA200 hoặc Dow 1D hết tăng) → đóng lệnh Breakout altcoin.
-const BO_ON=false, BO_SL=.15, BO_RR=3, BO_HOLD=14, BO_DD_R=10, BO_EXIT_BTC=true, BO_MAX_PCT=null, BO_MAX_N=null, BO_CHASE=.08;
+// Trọng 16:28 yêu cầu giảm tụt vốn → chốt lệnh Breakout 0.75R (backtest 2023–2025: tụt vốn 22% → 18%, MC95 13.0R → 10.7R, +255.8R; 2026: +10.4R, tụt vốn 23% → 15%)
+const BO_ON=true, BO_R=.75, BO_SL=.15, BO_RR=3, BO_HOLD=14, BO_DD_R=10, BO_EXIT_BTC=true, BO_MAX_PCT=null, BO_MAX_N=null, BO_CHASE=.08;
 function pumpAdj(dc,bc,t,stock){
   const P=PUMP_ADJ; if(!P) return 0; const x=pumpSig(dc,bc,t); if(!x) return P.need?false:0;
   const vol=x.volx>=2&&x.volx<4, volAny=x.volx>=2, strong=x.e200>.5||(x.rs30!=null&&x.rs30>.4);

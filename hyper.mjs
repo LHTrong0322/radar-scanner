@@ -150,10 +150,10 @@ const cancelCloid = (m, cloid) => exchange({ type: "cancelByCloid", cancels: [{ 
 const setLeverage = (m, lev, cross) => exchange({ type: "updateLeverage", asset: m.asset, isCross: !!cross, leverage: lev });
 
 // R cố định → khối lượng; đòn bẩy cao nhất mà SL chỉ chiếm ≤ LIQ_USE khoảng cách tới giá thanh lý (isolated)
-function plan(m, entry, stop) {
+function plan(m, entry, stop, rk = 1) {   // rk: hệ số R (lệnh Breakout 0.75R)
   const short = stop > entry, sl = Math.abs(entry - stop) / entry, maxLev = Math.max(1, Math.floor(m.maxLeverage || 3)), mmr = .5 / maxLev;
   if (RISK <= 0) return { sl, notional: USD, lev: 1, margin: USD, liq: 0, share: 0 };
-  const notional = RISK / sl, lev = Math.max(1, Math.min(maxLev, Math.floor(1 / (sl / LIQ_USE + mmr))));
+  const notional = RISK * rk / sl, lev = Math.max(1, Math.min(maxLev, Math.floor(1 / (sl / LIQ_USE + mmr))));
   const liqDist = 1 / lev - mmr;
   return { sl, notional, lev, margin: notional / lev, liq: entry * (short ? 1 + liqDist : 1 - liqDist), share: sl / liqDist };
 }
@@ -299,7 +299,7 @@ export async function hyperRun({ state, newIds, outbox, errors, esc, link, allow
     const DAY_R = parseFloat(process.env.TRADE_DAY_STOP_R || "3"), WEEK_R = parseFloat(process.env.TRADE_WEEK_STOP_R || "6");
     const vn = Date.now() + 7 * 36e5, dayStart = Math.floor(vn / 864e5) * 864e5 - 7 * 36e5, weekStart = dayStart - ((new Date(vn).getUTCDay() + 6) % 7) * 864e5;
     const real = state.journal.filter(j => j.hl && !["skip", "na", "fail", "cancel"].includes(j.hl.st) && ["tp2", "trail", "tp1_be", "struct", "sl", "manual"].includes(j.status) && j.exitAt && isFinite(j.r));
-    const sum = t0 => real.filter(j => j.exitAt >= t0).reduce((a, j) => a + j.r, 0), dR = sum(dayStart), wR = sum(weekStart);
+    const sum = t0 => real.filter(j => j.exitAt >= t0).reduce((a, j) => a + j.r * (j.rk || 1), 0), dR = sum(dayStart), wR = sum(weekStart);
     const why = dR <= -DAY_R ? `đã lỗ ${dR.toFixed(1)}R hôm nay (giới hạn −${DAY_R}R/ngày) → nghỉ mở lệnh mới tới hết ngày`
       : wR <= -WEEK_R ? `đã lỗ ${wR.toFixed(1)}R tuần này (giới hạn −${WEEK_R}R/tuần) → nghỉ mở lệnh mới tới thứ Hai` : null;
     if (why) {
@@ -343,7 +343,7 @@ export async function hyperRun({ state, newIds, outbox, errors, esc, link, allow
         if (sh ? mark < j.entry * mult * .997 : mark > j.entry * mult * 1.003) { skip(`giá đang ${sh ? "thấp" : "cao"} hơn Entry, chờ giá về Entry`); continue; }
         if (sh ? mark > stop - (stop - j.entry * mult) * .25 : mark < stop + (j.entry * mult - stop) * .25) { skip("giá đã sát SL, cấu trúc kỹ thuật gần bị phá"); continue; }
       }
-      const P = plan(m, entry, stop);
+      const P = plan(m, entry, stop, j.rk || 1);
       if (free < P.margin * 1.1 + 1) { skip(`không đủ tiền ký quỹ (cần ~${(P.margin * 1.1 + 1).toFixed(1)} USDC)`); continue; }
       const sz = fmtSz(P.notional / entry, m.szDecimals), szN = parseFloat(sz);
       if (!(szN > 0) || szN * entry < MIN_NOTIONAL) { skip(`khối lượng ~${(szN * entry).toFixed(1)} USD nhỏ hơn mức tối thiểu 10 USD của sàn (SL quá xa)`); continue; }
@@ -358,7 +358,7 @@ export async function hyperRun({ state, newIds, outbox, errors, esc, link, allow
       nLive++; riskR++; free -= P.margin; taken.add(coin);
       const vol = szN * entry;
       say(`${sh ? (limit ? "Đặt lệnh chờ SHORT" : "SHORT") : (limit ? "Đặt lệnh chờ mua" : "Mua")}${late ? " (vào muộn kèo cũ)" : ""} <b>${esc(j.base)}</b>${m.short !== (j.src === "st" ? j.sym : j.base).toUpperCase() || m.dex ? ` (trên sàn: ${esc(m.name)})` : ""} (${j.tf.toUpperCase()}) · Entry ${limit ? j.entry : "market"} · SL ${j.stop} (${sh ? "+" : "-"}${(P.sl * 100).toFixed(1)}%) · TP1 ${j.tp1}${part ? ` (${Math.round(f1 * 100)}%)` : " (đóng hết, lệnh quá nhỏ để chia nhiều phần)"} · TP2 ${j.tp2}${Array.isArray(j.tps) && j.tps.length > 2 ? " · " + j.tps.slice(2).map((x, i) => `TP${i + 3} ${x}`).join(" · ") + " (phần còn lại chia đều các TP sau TP1)" : ""}\n` +
-        (RISK > 0 ? `Rủi ro 1R = ${RISK} USDC · khối lượng ~${vol.toFixed(0)} USDC · đòn bẩy ${P.lev}x isolated · ký quỹ ~${P.margin.toFixed(1)} USDC · giá thanh lý ~${(P.liq / mult).toPrecision(5)} (SL dùng ${(P.share * 100).toFixed(0)}% khoảng cách)` : `~${vol.toFixed(0)} USDC, đòn bẩy 1x`) + link());
+        (RISK > 0 ? `Rủi ro ${j.rk ? j.rk + "R = " + (RISK * j.rk).toFixed(2) : "1R = " + RISK} USDC · khối lượng ~${vol.toFixed(0)} USDC · đòn bẩy ${P.lev}x isolated · ký quỹ ~${P.margin.toFixed(1)} USDC · giá thanh lý ~${(P.liq / mult).toPrecision(5)} (SL dùng ${(P.share * 100).toFixed(0)}% khoảng cách)` : `~${vol.toFixed(0)} USDC, đòn bẩy 1x`) + link());
     } catch (e) { j.hl = { st: "fail", why: e.message.slice(0, 140), coin, at: Date.now() }; errors.push(`${TAG} ${j.base}: ${e.message}`); say(`Lỗi khi vào lệnh <b>${esc(j.base)}</b>: ${esc(e.message.slice(0, 160))}`); }
   }
 }
