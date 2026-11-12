@@ -1,4 +1,4 @@
-# Tối ưu tự động (chạy liên tục) — vòng 69
+# Tối ưu tự động (chạy liên tục) — vòng 70
 
 Bot thật KHÔNG bị thay đổi cho tới khi Trọng duyệt. Backtest mọi nến 4H/1D/1W trong từ 01/2023 tới nay, có phí + funding, không tính BTC (BTC dành cho chiến lược RSI).
 
@@ -7,7 +7,7 @@ Chỉ chọn thông số trên **01/2023 → 12/2025** (Trọng chốt). **năm 
 Nhận thay đổi khi: Lời ÷ rủi ro tăng ít nhất 3%, tổng R không giảm quá 3%, win rate không giảm quá 0.5 điểm, rủi ro tụt vốn (95%) không tăng quá 5%, không xấu đi ở cả 2 nửa 2023–2025 (01/2023–06/2024 và 07/2024–12/2025), số lệnh không giảm quá 30%.
 ⚠️ Các thay đổi Trọng duyệt trước 11/11/2026 21:30 đã được chọn khi nhìn toàn bộ dữ liệu, kể cả giai đoạn kiểm tra kín → với chúng, phần kiểm tra kín không còn kín hoàn toàn.
 
-Chế độ dò hiện tại: **từng thông số** · đã thử 558 phương án.
+Chế độ dò hiện tại: **từng thông số** · đã thử 571 phương án.
 
 ## Bot thật so với cấu hình tốt nhất
 
@@ -15,8 +15,8 @@ Trọng chốt (12/11): ưu tiên 2023–2025. Cấu hình mới được đề 
 
 | | Lệnh 2023–2025 | Tỷ lệ thắng | Tổng R | R/lệnh | Tụt vốn lớn nhất (thực tế) | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | Lệnh 2026 (kín) | Tỷ lệ thắng | Tổng R | R/lệnh | Tụt vốn |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Bot thật | 157 | 48.4% | 109.18R | 0.695 | 5.52R | 8.6R | 12.70 | 33 | 12.1% | -15.02R | -0.455 | 15.02R |
-| **Tốt nhất** | 148 | 50% | 109.83R | 0.742 | 5.52R | 8.33R | 13.18 | 33 | 12.1% | -14.33R | -0.434 | 14.33R |
+| Bot thật | 157 | 48.4% | 109.18R | 0.695 | 5.52R | 8.68R | 12.58 | 33 | 12.1% | -15.02R | -0.455 | 15.02R |
+| **Tốt nhất** | 148 | 50% | 109.83R | 0.742 | 5.52R | 8.31R | 13.22 | 33 | 12.1% | -14.33R | -0.434 | 14.33R |
 
 ## Theo khung (cấu hình tốt nhất)
 
@@ -32,7 +32,7 @@ Tìm thấy ở vòng 68 (Khoảng cách tối thiểu TP1 (ATR): 0.75 → 1).
 
 | | Lệnh 2023–2025 | Tỷ lệ thắng | Tổng R | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | Lệnh 2026 | Tỷ lệ thắng | Tổng R 2026 |
 |---|---|---|---|---|---|---|---|---|
-| Bot thật | 157 | 48.4% | 109.18R | 8.6R | 12.70 | 33 | 12.1% | -15.02R |
+| Bot thật | 157 | 48.4% | 109.18R | 8.68R | 12.58 | 33 | 12.1% | -15.02R |
 | **Đề xuất** | 193 | 48.7% | 146.54R | 8.81R | 16.63 | 35 | 11.4% | -14.71R |
 
 | Thông số | Bot thật | Đề xuất |
@@ -88,6 +88,24 @@ Tìm thấy ở vòng 68 (Khoảng cách tối thiểu TP1 (ATR): 0.75 → 1).
 | 19 (hoàn tác) | Ngưỡng điểm 'vào ngay' (tín hiệu mạnh) | 6 → 5 | 104.08R | 43.9% | 13.85R | 7.51 |
 
 ## 10 vòng gần nhất
+
+### Vòng 70 — từng thông số · mốc: tổng 109.83R, win 50%, rủi ro tụt vốn 8.31R, lời÷rủi ro 13.22
+
+| Phương án | Tổng R | Tỷ lệ thắng | R/lệnh | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
+|---|---|---|---|---|---|---|---|---|---|
+| Điểm ADX < 13 cạn lực giảm (Momentum): 2.5 → 1.5 | 108.82 | 49.7% | 0.73 | 8.81 | 12.35 | 0.638 | 0.835 | -14.33 |  |
+| Cộng điểm phân kỳ dương ẩn: 3 → 1.5 | 103.68 | 49.7% | 0.705 | 8.58 | 12.08 | 0.661 | 0.755 | -13.28 |  |
+| Cộng điểm phân kỳ dương ẩn: 3 → 5 | 109.48 | 49.3% | 0.73 | 8.47 | 12.93 | 0.638 | 0.835 | -15.35 |  |
+| Lọc BTC: giá trên EMA bao nhiêu ngày: 150 → 100 | 110.39 | 50.3% | 0.751 | 8.53 | 12.94 | 0.659 | 0.855 | -12.03 |  |
+| Lọc BTC: giá trên EMA bao nhiêu ngày: 150 → 200 | 109.08 | 49.7% | 0.732 | 8.65 | 12.61 | 0.659 | 0.812 | -13.02 |  |
+| Coin phải mạnh hơn BTC trong N ngày: null → 14 | 88.45 | 49.6% | 0.719 | 8.49 | 10.42 | 0.695 | 0.749 | -20.8 |  |
+| Bỏ kèo khi biến động > N lần bình thường: null → 1.5 | 70.9 | 46.2% | 0.606 | 10.42 | 6.8 | 0.517 | 0.73 | -10.92 |  |
+| Thoát lệnh ì sau N nến chưa tới TP1: null → 3 | 29.75 | 56.5% | 0.185 | 7.31 | 4.07 | 0.27 | 0.099 | -10 |  |
+| Sau TP1: SL bám giá cao nhất − N×R: null → 0.5 | 121.55 | 50.3% | 0.774 | 8.24 | 14.75 | 0.806 | 0.735 | -14.91 |  |
+| Trọng số phần Trend (/100): 15 → 0 | 95.57 | 47.3% | 0.646 | 9.56 | 10 | 0.603 | 0.694 | -13.28 |  |
+| Trọng số phần Trend (/100): 15 → 30 | 109.69 | 49.3% | 0.722 | 8.65 | 12.68 | 0.613 | 0.849 | -15.64 |  |
+| Trọng số phần Momentum (/100): 23 → 15 | 105.35 | 49% | 0.707 | 8.83 | 11.93 | 0.605 | 0.819 | -14.33 |  |
+| Trọng số phần Momentum (/100): 23 → 30 | 108.44 | 50.3% | 0.738 | 8.34 | 13 | 0.659 | 0.827 | -14.33 |  |
 
 ### Vòng 69 — từng thông số · mốc: tổng 109.83R, win 50%, rủi ro tụt vốn 8.33R, lời÷rủi ro 13.18
 
@@ -245,20 +263,3 @@ Tìm thấy ở vòng 68 (Khoảng cách tối thiểu TP1 (ATR): 0.75 → 1).
 | Trọng số phần Entry (/100): 30 → 40 | 104.56 | 48.7% | 0.697 | 9.01 | 11.6 | 0.593 | 0.812 | -13.02 |  |
 
 Nhận: Lọc BTC: giá trên EMA bao nhiêu ngày 200 → 150
-
-### Vòng 60 — từng thông số · mốc: tổng 109.08R, win 49.7%, rủi ro tụt vốn 8.51R, lời÷rủi ro 12.82
-
-| Phương án | Tổng R | Tỷ lệ thắng | R/lệnh | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
-|---|---|---|---|---|---|---|---|---|---|
-| Khung lớn phải tăng (trend ≥): 0.4 → 0.3 | 106.38 | 48% | 0.709 | 8.92 | 11.93 | 0.615 | 0.806 | -13.02 |  |
-| Khung lớn phải tăng (trend ≥): 0.4 → 0.5 | 87.09 | 48.3% | 0.609 | 9.06 | 9.61 | 0.524 | 0.706 | -13.59 |  |
-| Xác nhận khung nhỏ (A2): ON → W | 116.19 | 40.3% | 0.39 | 15.65 | 7.42 | 0.446 | 0.335 | -9.5 |  |
-| Cổng Dow: LỎNG → TẮT | 125.05 | 42.6% | 0.579 | 12.59 | 9.93 | 0.56 | 0.597 | -16.98 |  |
-| Cổng Dow: LỎNG → CHẶT | 82.69 | 50.8% | 0.689 | 7.81 | 10.59 | 0.499 | 0.85 | -14.08 |  |
-| Số TP tối đa: 2 → 1 | 109.08 | 49.7% | 0.732 | 8.51 | 12.82 | 0.659 | 0.812 | -13.02 |  |
-| Số TP tối đa: 2 → 3 | 112.3 | 49.7% | 0.754 | 8.51 | 13.2 | 0.709 | 0.803 | -13.02 |  |
-| Điểm ADX > 25 và +DI trội (Momentum): 3 → 2 | 95.5 | 47.7% | 0.641 | 9.36 | 10.2 | 0.604 | 0.681 | -13.01 |  |
-| Điểm ADX > 25 và +DI trội (Momentum): 3 → 4 | 111.72 | 49.3% | 0.755 | 8.63 | 12.95 | 0.657 | 0.861 | -13.25 |  |
-| Điểm ADX < 13 cạn lực giảm (Momentum): 2.5 → 1.5 | 108.07 | 49.3% | 0.72 | 8.85 | 12.21 | 0.638 | 0.812 | -13.02 |  |
-| Cộng điểm phân kỳ dương ẩn: 3 → 1.5 | 102.93 | 49.3% | 0.695 | 8.58 | 12 | 0.661 | 0.734 | -11.97 |  |
-| Cộng điểm phân kỳ dương ẩn: 3 → 5 | 108.73 | 49% | 0.72 | 8.87 | 12.26 | 0.638 | 0.812 | -14.04 |  |
