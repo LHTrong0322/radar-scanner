@@ -352,6 +352,7 @@ function wallet(T, opt = {}) {                    // giống hệt bt.mjs: 1R = 
     let dR = 0, wR = 0, eq = 100; for (const c of acc) if (c.closed && c.exitAt <= t) { eq += c.r * c.usd; if (c.exitAt >= weekStart) wR += c.r * c.k; if (c.exitAt >= dayStart) dR += c.r * c.k; }
     const cap = Math.max(1, Math.floor(eq * .3 / 3 + 1e-9));
     if (eq <= 0 || dR <= -3 || wR <= -6 || open.length >= cap) { skip++; continue; }
+    if (opt.ddAll) { let e = 100, pk = 100; for (const c of acc.filter(c => c.closed && c.exitAt <= t).sort((a, b) => a.exitAt - b.exitAt)) { e += c.r * c.usd; pk = Math.max(pk, e); } if (pk - e > opt.ddAll * 3) { skip++; continue; } }
     if (x.src === "bo") {                          // các lớp phòng thủ RIÊNG cho Breakout (thử nghiệm)
       if (opt.maxBO && open.filter(o => o.src === "bo").length >= opt.maxBO) { skip++; continue; }
       if (opt.ddR) { let e = 100, pk = 100; for (const c of acc.filter(c => c.closed && c.exitAt <= t).sort((a, b) => a.exitAt - b.exitAt)) { e += c.r * c.usd; pk = Math.max(pk, e); } if (pk - e > opt.ddR * 3) { skip++; continue; } }
@@ -411,7 +412,13 @@ async function breakoutReal() {
       "| Phương án | Giai đoạn | Lệnh | Thắng | Tổng R | Rủi ro tụt vốn (95%) | Ví cuối | Tụt vốn lớn nhất | Thua liên tiếp dài nhất | Tháng tệ nhất | Kèo bị chặn |", "|---|---|---|---|---|---|---|---|---|---|---|",
       ...row("Bot + Breakout 1R (chưa thêm gì)", MB), ...row("+ A: tối đa 5 lệnh Breakout", MB, { maxBO: 5 }), ...row("+ A: tối đa 10 lệnh Breakout", MB, { maxBO: 10 }),
       ...row("+ B: cầu dao tụt vốn 10R", MB, { ddR: 10 }), ...row("+ C: cầu dao tháng −8R", MB, { boMonthR: 8 }), ...row("+ D: BTC gãy là đóng", MBx),
-      ...row("+ A5 + B + C + D (tất cả)", MBx, ALL), ...row("+ A5 + D", MBx, { maxBO: 5 }), ...row("Breakout 0.5R + tất cả", [...M, ...half(B15x)], ALL)); }
+      ...row("+ A5 + B + C + D (tất cả)", MBx, ALL), ...row("+ A5 + D", MBx, { maxBO: 5 }), ...row("Breakout 0.5R + tất cả", [...M, ...half(B15x)], ALL));
+    L.push("", "### ⭐ Cấu hình thử nghiệm Trọng chọn: Bot + Breakout 1R + B (cầu dao tụt vốn 10R) — kết quả mới nhất", "",
+      "B = khi ví tụt quá 10R (30$) so với đỉnh cao nhất → tạm dừng mở lệnh Breakout mới cho tới khi ví hồi lại dưới mức đó.", "",
+      "| Phương án | Giai đoạn | Lệnh | Thắng | Tổng R | Rủi ro tụt vốn (95%) | Ví cuối | Tụt vốn lớn nhất | Thua liên tiếp dài nhất | Tháng tệ nhất | Kèo bị chặn |", "|---|---|---|---|---|---|---|---|---|---|---|",
+      ...row("Bot hiện tại (có p1)", M), ...row("Bot hiện tại + B áp cho chính bot", M, { ddAll: 10 }),
+      ...row("⭐ Bot + Breakout 1R + B", MB, { ddR: 10 }), ...row("Bot + Breakout 1R + B + A10", MB, { ddR: 10, maxBO: 10 }),
+      ...row("Bot + Breakout 1R + B + D", MBx, { ddR: 10 }), ...row("Bot + Breakout 1R + B áp cho CẢ bot lẫn Breakout", MB, { ddAll: 10 })); }
   // theo năm cho Breakout SL 15%
   const w = wallet(B15.map(x => ({ ...x }))); L.push("", "### Breakout SL 15% theo năm (ví chạy liền từ 2023, chỉ lệnh ví vào được)", "", "| Năm | Lệnh | Thắng | Tổng R |", "|---|---|---|---|", ...Object.entries(w.yr).map(([y, v]) => `| ${y} | ${v.n} | ${(v.w / v.n * 100).toFixed(0)}% | ${v.R.toFixed(1)}R |`));
   const byB = {}; for (const x of w.acc.filter(x => x.closed)) byB[x.base] = (byB[x.base] || 0) + x.r; const top = Object.entries(byB).sort((a, b) => b[1] - a[1]), tot = top.reduce((s, x) => s + x[1], 0);
@@ -423,7 +430,7 @@ async function breakoutReal() {
 /* ---------- VÍ ẢO Breakout: giao dịch giả lập theo thời gian thực, KHÔNG đặt lệnh thật ---------- */
 // Luật y hệt backtest: nến ngày ĐÃ ĐÓNG vượt đỉnh 60 ngày + volume ≥ 2× TB 30 ngày → mua ở giá hiện tại (sau khi nến ngày đóng)
 // SL 15%, TP 45% (3R), giữ tối đa 14 ngày. Altcoin chỉ khi BTC 1D trên EMA200 VÀ Dow 1D tăng. Không trade BTC.
-// Ví 100 USD ảo, 1R = 3 USD, trần rủi ro 30% vốn, cầu dao −3R/ngày, −6R/tuần (giờ VN). Phí + trượt giá + funding như backtest.
+// Ví 100 USD ảo, 1R = 3 USD, trần rủi ro 30% vốn, cầu dao −3R/ngày, −6R/tuần (giờ VN), + B: cầu dao tụt vốn 10R (Trọng chọn 12/11/2026 16:17). Phí + trượt giá + funding như backtest.
 const PSL = .15, PTP = .45, PHOLD = 14;
 async function paperBreakout() {
   const F = "paper/breakout.json"; let S; try { S = JSON.parse(fs.readFileSync(F, "utf8")); } catch (e) { S = { start: Date.now(), eq0: 100, open: [], closed: [], lastDay: 0, log: [] }; }
@@ -453,7 +460,10 @@ async function paperBreakout() {
     const data = await loadTF(list.filter(a => (a.stock || cryptoOK) && !S.open.some(o => o.b === a.b)), "1d", now - 420 * D);
     for (const [b, c] of Object.entries(data)) { const i = c.length - 1; if (c[i].t + D < now - 3 * D) continue; const x = features(c, i, btc, prep(c, btc)); if (x && x.breakout) cands.push({ b, vx: x.volx, c }); }
     cands.sort((a, b) => b.vx - a.vx);
+    let pkE = S.eq0, curE = S.eq0; for (const c of [...S.closed].sort((a, b) => a.exitAt - b.exitAt)) { curE += c.r * 3; pkE = Math.max(pkE, curE); }
+    const ddStop = pkE - curE > 10 * 3;            // B: ví tụt quá 10R (30$) so với đỉnh → tạm dừng mở Breakout mới
     for (const k of cands) {
+      if (ddStop) { msgs.push(`⛔ Cầu dao tụt vốn (ví đang thấp hơn đỉnh ${(pkE - curE).toFixed(1)}$ > 30$) → bỏ ${k.b}`); continue; }
       if (dR <= -3 || wR <= -6) { msgs.push(`⛔ Cầu dao (${dR <= -3 ? "−3R/ngày" : "−6R/tuần"}) → bỏ ${k.b}`); continue; }
       if (S.open.length >= cap) { msgs.push(`⛔ Hết hạn mức rủi ro (${cap} lệnh) → bỏ ${k.b}`); continue; }
       let px; try { px = (await c4(A[k.b])).at(-1).c; } catch (e) { continue; }
