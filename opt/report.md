@@ -1,4 +1,4 @@
-# Tối ưu tự động (chạy liên tục) — vòng 47
+# Tối ưu tự động (chạy liên tục) — vòng 48
 
 Bot thật KHÔNG bị thay đổi cho tới khi Trọng duyệt. Backtest mọi nến 4H/1D/1W trong từ 01/2023 tới nay, có phí + funding, không tính BTC (BTC dành cho chiến lược RSI).
 
@@ -7,7 +7,7 @@ Chỉ chọn thông số trên **01/2023 → 12/2025** (Trọng chốt). **năm 
 Nhận thay đổi khi: Lời ÷ rủi ro tăng ít nhất 3%, tổng R không giảm quá 3%, win rate không giảm quá 0.5 điểm, rủi ro tụt vốn (95%) không tăng quá 5%, không xấu đi ở cả 2 nửa 2023–2025 (01/2023–06/2024 và 07/2024–12/2025), số lệnh không giảm quá 30%.
 ⚠️ Các thay đổi Trọng duyệt trước 11/11/2026 21:30 đã được chọn khi nhìn toàn bộ dữ liệu, kể cả giai đoạn kiểm tra kín → với chúng, phần kiểm tra kín không còn kín hoàn toàn.
 
-Chế độ dò hiện tại: **từng thông số** · đã thử 315 phương án.
+Chế độ dò hiện tại: **từng thông số** · đã thử 327 phương án.
 
 ## Bot thật so với cấu hình tốt nhất
 
@@ -15,26 +15,40 @@ Trọng chốt (12/11): ưu tiên 2023–2025. Cấu hình mới được đề 
 
 | | Lệnh 2023–2025 | Tỷ lệ thắng | Tổng R | R/lệnh | Tụt vốn lớn nhất (thực tế) | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | Lệnh 2026 (kín) | Tỷ lệ thắng | Tổng R | R/lệnh | Tụt vốn |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Bot thật | 160 | 48.8% | 116.56R | 0.728 | 6.53R | 8.52R | 13.68 | 33 | 12.1% | -15.02R | -0.455 | 15.02R |
-| **Tốt nhất** | 158 | 48.1% | 110.33R | 0.698 | 6.53R | 9.02R | 12.23 | 33 | 12.1% | -15.02R | -0.455 | 15.02R |
+| Bot thật | 159 | 47.8% | 108.67R | 0.683 | 6.53R | 9.19R | 11.82 | 33 | 12.1% | -15.49R | -0.469 | 15.49R |
+| **Tốt nhất** | 153 | 49% | 111.77R | 0.73 | 6.52R | 9.01R | 12.41 | 33 | 12.1% | -15.05R | -0.456 | 15.05R |
 
 ## Theo khung (cấu hình tốt nhất)
 
 | Khung | Lệnh 2023–2025 | Tỷ lệ thắng | Tổng R | Lệnh 2026 (kiểm tra kín) | Tỷ lệ thắng | Tổng R |
 |---|---|---|---|---|---|---|
-| 1D | 29 | 44.8% | 23.41R | 7 | 0% | -5.49R |
-| 1W | 8 | 62.5% | 7.92R | 3 | 0% | -3.29R |
-| 4H | 121 | 47.9% | 79R | 23 | 17.4% | -6.24R |
+| 1D | 28 | 46.4% | 21.12R | 7 | 0% | -5.05R |
+| 1W | 8 | 50% | 7.17R | 3 | 0% | -3.29R |
+| 4H | 117 | 49.6% | 83.47R | 23 | 17.4% | -6.71R |
 
 ## ✅ Cấu hình tốt nhất ĐÃ QUA kiểm tra 2026 (đề xuất để Trọng duyệt)
 
-Chưa có cấu hình nào tốt hơn bot thật ở 2023–2025 mà năm 2026 không tệ hơn quá 5R.
+Tìm thấy ở vòng 48 (SL tối đa (% Entry): 0.35 → 0.2).
+
+| | Lệnh 2023–2025 | Tỷ lệ thắng | Tổng R | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | Lệnh 2026 | Tỷ lệ thắng | Tổng R 2026 |
+|---|---|---|---|---|---|---|---|---|
+| Bot thật | 159 | 47.8% | 108.67R | 9.19R | 11.82 | 33 | 12.1% | -15.49R |
+| **Đề xuất** | 144 | 51.4% | 112R | 8.66R | 12.93 | 30 | 13.3% | -13.12R |
+
+| Thông số | Bot thật | Đề xuất |
+|---|---|---|
+| Ngưỡng điểm vào kèo | 70 | **75** |
+| SL tối đa (% Entry) | 0.35 | **0.2** |
+| Điểm ADX < 13 cạn lực giảm (Momentum) | 1.5 | **2.5** |
+| Trọng số phần Trend (/100) | 30 | **15** |
+| Trọng số phần Momentum (/100) | 15 | **23** |
 
 ## Thông số khác với bot thật
 
 | Thông số | Bot thật | Đề xuất |
 |---|---|---|
 | Ngưỡng điểm vào kèo | 70 | **75** |
+| SL tối đa (% Entry) | 0.35 | **0.2** |
 | Điểm ADX < 13 cạn lực giảm (Momentum) | 1.5 | **2.5** |
 | Trọng số phần Trend (/100) | 30 | **15** |
 | Trọng số phần Momentum (/100) | 15 | **23** |
@@ -43,6 +57,7 @@ Chưa có cấu hình nào tốt hơn bot thật ở 2023–2025 mà năm 2026 k
 
 | Vòng | Thông số | Từ → Thành | Tổng R | Tỷ lệ thắng | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro |
 |---|---|---|---|---|---|---|
+| 48 | SL tối đa (% Entry) | 0.35 → 0.2 | 112R | 51.4% | 8.66R | 12.93 |
 | 47 | Ngưỡng điểm vào kèo | 70 → 75 | 112.91R | 49.7% | 8.91R | 12.67 |
 | 42 | Điểm ADX < 13 cạn lực giảm (Momentum) | 1.5 → 2.5 | 110.33R | 47.8% | 8.98R | 12.29 |
 | 42 | Trọng số phần Momentum (/100) | 15 → 23 | 110.09R | 48.4% | 8.93R | 12.33 |
@@ -64,6 +79,25 @@ Chưa có cấu hình nào tốt hơn bot thật ở 2023–2025 mà năm 2026 k
 | 19 (hoàn tác) | Ngưỡng điểm 'vào ngay' (tín hiệu mạnh) | 6 → 5 | 104.08R | 43.9% | 13.85R | 7.51 |
 
 ## 10 vòng gần nhất
+
+### Vòng 48 — từng thông số · mốc: tổng 111.77R, win 49%, rủi ro tụt vốn 9.01R, lời÷rủi ro 12.41
+
+| Phương án | Tổng R | Tỷ lệ thắng | R/lệnh | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
+|---|---|---|---|---|---|---|---|---|---|
+| Ngưỡng điểm 'vào ngay' (tín hiệu mạnh): 6 → 5 | 114.47 | 47.8% | 0.729 | 9.19 | 12.46 | 0.6 | 0.874 | -15.32 |  |
+| Ngưỡng điểm 'vào ngay' (tín hiệu mạnh): 6 → 7 | 100.01 | 49.4% | 0.641 | 9.21 | 10.86 | 0.6 | 0.686 | -14.63 |  |
+| SL tối đa (% Entry): 0.35 → 0.2 | 112 | 51.4% | 0.778 | 8.66 | 12.93 | 0.724 | 0.842 | -13.12 | ✅ |
+| SL tối đa (% Entry): 0.35 → 0.5 | 105.6 | 49% | 0.699 | 8.93 | 11.83 | 0.643 | 0.763 | -15.05 |  |
+| Đệm SL dưới vùng hỗ trợ (ATR): 1 → 0.8 | 134.7 | 47.2% | 0.698 | 10.31 | 13.06 | 0.641 | 0.772 | -15.54 |  |
+| Đệm SL dưới vùng hỗ trợ (ATR): 1 → 1.2 | 74.76 | 48% | 0.598 | 8.94 | 8.36 | 0.539 | 0.673 | -8.15 |  |
+| R:R tối thiểu riêng khung 4H: null → 2 | 129.32 | 41.5% | 0.409 | 13.03 | 9.92 | 0.387 | 0.431 | -23.2 |  |
+| Đệm SL riêng khung 4H (ATR): null → 0.3 | 202.11 | 39.3% | 0.626 | 17.01 | 11.88 | 0.518 | 0.742 | -16.34 |  |
+| Cộng thêm ngưỡng điểm khung 4H: 0 → -5 | 112.36 | 48.7% | 0.73 | 9.03 | 12.44 | 0.662 | 0.804 | -15.05 |  |
+| Cộng thêm ngưỡng điểm khung 4H: 0 → 5 | 111.8 | 49% | 0.75 | 9.14 | 12.23 | 0.649 | 0.868 | -15.02 |  |
+| R:R tối thiểu riêng khung 1D: null → 2 | 98.74 | 44.8% | 0.574 | 10.48 | 9.42 | 0.638 | 0.518 | -12.95 |  |
+| Đệm SL riêng khung 1D (ATR): null → 0.3 | 95.17 | 44.3% | 0.57 | 12.11 | 7.86 | 0.608 | 0.536 | -13.72 |  |
+
+Nhận: SL tối đa (% Entry) 0.35 → 0.2
 
 ### Vòng 47 — từng thông số · mốc: tổng 110.33R, win 48.1%, rủi ro tụt vốn 9.02R, lời÷rủi ro 12.23
 
@@ -223,6 +257,3 @@ Nhận: Trọng số phần Trend (/100) 30 → 15 · Trọng số phần Moment
 | Ngưỡng điểm 'vào ngay' (tín hiệu mạnh): 6 → 7 | 138.02 | 44.8% | 0.511 | 12.24 | 11.28 | 0.449 | 0.581 | -14.63 |  |
 | SL tối đa (% Entry): 0.35 → 0.2 | 140.87 | 44.5% | 0.575 | 12.32 | 11.43 | 0.493 | 0.672 | -17.35 |  |
 | SL tối đa (% Entry): 0.35 → 0.5 | 141.74 | 43.8% | 0.535 | 12.11 | 11.7 | 0.476 | 0.605 | -18.75 |  |
-
-### Vòng 38 — từng thông số · mốc: tổng 83.74R, win 34.5%, rủi ro tụt vốn 21.83R, lời÷rủi ro 3.84
-Gộp các thay đổi vòng 37 làm chỉ số giảm (9.00 → 3.84) → hoàn tác
