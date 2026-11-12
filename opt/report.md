@@ -1,4 +1,4 @@
-# Tối ưu tự động (chạy liên tục) — vòng 81
+# Tối ưu tự động (chạy liên tục) — vòng 82
 
 Bot thật KHÔNG bị thay đổi cho tới khi Trọng duyệt. Backtest mọi nến 4H/1D/1W trong từ 01/2023 tới nay, có phí + funding, không tính BTC (BTC dành cho chiến lược RSI).
 
@@ -7,7 +7,7 @@ Chỉ chọn thông số trên **01/2023 → 12/2025** (Trọng chốt). **năm 
 Nhận thay đổi khi: Lời ÷ rủi ro tăng ít nhất 3%, tổng R không giảm quá 3%, win rate không giảm quá 0.5 điểm, rủi ro tụt vốn (95%) không tăng quá 5%, không xấu đi ở cả 2 nửa 2023–2025 (01/2023–06/2024 và 07/2024–12/2025), số lệnh không giảm quá 30%.
 ⚠️ Các thay đổi Trọng duyệt trước 11/11/2026 21:30 đã được chọn khi nhìn toàn bộ dữ liệu, kể cả giai đoạn kiểm tra kín → với chúng, phần kiểm tra kín không còn kín hoàn toàn.
 
-Chế độ dò hiện tại: **từng thông số** · đã thử 695 phương án.
+Chế độ dò hiện tại: **từng thông số** · đã thử 708 phương án.
 
 ## Bot thật so với cấu hình tốt nhất
 
@@ -15,8 +15,8 @@ Trọng chốt (12/11): ưu tiên 2023–2025. Cấu hình mới được đề 
 
 | | Lệnh 2023–2025 | Tỷ lệ thắng | Tổng R | R/lệnh | Tụt vốn lớn nhất (thực tế) | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | Lệnh 2026 (kín) | Tỷ lệ thắng | Tổng R | R/lệnh | Tụt vốn |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Bot thật | 163 | 47.2% | 106.06R | 0.651 | 5.74R | 9.45R | 11.22 | 34 | 11.8% | -16.07R | -0.473 | 16.07R |
-| **Tốt nhất** | 145 | 51% | 115.14R | 0.794 | 5.14R | 8.13R | 14.16 | 32 | 12.5% | -15.23R | -0.476 | 15.23R |
+| Bot thật | 165 | 46.7% | 104.94R | 0.636 | 5.74R | 9.68R | 10.84 | 35 | 11.4% | -17.11R | -0.489 | 17.11R |
+| **Tốt nhất** | 146 | 50.7% | 115.05R | 0.788 | 5.14R | 8.34R | 13.79 | 32 | 12.5% | -15.23R | -0.476 | 15.23R |
 
 ## Theo khung (cấu hình tốt nhất)
 
@@ -24,7 +24,7 @@ Trọng chốt (12/11): ưu tiên 2023–2025. Cấu hình mới được đề 
 |---|---|---|---|---|---|---|
 | 1D | 30 | 46.7% | 22.86R | 7 | 0% | -5.66R |
 | 1W | 8 | 50% | 6.87R | 2 | 0% | -2.04R |
-| 4H | 107 | 52.3% | 85.41R | 23 | 17.4% | -7.52R |
+| 4H | 108 | 51.9% | 85.31R | 23 | 17.4% | -7.52R |
 
 ## ✅ Cấu hình tốt nhất ĐÃ QUA kiểm tra 2026 (đề xuất để Trọng duyệt)
 
@@ -32,7 +32,7 @@ Tìm thấy ở vòng 68 (Khoảng cách tối thiểu TP1 (ATR): 0.75 → 1).
 
 | | Lệnh 2023–2025 | Tỷ lệ thắng | Tổng R | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | Lệnh 2026 | Tỷ lệ thắng | Tổng R 2026 |
 |---|---|---|---|---|---|---|---|---|
-| Bot thật | 163 | 47.2% | 106.06R | 9.45R | 11.22 | 34 | 11.8% | -16.07R |
+| Bot thật | 165 | 46.7% | 104.94R | 9.68R | 10.84 | 35 | 11.4% | -17.11R |
 | **Đề xuất** | 193 | 48.7% | 146.54R | 8.81R | 16.63 | 35 | 11.4% | -14.71R |
 
 | Thông số | Bot thật | Đề xuất |
@@ -92,6 +92,24 @@ Tìm thấy ở vòng 68 (Khoảng cách tối thiểu TP1 (ATR): 0.75 → 1).
 | 19 (hoàn tác) | Ngưỡng điểm 'vào ngay' (tín hiệu mạnh) | 6 → 5 | 104.08R | 43.9% | 13.85R | 7.51 |
 
 ## 10 vòng gần nhất
+
+### Vòng 82 — từng thông số · mốc: tổng 115.05R, win 50.7%, rủi ro tụt vốn 8.34R, lời÷rủi ro 13.79
+
+| Phương án | Tổng R | Tỷ lệ thắng | R/lệnh | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
+|---|---|---|---|---|---|---|---|---|---|
+| Lệnh chờ hết hạn sau (nến): 7 → 6 | 101.48 | 48.9% | 0.741 | 8.61 | 11.79 | 0.622 | 0.868 | -13.83 |  |
+| Lệnh chờ hết hạn sau (nến): 7 → 8 | 112.39 | 49.1% | 0.707 | 8.91 | 12.61 | 0.599 | 0.828 | -16.82 |  |
+| Điểm tối thiểu vùng đặt lệnh chờ: 3 → 2 | 113.58 | 51% | 0.773 | 8.34 | 13.62 | 0.631 | 0.925 | -11.97 |  |
+| Điểm tối thiểu vùng đặt lệnh chờ: 3 → 4 | 118.16 | 49.7% | 0.753 | 8.11 | 14.57 | 0.715 | 0.791 | -14.21 |  |
+| Số nến mỗi bên để xác định đỉnh/đáy Dow: 4 → 3 | 75.37 | 44.6% | 0.454 | 10.63 | 7.09 | 0.4 | 0.507 | -12.33 |  |
+| Số nến mỗi bên để xác định đỉnh/đáy Dow: 4 → 5 | 70.85 | 44.9% | 0.558 | 10.01 | 7.08 | 0.471 | 0.652 | -7.7 |  |
+| Trần điểm khi chart yếu (Trend < x): -0.3 → -0.45 | 115.05 | 50.7% | 0.788 | 8.34 | 13.79 | 0.673 | 0.913 | -15.23 |  |
+| Trần điểm khi chart yếu (Trend < x): -0.3 → -0.15 | 115.05 | 50.7% | 0.788 | 8.34 | 13.79 | 0.673 | 0.913 | -15.23 |  |
+| Khung lớn phải tăng (trend ≥): 0.4 → 0.35 | 108.77 | 48.6% | 0.745 | 8.9 | 12.22 | 0.61 | 0.892 | -15.23 |  |
+| Khung lớn phải tăng (trend ≥): 0.4 → 0.45 | 104.92 | 49.3% | 0.739 | 8.48 | 12.37 | 0.628 | 0.859 | -15.26 |  |
+| Xác nhận khung nhỏ (A2): ON → W | 111.1 | 40.1% | 0.401 | 15.73 | 7.06 | 0.451 | 0.35 | -9.96 |  |
+| Cổng Dow: LỎNG → TẮT | 122.47 | 42.9% | 0.583 | 11.96 | 10.24 | 0.521 | 0.642 | -19.95 |  |
+| Cổng Dow: LỎNG → CHẶT | 88.01 | 51.7% | 0.759 | 7.58 | 11.61 | 0.506 | 0.978 | -16.29 |  |
 
 ### Vòng 81 — từng thông số · mốc: tổng 115.14R, win 51%, rủi ro tụt vốn 8.13R, lời÷rủi ro 14.16
 
@@ -249,20 +267,3 @@ Nhận: Lệnh chờ hết hạn sau (nến) 8 → 7
 | Cộng thêm ngưỡng điểm khung 4H: 0 → 2 (tinh chỉnh) | 108.44 | 50.3% | 0.738 | 8.4 | 12.91 | 0.659 | 0.827 | -14.33 |  |
 | Cộng thêm ngưỡng điểm khung 1D: 5 → 4 (tinh chỉnh) | 109.83 | 50% | 0.742 | 8.26 | 13.3 | 0.659 | 0.835 | -15.21 |  |
 | Cộng thêm ngưỡng điểm khung 1D: 5 → 7 (tinh chỉnh) | 100.68 | 48.6% | 0.68 | 9.01 | 11.17 | 0.605 | 0.764 | -13.28 |  |
-
-### Vòng 72 — tinh chỉnh giá trị giữa · mốc: tổng 109.83R, win 50%, rủi ro tụt vốn 8.32R, lời÷rủi ro 13.20
-
-| Phương án | Tổng R | Tỷ lệ thắng | R/lệnh | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
-|---|---|---|---|---|---|---|---|---|---|
-| Ngưỡng điểm vào kèo: 75 → 73 (tinh chỉnh) | 108.22 | 48.7% | 0.712 | 8.81 | 12.28 | 0.613 | 0.828 | -15.81 |  |
-| Ngưỡng điểm vào kèo: 75 → 78 (tinh chỉnh) | 96.24 | 47.6% | 0.655 | 9.22 | 10.44 | 0.593 | 0.726 | -13.28 |  |
-| R:R tối thiểu tới TP1: 2.5 → 2.25 (tinh chỉnh) | 100.55 | 43.8% | 0.495 | 10.97 | 9.17 | 0.468 | 0.521 | -15.43 |  |
-| R:R tối thiểu tới TP1: 2.5 → 2.75 (tinh chỉnh) | 79.81 | 46.3% | 0.66 | 9.86 | 8.09 | 0.517 | 0.842 | -12.04 |  |
-| SL tối đa (% Entry): 0.35 → 0.275 (tinh chỉnh) | 104.96 | 49% | 0.714 | 9.06 | 11.58 | 0.639 | 0.799 | -14.33 |  |
-| SL tối đa (% Entry): 0.35 → 0.425 (tinh chỉnh) | 106.5 | 50% | 0.729 | 8.42 | 12.65 | 0.697 | 0.764 | -14.33 |  |
-| Đệm SL dưới vùng hỗ trợ (ATR): 1 → 0.9 (tinh chỉnh) | 121.07 | 48.6% | 0.692 | 9.57 | 12.65 | 0.613 | 0.788 | -13.11 |  |
-| Đệm SL dưới vùng hỗ trợ (ATR): 1 → 1.1 (tinh chỉnh) | 85.67 | 48.4% | 0.669 | 8.29 | 10.33 | 0.539 | 0.813 | -12.79 |  |
-| Cộng thêm ngưỡng điểm khung 4H: 0 → -2 (tinh chỉnh) | 108.84 | 49% | 0.73 | 8.77 | 12.41 | 0.659 | 0.809 | -14.33 |  |
-| Cộng thêm ngưỡng điểm khung 4H: 0 → 3 (tinh chỉnh) | 107.75 | 50.3% | 0.743 | 8.44 | 12.77 | 0.659 | 0.841 | -14.33 |  |
-| Cộng thêm ngưỡng điểm khung 1D: 5 → 3 (tinh chỉnh) | 109.83 | 50% | 0.742 | 8.32 | 13.2 | 0.659 | 0.835 | -16.23 |  |
-| Cộng thêm ngưỡng điểm khung 1D: 5 → 8 (tinh chỉnh) | 99.17 | 47.6% | 0.675 | 9.1 | 10.9 | 0.605 | 0.753 | -13.28 |  |
