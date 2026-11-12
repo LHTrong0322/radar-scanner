@@ -355,6 +355,7 @@ function wallet(T, opt = {}) {                    // giống hệt bt.mjs: 1R = 
     if (opt.ddAll) { let e = 100, pk = 100; for (const c of acc.filter(c => c.closed && c.exitAt <= t).sort((a, b) => a.exitAt - b.exitAt)) { e += c.r * c.usd; pk = Math.max(pk, e); } if (pk - e > opt.ddAll * 3) { skip++; continue; } }
     if (x.src === "bo") {                          // các lớp phòng thủ RIÊNG cho Breakout (thử nghiệm)
       if (opt.maxBO && open.filter(o => o.src === "bo").length >= opt.maxBO) { skip++; continue; }
+      if (opt.boPct && open.filter(o => o.src === "bo").reduce((s, o) => s + 3 * o.k, 0) + 3 * x.k > eq * opt.boPct) { skip++; continue; }   // trần rủi ro riêng cho Breakout (% vốn)
       if (opt.ddR) { let e = 100, pk = 100; for (const c of acc.filter(c => c.closed && c.exitAt <= t).sort((a, b) => a.exitAt - b.exitAt)) { e += c.r * c.usd; pk = Math.max(pk, e); } if (pk - e > opt.ddR * 3) { skip++; continue; } }
       if (opt.boMonthR) { let m = 0; for (const c of acc) if (c.src === "bo" && c.closed && c.exitAt <= t && c.exitAt > t - 30 * D) m += c.r * c.k; if (m <= -opt.boMonthR) { skip++; continue; } }
     }
@@ -362,12 +363,12 @@ function wallet(T, opt = {}) {                    // giống hệt bt.mjs: 1R = 
   }
   const ex = acc.filter(c => c.closed).sort((a, b) => a.exitAt - b.exitAt);
   let e = 100, pk = 100, dd = 0, ddp = 0, streak = 0, ms = 0; const yr = {}, mon = {};
-  for (const c of ex) { e += c.r * c.usd; pk = Math.max(pk, e); dd = Math.max(dd, pk - e); ddp = Math.max(ddp, (pk - e) / pk * 100);
+  let ddAt = 0; for (const c of ex) { e += c.r * c.usd; pk = Math.max(pk, e); dd = Math.max(dd, pk - e); if ((pk - e) / pk * 100 > ddp) { ddp = (pk - e) / pk * 100; ddAt = c.exitAt; }
     streak = c.r < 0 ? streak + 1 : 0; ms = Math.max(ms, streak);
     const y = new Date(c.exitAt + 7 * 36e5).toISOString().slice(0, 4), m = new Date(c.exitAt + 7 * 36e5).toISOString().slice(0, 7);
     yr[y] = yr[y] || { n: 0, R: 0, w: 0 }; yr[y].n++; yr[y].R += c.r * c.k; if (c.r > 0) yr[y].w++; mon[m] = (mon[m] || 0) + c.r * c.usd; }
   const worstM = Object.entries(mon).sort((a, b) => a[1] - b[1])[0] || ["–", 0];
-  return { n: ex.length, skip, final: e, dd, ddp, ms, yr, worstM, acc };
+  return { n: ex.length, skip, final: e, dd, ddp, ddAt, ms, yr, worstM, acc };
 }
 function mc95(R) { if (R.length < 10) return 0; const out = []; for (let s = 0; s < 1000; s++) { const a = R.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } let c = 0, p = 0, d = 0; for (const r of a) { c += r; p = Math.max(p, c); d = Math.max(d, p - c); } out.push(d); } out.sort((a, b) => a - b); return out[950]; }
 async function breakoutReal() {
@@ -396,7 +397,7 @@ async function breakoutReal() {
   const row = (name, T, opt) => { const out = [];
     for (const [lab, a, b] of [["2023–2025", START, TEST], ["2026 (kín)", TEST, Infinity]]) { const S = seg(T, a, b), w = wallet(S, opt), R = w.acc.filter(x => x.closed).map(x => x.r * x.k);   // chỉ lệnh ví THỰC SỰ vào được (sau cầu dao / trần rủi ro)
       const tot = R.reduce((s, r) => s + r, 0), win = R.length ? R.filter(r => r > 0).length / R.length * 100 : 0;
-      out.push(`| ${name} | ${lab} | ${R.length} | ${win.toFixed(0)}% | **${tot.toFixed(1)}R** | ${mc95(R).toFixed(1)}R | ${w.final.toFixed(0)}$ | ${w.dd.toFixed(0)}$ (${w.ddp.toFixed(0)}%) | ${w.ms} | ${w.worstM[0]} (${w.worstM[1].toFixed(0)}$) | ${w.skip} |`); }
+      out.push(`| ${name} | ${lab} | ${R.length} | ${win.toFixed(0)}% | **${tot.toFixed(1)}R** | ${mc95(R).toFixed(1)}R | ${w.final.toFixed(0)}$ | ${w.dd.toFixed(0)}$ (${w.ddp.toFixed(0)}%${w.ddAt ? " lúc " + new Date(w.ddAt).toISOString().slice(0, 7) : ""}) | ${w.ms} | ${w.worstM[0]} (${w.worstM[1].toFixed(0)}$) | ${w.skip} |`); }
     return out; };
   L.push("Mỗi giai đoạn chạy ví riêng bắt đầu 100 USD.", "", "| Phương án | Giai đoạn | Lệnh | Thắng | Tổng R | Rủi ro tụt vốn (95%) | Ví cuối | Tụt vốn lớn nhất | Thua liên tiếp dài nhất | Tháng tệ nhất | Kèo bị cầu dao/trần chặn |", "|---|---|---|---|---|---|---|---|---|---|---|");
   const B15 = mk(.15), B10 = mk(.10);
@@ -418,7 +419,22 @@ async function breakoutReal() {
       "| Phương án | Giai đoạn | Lệnh | Thắng | Tổng R | Rủi ro tụt vốn (95%) | Ví cuối | Tụt vốn lớn nhất | Thua liên tiếp dài nhất | Tháng tệ nhất | Kèo bị chặn |", "|---|---|---|---|---|---|---|---|---|---|---|",
       ...row("Bot hiện tại (có p1)", M), ...row("Bot hiện tại + B áp cho chính bot", M, { ddAll: 10 }),
       ...row("⭐ Bot + Breakout 1R + B", MB, { ddR: 10 }), ...row("Bot + Breakout 1R + B + A10", MB, { ddR: 10, maxBO: 10 }),
-      ...row("Bot + Breakout 1R + B + D", MBx, { ddR: 10 }), ...row("Bot + Breakout 1R + B áp cho CẢ bot lẫn Breakout", MB, { ddAll: 10 })); }
+      ...row("Bot + Breakout 1R + B + D", MBx, { ddR: 10 }), ...row("Bot + Breakout 1R + B áp cho CẢ bot lẫn Breakout", MB, { ddAll: 10 }));
+    const q = T => T.map(x => ({ ...x, k: .75 })), h2 = T => T.map(x => ({ ...x, k: .5 }));
+    L.push("", "### 🔧 Giảm tụt vốn cho Bot + Breakout 1R + B + D (Trọng yêu cầu 16:28)", "",
+      "| Phương án | Giai đoạn | Lệnh | Thắng | Tổng R | Rủi ro tụt vốn (95%) | Ví cuối | Tụt vốn lớn nhất | Thua liên tiếp dài nhất | Tháng tệ nhất | Kèo bị chặn |", "|---|---|---|---|---|---|---|---|---|---|---|",
+      ...row("B + D (mốc)", MBx, { ddR: 10 }),
+      ...row("B chặt hơn (6R = 18$) + D", MBx, { ddR: 6 }),
+      ...row("B + D + tối đa 10 lệnh Breakout", MBx, { ddR: 10, maxBO: 10 }),
+      ...row("B + D + tối đa 15 lệnh Breakout", MBx, { ddR: 10, maxBO: 15 }),
+      ...row("B + D + tối đa 20 lệnh Breakout", MBx, { ddR: 10, maxBO: 20 }),
+      ...row("B + D + Breakout tối đa 10% vốn rủi ro", MBx, { ddR: 10, boPct: .10 }),
+      ...row("B + D + Breakout tối đa 15% vốn rủi ro", MBx, { ddR: 10, boPct: .15 }),
+      ...row("B + D + Breakout tối đa 20% vốn rủi ro", MBx, { ddR: 10, boPct: .20 }),
+      ...row("B + D + lệnh Breakout 0.75R", [...M, ...q(B15x)], { ddR: 10 }),
+      ...row("B + D + lệnh Breakout 0.5R", [...M, ...h2(B15x)], { ddR: 10 }),
+      ...row("B + D + cầu dao tháng −8R", MBx, { ddR: 10, boMonthR: 8 }),
+      ...row("B + D + 15% vốn + cầu dao tháng", MBx, { ddR: 10, boPct: .15, boMonthR: 8 })); }
   // theo năm cho Breakout SL 15%
   const w = wallet(B15.map(x => ({ ...x }))); L.push("", "### Breakout SL 15% theo năm (ví chạy liền từ 2023, chỉ lệnh ví vào được)", "", "| Năm | Lệnh | Thắng | Tổng R |", "|---|---|---|---|", ...Object.entries(w.yr).map(([y, v]) => `| ${y} | ${v.n} | ${(v.w / v.n * 100).toFixed(0)}% | ${v.R.toFixed(1)}R |`));
   const byB = {}; for (const x of w.acc.filter(x => x.closed)) byB[x.base] = (byB[x.base] || 0) + x.r; const top = Object.entries(byB).sort((a, b) => b[1] - a[1]), tot = top.reduce((s, x) => s + x[1], 0);
