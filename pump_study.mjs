@@ -352,6 +352,11 @@ function wallet(T, opt = {}) {                    // giống hệt bt.mjs: 1R = 
     let dR = 0, wR = 0, eq = 100; for (const c of acc) if (c.closed && c.exitAt <= t) { eq += c.r * c.usd; if (c.exitAt >= weekStart) wR += c.r * c.k; if (c.exitAt >= dayStart) dR += c.r * c.k; }
     const cap = Math.max(1, Math.floor(eq * .3 / 3 + 1e-9));
     if (eq <= 0 || dR <= -3 || wR <= -6 || open.length >= cap) { skip++; continue; }
+    if (x.src === "bo") {                          // các lớp phòng thủ RIÊNG cho Breakout (thử nghiệm)
+      if (opt.maxBO && open.filter(o => o.src === "bo").length >= opt.maxBO) { skip++; continue; }
+      if (opt.ddR) { let e = 100, pk = 100; for (const c of acc.filter(c => c.closed && c.exitAt <= t).sort((a, b) => a.exitAt - b.exitAt)) { e += c.r * c.usd; pk = Math.max(pk, e); } if (pk - e > opt.ddR * 3) { skip++; continue; } }
+      if (opt.boMonthR) { let m = 0; for (const c of acc) if (c.src === "bo" && c.closed && c.exitAt <= t && c.exitAt > t - 30 * D) m += c.r * c.k; if (m <= -opt.boMonthR) { skip++; continue; } }
+    }
     x.usd = 3 * x.k; open.push(x); acc.push(x);
   }
   const ex = acc.filter(c => c.closed).sort((a, b) => a.exitAt - b.exitAt);
@@ -371,21 +376,23 @@ async function breakoutReal() {
   const L = ["# Kiểm tra lại Breakout như bot thật (trước khi Trọng duyệt)", "", `Tạo lúc ${new Date().toISOString().slice(0, 16)} UTC · ${Object.keys(data).length} mã (đã bỏ BTC — BTC dành cho chiến lược RSI) · khung D1.`,
     "Luật: nến ngày ĐÃ ĐÓNG vượt đỉnh 60 ngày + volume ngày đó ≥ 2 lần trung bình 30 ngày → mua giá mở cửa hôm sau. TP = 3 lần SL, giữ tối đa 14 ngày.",
     "Đủ phòng thủ như bot thật: altcoin chỉ khi BTC 1D trên EMA200 **VÀ** BTC 1D có cấu trúc Dow tăng (nến đã đóng); cổ phiếu/hàng hoá luôn được. Ví 100 USD, 1R = 3 USD, trần rủi ro 30% vốn, cầu dao −3R/ngày, −6R/tuần. Phí 0.045%×2, trượt giá 0.05%×2, funding ~0.03%/ngày. SL và TP chạm cùng ngày → tính thua.", ""];
-  const mk = (sl) => { const T = []; for (const [b, c] of Object.entries(data)) { const pre = prep(c, btc); for (let i = 210; i < c.length - 2; i++) {
+  const bullAt = t => { const bi = lastLE(btc, t); return bi >= 0 && btc[bi].c > be[bi] && bd[bi] === 1; };
+  const mk = (sl, exitBear) => { const T = []; for (const [b, c] of Object.entries(data)) { const pre = prep(c, btc); for (let i = 210; i < c.length - 2; i++) {
       if (c[i].t < START) continue; const x = features(c, i, btc, pre); if (!x || !x.breakout) continue;
-      if (!stocks.has(b)) { const bi = lastLE(btc, c[i].t); if (bi < 0 || !(btc[bi].c > be[bi]) || bd[bi] !== 1) continue; }
-      const s = simTrade(c, i, sl, sl * 3, HOLD); if (!s) continue; const days = s.exit - i, e0 = c[i + 1].o * 1.0005;
+      if (!stocks.has(b) && !bullAt(c[i].t)) continue;
+      let s = simTrade(c, i, sl, sl * 3, HOLD); if (!s) continue;
+      if (exitBear && !stocks.has(b)) for (let k = i + 1; k < s.exit; k++) if (!bullAt(c[k].t)) { s = { exit: k, px: c[k].c * .9995 }; break; }   // BTC gãy (dưới EMA200 hoặc Dow 1D hết tăng) → đóng altcoin ở giá đóng cửa ngày đó const days = s.exit - i, e0 = c[i + 1].o * 1.0005;
       const r = (s.px / e0 - 1) / sl - (.0009 + .0003 * days) / sl, at = c[i + 1].t, exitAt = c[s.exit].t + D;
       T.push({ src: "bo", base: b, at, exitAt, end: s.open ? Infinity : exitAt, r, closed: !s.open, k: 1 }); } } return T; };
   // lệnh của bot hiện tại (từ backtest mới nhất cùng cấu hình hiện tại)
-  const f = fs.readdirSync("backtests").filter(x => /tin-hieu-pump\.json$/.test(x)).sort().at(-1); let M = [];
+  const all = fs.readdirSync("backtests"), f = all.filter(x => /bot-p1\.json$/.test(x)).sort().at(-1) || all.filter(x => /tin-hieu-pump\.json$/.test(x)).sort().at(-1); let M = [];
   if (f) { const J = JSON.parse(fs.readFileSync("backtests/" + f, "utf8")); const TFM = { "4h": 144e5, "1d": D, "1w": 7 * D };
     M = (J.tradesA || []).filter(x => x.at >= START).map(x => ({ src: "bot", base: x.base, at: x.at, exitAt: x.exitAt, r: x.r || 0, closed: CLOSED.has(x.st0 || x.st) && !!x.exitAt, k: 1,
       end: x.exitAt || ((x.st0 || x.st) === "expired" ? x.at + 8 * (TFM[x.tf] || D) : Infinity) })).filter(x => (x.st0 || x.st) !== "open" || true); }
   L.push(`Lệnh bot hiện tại lấy từ: ${f || "KHÔNG TÌM THẤY"} (${M.length} lệnh từ 2023).`, "");
   const seg = (T, a, b) => T.filter(x => x.at >= a && x.at < b).map(x => ({ ...x }));
-  const row = (name, T) => { const out = [];
-    for (const [lab, a, b] of [["2023–2025", START, TEST], ["2026 (kín)", TEST, Infinity]]) { const S = seg(T, a, b), w = wallet(S), R = w.acc.filter(x => x.closed).map(x => x.r * x.k);   // chỉ lệnh ví THỰC SỰ vào được (sau cầu dao / trần rủi ro)
+  const row = (name, T, opt) => { const out = [];
+    for (const [lab, a, b] of [["2023–2025", START, TEST], ["2026 (kín)", TEST, Infinity]]) { const S = seg(T, a, b), w = wallet(S, opt), R = w.acc.filter(x => x.closed).map(x => x.r * x.k);   // chỉ lệnh ví THỰC SỰ vào được (sau cầu dao / trần rủi ro)
       const tot = R.reduce((s, r) => s + r, 0), win = R.length ? R.filter(r => r > 0).length / R.length * 100 : 0;
       out.push(`| ${name} | ${lab} | ${R.length} | ${win.toFixed(0)}% | **${tot.toFixed(1)}R** | ${mc95(R).toFixed(1)}R | ${w.final.toFixed(0)}$ | ${w.dd.toFixed(0)}$ (${w.ddp.toFixed(0)}%) | ${w.ms} | ${w.worstM[0]} (${w.worstM[1].toFixed(0)}$) | ${w.skip} |`); }
     return out; };
@@ -393,7 +400,17 @@ async function breakoutReal() {
   const B15 = mk(.15), B10 = mk(.10);
   L.push(...row("Breakout SL 15% (chạy riêng)", B15), ...row("Breakout SL 10% (chạy riêng)", B10));
   if (M.length) { const half = T => T.map(x => ({ ...x, k: .5 }));
-    L.push(...row("Bot hiện tại (chạy riêng)", M), ...row("Bot + Breakout SL 15% (1R)", [...M, ...B15]), ...row("Bot + Breakout SL 15% (0.5R)", [...M, ...half(B15)])); }
+    const B15x = mk(.15, true), MB = [...M, ...B15], MBx = [...M, ...B15x], ALL = { maxBO: 5, ddR: 10, boMonthR: 8 };
+    L.push(...row("Bot hiện tại (chạy riêng)", M), ...row("Bot + Breakout SL 15% (1R)", MB), ...row("Bot + Breakout SL 15% (0.5R)", [...M, ...half(B15)]));
+    L.push("", "### Các lớp phòng thủ thêm cho Breakout (chung ví, lệnh Breakout 1R)", "",
+      "- **A. Tối đa 5 (hoặc 10) lệnh Breakout cùng lúc** — tránh ôm quá nhiều coin cùng chạy theo một nhịp thị trường.",
+      "- **B. Cầu dao tụt vốn:** ví tụt quá 10R (30$) so với đỉnh → tạm dừng mở Breakout mới cho tới khi ví hồi lại.",
+      "- **C. Cầu dao tháng:** riêng Breakout lỗ quá 8R trong 30 ngày gần nhất → tạm dừng mở Breakout mới.",
+      "- **D. BTC gãy là đóng:** altcoin Breakout đang mở bị đóng ngay khi BTC 1D xuống dưới EMA200 hoặc Dow 1D hết tăng.", "",
+      "| Phương án | Giai đoạn | Lệnh | Thắng | Tổng R | Rủi ro tụt vốn (95%) | Ví cuối | Tụt vốn lớn nhất | Thua liên tiếp dài nhất | Tháng tệ nhất | Kèo bị chặn |", "|---|---|---|---|---|---|---|---|---|---|---|",
+      ...row("Bot + Breakout 1R (chưa thêm gì)", MB), ...row("+ A: tối đa 5 lệnh Breakout", MB, { maxBO: 5 }), ...row("+ A: tối đa 10 lệnh Breakout", MB, { maxBO: 10 }),
+      ...row("+ B: cầu dao tụt vốn 10R", MB, { ddR: 10 }), ...row("+ C: cầu dao tháng −8R", MB, { boMonthR: 8 }), ...row("+ D: BTC gãy là đóng", MBx),
+      ...row("+ A5 + B + C + D (tất cả)", MBx, ALL), ...row("+ A5 + D", MBx, { maxBO: 5 }), ...row("Breakout 0.5R + tất cả", [...M, ...half(B15x)], ALL)); }
   // theo năm cho Breakout SL 15%
   const w = wallet(B15.map(x => ({ ...x }))); L.push("", "### Breakout SL 15% theo năm (ví chạy liền từ 2023, chỉ lệnh ví vào được)", "", "| Năm | Lệnh | Thắng | Tổng R |", "|---|---|---|---|", ...Object.entries(w.yr).map(([y, v]) => `| ${y} | ${v.n} | ${(v.w / v.n * 100).toFixed(0)}% | ${v.R.toFixed(1)}R |`));
   const byB = {}; for (const x of w.acc.filter(x => x.closed)) byB[x.base] = (byB[x.base] || 0) + x.r; const top = Object.entries(byB).sort((a, b) => b[1] - a[1]), tot = top.reduce((s, x) => s + x[1], 0);
