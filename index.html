@@ -1029,6 +1029,11 @@ function pumpSig(dc,bc,t){
   let rs30=null; if(bc){ let j=-1; for(let k=bc.length-1;k>=0;k--) if(bc[k].t+864e5<=t){j=k;break} if(j>=30) rs30=(px/c[i-30].c-1)-(bc[j].c/bc[j-30].c-1) }
   return { volx:v30>0?v5/v30:0, e200:px/e-1, rsi, rs30, dd365:px/hi365-1, breakout:px>hi60&&v30>0&&val(c[i])>2*v30 };
 }
+// ---- Chiến lược BREAKOUT (lệnh riêng, chung ví với bot chính). Trọng duyệt 12/11/2026 16:25: Bot + Breakout 1R + B + D ----
+// Nến ngày ĐÃ ĐÓNG vượt đỉnh 60 ngày + giá trị giao dịch ngày đó ≥ 2 lần TB 30 ngày → mua ở giá hiện tại (bỏ nếu giá đã chạy > BO_CHASE so với giá đóng cửa).
+// SL −15%, TP = 3R (+45%) chốt hết, giữ tối đa 14 ngày. Altcoin chỉ khi BTC 1D trên EMA200 VÀ Dow 1D tăng; cổ phiếu/hàng hoá luôn được. Không trade BTC.
+// B: ví tụt quá BO_DD_R (tính bằng R từ lệnh thật đã đóng) so với đỉnh → tạm dừng mở Breakout mới. D: BTC gãy (dưới EMA200 hoặc Dow 1D hết tăng) → đóng lệnh Breakout altcoin.
+const BO_ON=false, BO_SL=.15, BO_RR=3, BO_HOLD=14, BO_DD_R=10, BO_EXIT_BTC=true, BO_MAX_PCT=null, BO_MAX_N=null, BO_CHASE=.08;
 function pumpAdj(dc,bc,t,stock){
   const P=PUMP_ADJ; if(!P) return 0; const x=pumpSig(dc,bc,t); if(!x) return P.need?false:0;
   const vol=x.volx>=2&&x.volx<4, volAny=x.volx>=2, strong=x.e200>.5||(x.rs30!=null&&x.rs30>.4);
@@ -1643,7 +1648,8 @@ function simulate(j,c,cur){
   let agg=null, hl=null;
   const closeBar=()=>{
     if(!agg) return false; bars.push(agg); const n=bars.length, last=agg; agg=null;
-    if(st==="open"&&hl!=null&&hl>sl&&last.c<hl&&last.t>=fillAt){ real+=left*ret(last.c); left=0; st="struct"; exitAt=last.end; exit=last.c; return true }
+    if(j.bo&&st==="open"&&fillAt!=null&&last.end+36e5>=fillAt+(typeof BO_HOLD!=='undefined'?BO_HOLD:14)*864e5){ real+=left*ret(last.c); left=0; st="struct"; tag="bo_time"; exitAt=last.end; exit=last.c; return true }   // Breakout: hết 14 ngày → đóng
+    if(!j.bo&&st==="open"&&hl!=null&&hl>sl&&last.c<hl&&last.t>=fillAt){ real+=left*ret(last.c); left=0; st="struct"; exitAt=last.end; exit=last.c; return true }   // Breakout không dùng thoát theo cấu trúc
     if(st==="open"&&fillAt!=null&&last.t>=fillAt) nFill++;
     if(TIME_STOP!=null&&st==="open"&&hit===0&&nFill>=TIME_STOP){ real+=left*ret(last.c); left=0; st="struct"; tag="time"; exitAt=last.end; exit=last.c; return true }   // lệnh ì: N nến chưa tới TP1 → thoát
     if(n>=5){ const p=bars[n-3]; if(fillAt!=null&&p.t>=fillAt&&p.l<bars[n-4].l&&p.l<bars[n-5].l&&p.l<=bars[n-2].l&&p.l<=bars[n-1].l&&(hl==null||p.l>hl)) hl=p.l }

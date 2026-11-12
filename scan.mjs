@@ -34,7 +34,7 @@ function loadCore() {
     grab(/function simulate\([\s\S]*?\n\}/, "simulate"),
   ].join("\n");
   const S = { tf: "4h", win: 3, os: 30, ob: 70 };
-  return new Function("S", src + "\nreturn {TFMS,SETS,STOCKS,skipCoin,bucket,compute,trendOf,pickReasons,simulate,MAX_SL,clamp,swapTxt,PICK_MIN:typeof PICK_MIN!=='undefined'?PICK_MIN:70,RR_TF:typeof RR_TF!=='undefined'?RR_TF:{},REGIME_EMA:typeof REGIME_EMA!=='undefined'?REGIME_EMA:200,REGIME_SLOPE:typeof REGIME_SLOPE!=='undefined'?REGIME_SLOPE:0,REGIME_SRC:typeof REGIME_SRC!=='undefined'?REGIME_SRC:'ema',dow,closedOnly,btcDowUp:typeof btcDowUp!=='undefined'?btcDowUp:null,btcDowDown:typeof btcDowDown!=='undefined'?btcDowDown:null,RS_DAYS:typeof RS_DAYS!=='undefined'?RS_DAYS:null,rsOK:typeof rsOK!=='undefined'?rsOK:null,volOK:typeof volOK!=='undefined'?volOK:null,MIN_RR:typeof MIN_RR!=='undefined'?MIN_RR:2,TF_ADD:typeof TF_ADD!=='undefined'?TF_ADD:{},HTF_MIN:typeof HTF_MIN!=='undefined'?HTF_MIN:null,REGIME:typeof REGIME!=='undefined'?REGIME:false,LOW_TF_ASSETS:typeof LOW_TF_ASSETS!=='undefined'?LOW_TF_ASSETS:[],LOW_TFS:typeof LOW_TFS!=='undefined'?LOW_TFS:['1h'],LTF_CONFIRM:typeof LTF_CONFIRM!=='undefined'?LTF_CONFIRM:{},upClear:typeof upClear!=='undefined'?upClear:()=>true,ltfOK:typeof ltfOK!=='undefined'?ltfOK:()=>true,pumpAdj:typeof pumpAdj!=='undefined'?pumpAdj:null,ema};")(S);
+  return new Function("S", src + "\nreturn {TFMS,SETS,STOCKS,skipCoin,bucket,compute,trendOf,pickReasons,simulate,MAX_SL,clamp,swapTxt,PICK_MIN:typeof PICK_MIN!=='undefined'?PICK_MIN:70,RR_TF:typeof RR_TF!=='undefined'?RR_TF:{},REGIME_EMA:typeof REGIME_EMA!=='undefined'?REGIME_EMA:200,REGIME_SLOPE:typeof REGIME_SLOPE!=='undefined'?REGIME_SLOPE:0,REGIME_SRC:typeof REGIME_SRC!=='undefined'?REGIME_SRC:'ema',dow,closedOnly,btcDowUp:typeof btcDowUp!=='undefined'?btcDowUp:null,btcDowDown:typeof btcDowDown!=='undefined'?btcDowDown:null,RS_DAYS:typeof RS_DAYS!=='undefined'?RS_DAYS:null,rsOK:typeof rsOK!=='undefined'?rsOK:null,volOK:typeof volOK!=='undefined'?volOK:null,MIN_RR:typeof MIN_RR!=='undefined'?MIN_RR:2,TF_ADD:typeof TF_ADD!=='undefined'?TF_ADD:{},HTF_MIN:typeof HTF_MIN!=='undefined'?HTF_MIN:null,REGIME:typeof REGIME!=='undefined'?REGIME:false,LOW_TF_ASSETS:typeof LOW_TF_ASSETS!=='undefined'?LOW_TF_ASSETS:[],LOW_TFS:typeof LOW_TFS!=='undefined'?LOW_TFS:['1h'],LTF_CONFIRM:typeof LTF_CONFIRM!=='undefined'?LTF_CONFIRM:{},upClear:typeof upClear!=='undefined'?upClear:()=>true,ltfOK:typeof ltfOK!=='undefined'?ltfOK:()=>true,pumpAdj:typeof pumpAdj!=='undefined'?pumpAdj:null,pumpSig:typeof pumpSig!=='undefined'?pumpSig:null,BO:typeof BO_ON!=='undefined'?{on:BO_ON,sl:BO_SL,rr:BO_RR,hold:BO_HOLD,ddR:BO_DD_R,exitBtc:BO_EXIT_BTC,maxPct:BO_MAX_PCT,maxN:BO_MAX_N,chase:BO_CHASE}:{on:false},ema};")(S);
 }
 const K = loadCore();
 
@@ -284,6 +284,8 @@ function msgUpdate(j, prev) {
   if (j.status === "tp2") return `🏁 <b>${h}</b> chốt TP cuối${T.length > 2 ? ` (TP${T.length})` : ""} ${fp(T[T.length - 1])} · ROI ${roi}`;
   if (j.status === "trail") return `☑️ <b>${h}</b> chạm TP${j.hit} rồi giá quay đầu, phần còn lại chốt ở TP${j.hit - 1} · ROI ${roi}`;
   if (j.status === "tp1_be") return `☑️ <b>${h}</b> chốt TP1 rồi về hoà phần còn lại · ROI ${roi}`;
+  if (j.status === "struct" && j.tag === "bo_time") return `⏱ <b>${h}</b> Breakout: đủ 14 ngày chưa chạm TP → đóng lệnh ở ${fp(j.exit)} · ROI ${roi}`;
+  if (j.status === "struct" && j.tag === "bo_btc") return null;   // đã báo riêng khi BTC gãy
   if (j.status === "struct" && j.tag === "time") return `⏱ <b>${h}</b> lệnh ì: đã ${String(j.tf).toUpperCase() === "1D" ? "10 ngày" : "10 nến " + String(j.tf).toUpperCase()} mà chưa chạm TP1 → thoát lệnh ở ${fp(j.exit)} · ROI ${roi}`;
   if (j.status === "struct") return `⚠️ <b>${h}</b> ${j.side === "short" ? "phá cấu trúc giảm" : "phá cấu trúc tăng"} (nến ${String(j.tf).toUpperCase()} đóng cửa ${j.side === "short" ? "trên đỉnh" : "dưới đáy"} gần nhất) → thoát lệnh ở ${fp(j.exit)} · ROI ${roi}`;
   if (j.status === "sl") return `🛑 <b>${h}</b> dính SL ${fp(j.stop)} · ROI ${roi}`;
@@ -350,7 +352,7 @@ async function main() {
   } catch (e) { errors.push(`Không lấy được vốn hoá thị trường (giữ nguyên danh sách): ${e.message}`); }
 
   // 4.2 nến 3 khung + chấm điểm
-  const ok = [], near = [], evals = new Map();
+  const ok = [], near = [], evals = new Map(), boCands = [];
   let BTC1D = null; if (K.RS_DAYS != null) { try { BTC1D = (await cryptoCandles("BTC", "1d", 400)).c; } catch (e) { } }   // cho bộ lọc sức mạnh tương đối
   await pool(assets, 10, async a => {   // nhiều mã hơn (thêm toàn bộ Hyperliquid) → tăng số luồng để giữ thời gian quét
     const R = {}, why = [], TFA = a.kind !== "stock" && K.LOW_TF_ASSETS.includes(a.base) ? [...K.LOW_TFS, ...PICK_TFS] : PICK_TFS;   // BTC: thêm khung nhỏ (1H)
@@ -367,6 +369,10 @@ async function main() {
     }
     if (!Object.keys(R).length) { errors.push(`${a.base}: không có dữ liệu (${why.join(" | ") || "thiếu nến"})`); return; }
     { const r0 = R["4h"] || R["1d"] || R["1w"] || Object.values(R)[0]; a.price = r0.livePx ?? r0.c.at(-1).c; }   // giá hiện tại (nến đang chạy)
+    if (K.BO.on && K.pumpSig && a.base !== "BTC" && R["1d"] && SIDE === "long") {   // Breakout: nến ngày ĐÃ ĐÓNG vượt đỉnh 60 ngày + tiền vào gấp đôi
+      const dc = R["1d"].c, last = dc.at(-1), x = K.pumpSig(dc, null, Date.now());
+      if (x && x.breakout && last && last.t + 864e5 <= Date.now() && last.t + 5 * 864e5 > Date.now()) boCands.push({ a, base: a.base, day: last.t, close: last.c, px: a.price, volx: x.volx });
+    }
     TFA.forEach((tf, k) => {
       const t = R[tf]; if (!t || !t.buy || !t.buy.plan || t.buy.plan.reject) return;
       const htf = TFA[k + 1] || null, hT = htf ? K.trendOf(R[htf]) : null;
@@ -401,6 +407,7 @@ async function main() {
   for (const j of state.journal) {
     // kèo "vào ngay" mới ghi (< 48h) nhưng CHƯA có lệnh thật trên sàn cũng được chấm lại theo chuẩn mới
     const paperOpen = j.status === "open" && (!j.hl || ["skip", "na"].includes(j.hl.st)) && Date.now() - j.at < 48 * 36e5 && !j.half;
+    if (j.bo) continue;                                                // lệnh Breakout có luật riêng, không chấm lại theo điểm bot chính
     if ((j.status !== "pending" && !paperOpen) || ((j.recheck || 0) >= RECHECK && (j.side || "long") === SIDE)) continue;
     if (!assets.some(a => a.base === j.base)) continue;                // mã không quét được lượt này → để lượt sau
     if ((j.side || "long") !== SIDE) { Object.assign(j, { status: "cancel", exitAt: Date.now(), roi: 0, r: 0, cancelWhy: `đã chuyển sang mode ${SIDE.toUpperCase()}` }); cancelled.push(`• <b>${esc(j.base)}</b> ${String(j.tf).toUpperCase()}: lệnh chờ ${(j.side || "long").toUpperCase()}, bot đã chuyển sang mode ${SIDE.toUpperCase()}`); continue; }
@@ -439,6 +446,26 @@ async function main() {
     newIds.add(state.journal.at(-1).id);
     newOnes.push(x);
   }
+  // 4.35 Breakout (chiến lược riêng, chung ví) — Trọng duyệt 12/11/2026: Bot + Breakout 1R + B (cầu dao tụt vốn) + D (BTC gãy là đóng)
+  if (K.BO.on && boCands.length) {
+    const B = K.BO, realR = state.journal.filter(j => j.hl && !["skip", "na", "fail", "cancel"].includes(j.hl.st) && ["tp2", "trail", "tp1_be", "struct", "sl", "manual"].includes(j.status) && j.exitAt && isFinite(j.r)).sort((p, q) => p.exitAt - q.exitAt);
+    let cum = 0, peak = 0; for (const j of realR) { cum += j.r; peak = Math.max(peak, cum); }
+    const ddR = peak - cum, boLive = state.journal.filter(j => j.bo && !isDone(j.status)).length, out = [];
+    if (B.ddR != null && ddR > B.ddR) { const key = "bo-dd-" + new Date(Date.now() + 7 * 36e5).toISOString().slice(0, 10); if (state.boMsg !== key) { state.boMsg = key; outbox.push(`⛔ <b>Breakout tạm dừng</b> (cầu dao tụt vốn): ví đang thấp hơn đỉnh ${ddR.toFixed(1)}R (giới hạn ${B.ddR}R). Bot chính vẫn chạy bình thường.`); } }
+    else for (const x of boCands.sort((p, q) => q.volx - p.volx)) {
+      if (x.a.kind !== "stock" && !regimeOK) continue;                                   // altcoin chỉ khi BTC đạt (EMA200 + Dow 1D); cổ phiếu / hàng hoá luôn được
+      if (B.maxN != null && boLive + out.length >= B.maxN) break;
+      const sym = x.a.kind === "stock" ? x.a.sym : x.base + "USDT";
+      if (state.journal.some(j => j.sym === sym && (!isDone(j.status) || (j.bo && j.boDay === x.day)))) continue;   // đang có lệnh mã này / đã vào breakout của cây nến này
+      if (!(x.px > 0) || x.px > x.close * (1 + B.chase)) continue;                     // giá đã chạy quá xa so với lúc nến đóng → không đuổi
+      const entry = x.px, stop = entry * (1 - B.sl), tp = entry * (1 + B.sl * B.rr), w = `Breakout +${(B.sl * B.rr * 100).toFixed(0)}% (${B.rr}R)`;
+      state.journal.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), at: Date.now(), sym, base: x.base, src: x.a.kind === "stock" ? "st" : "bn", ex: x.a.ex, tf: "1d", side: "long",
+        mode: "Vào ngay", entry, stop, tp1: tp, tp2: tp, tps: [tp, tp], tpf: [1, 0], tpWhys: [w, w], tp1Why: w, tp2Why: w, tpVer: 2, rr1: B.rr, score: 0, status: "open", fillAt: Date.now(), roi: 0, r: 0, by: "github", recheck: RECHECK,
+        bo: 1, boDay: x.day, boVol: +x.volx.toFixed(2) });
+      newIds.add(state.journal.at(-1).id); out.push(x);
+    }
+    if (out.length) outbox.push(`🚀 <b>Breakout</b> (lệnh riêng, 1R): ` + out.map(x => `<b>${esc(x.base)}</b> giá ${fp(x.px)} · SL −${(K.BO.sl * 100).toFixed(0)}% · TP +${(K.BO.sl * K.BO.rr * 100).toFixed(0)}% · tiền vào ×${x.volx.toFixed(1)}`).join("\n") + link());
+  }
   if (newOnes.length > 6) outbox.push(`${SIDE === "short" ? "🔴" : "🟢"} <b>${newOnes.length} kèo ${SIDE === "short" ? "SHORT " : ""}mới</b>: ` + newOnes.map(x => `${esc(x.base)} ${x.tf.toUpperCase()} (${Math.round(x.score)}đ, ${x.P.rr1.toFixed(1)}R)`).join(", ") + link());
   else newOnes.forEach(x => outbox.push(msgNewPick(x)));
 
@@ -464,6 +491,14 @@ async function main() {
       const m = msgUpdate(j, prev); if (m && (j.status !== prev.status || j.half !== prev.half || (j.hit || 0) !== prev.hit)) outbox.push(m);
     } catch (e) { errors.push(`${j.base}: không chấm được lệnh (${e.message})`); }
   });
+
+  // 4.44 D: BTC gãy (dưới EMA200 hoặc Dow 1D hết tăng) → đóng lệnh Breakout altcoin đang mở
+  if (K.BO.on && K.BO.exitBtc && !regimeOK) for (const j of state.journal) {
+    if (!j.bo || j.src === "st" || j.status !== "open" || !(j.cur > 0)) continue;
+    const risk = (j.entry - j.stop) / j.entry, ret = j.cur / j.entry - 1;
+    Object.assign(j, { status: "struct", tag: "bo_btc", exitAt: Date.now(), exit: j.cur, roi: ret * 100, r: risk > 0 ? ret / risk : 0 });
+    outbox.push(`🛑 <b>${esc(j.base)}</b> Breakout: BTC gãy (${marketWhy.join(", ") || "thị trường xấu"}) → đóng lệnh ở ${fp(j.cur)} · ${j.r >= 0 ? "+" : ""}${j.r.toFixed(2)}R` + link());
+  }
 
   // 4.45 tự đặt lệnh trên sàn (chỉ chạy khi đã cài khoá trong GitHub Secrets) · ưu tiên Hyperliquid
   if (process.env.HL_ADDRESS && process.env.HL_AGENT_KEY) {

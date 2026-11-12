@@ -244,8 +244,8 @@ export async function hyperRun({ state, newIds, outbox, errors, esc, link, allow
       if (j.status === "struct") {                                     // cấu trúc tăng bị phá → đóng toàn bộ vị thế bằng lệnh thị trường (reduce-only)
         await cancelOids([...sls, ...tps].map(o => ({ asset: m.asset, oid: o.oid })));
         await placeOrders([limitO(m, sh, fmtPx(mark * (sh ? 1.03 : .97), m.szDecimals, sh ? "up" : "down"), szS, "Ioc", null, true)]);
-        h.st = "closed"; h.at = Date.now(); h.why = j.tag === "time" ? "lệnh ì: 10 nến chưa tới TP1" : sh ? "phá cấu trúc giảm" : "phá cấu trúc tăng";
-        say(`<b>${esc(j.base)}</b> ${sh ? "phá cấu trúc giảm" : "phá cấu trúc tăng"} (nến ${String(j.tf).toUpperCase()} đóng ${sh ? "trên đỉnh" : "dưới đáy"} gần nhất): đã đóng toàn bộ vị thế bằng lệnh thị trường.`);
+        h.st = "closed"; h.at = Date.now(); h.why = j.tag === "bo_time" ? "Breakout: đủ 14 ngày" : j.tag === "bo_btc" ? "Breakout: BTC gãy cấu trúc" : j.tag === "time" ? "lệnh ì: 10 nến chưa tới TP1" : sh ? "phá cấu trúc giảm" : "phá cấu trúc tăng";
+        say(j.bo ? `<b>${esc(j.base)}</b> ${h.why}: đã đóng toàn bộ vị thế bằng lệnh thị trường.` : `<b>${esc(j.base)}</b> ${sh ? "phá cấu trúc giảm" : "phá cấu trúc tăng"} (nến ${String(j.tf).toUpperCase()} đóng ${sh ? "trên đỉnh" : "dưới đáy"} gần nhất): đã đóng toàn bộ vị thế bằng lệnh thị trường.`);
         continue;
       }
       // các mức TP của kèo (có thể 2–4 mức), tỷ lệ chốt: TP1 50%, phần còn lại chia đều
@@ -348,7 +348,7 @@ export async function hyperRun({ state, newIds, outbox, errors, esc, link, allow
       const sz = fmtSz(P.notional / entry, m.szDecimals), szN = parseFloat(sz);
       if (!(szN > 0) || szN * entry < MIN_NOTIONAL) { skip(`khối lượng ~${(szN * entry).toFixed(1)} USD nhỏ hơn mức tối thiểu 10 USD của sàn (SL quá xa)`); continue; }
       const f1 = Array.isArray(j.tpf) && j.tpf.length > 1 && j.tpf[0] > 0 && j.tpf[0] < 1 ? j.tpf[0] : .5;   // tỷ lệ chốt ở TP1 theo thuật toán (hiện 30%)
-      const half = fmtSz(szN * f1, m.szDecimals), part = parseFloat(half) * tp1 >= MIN_NOTIONAL * 1.05 && (szN - parseFloat(half)) * entry >= MIN_NOTIONAL;
+      const half = fmtSz(szN * f1, m.szDecimals), part = !j.bo && parseFloat(half) * tp1 >= MIN_NOTIONAL * 1.05 && (szN - parseFloat(half)) * entry >= MIN_NOTIONAL;   // Breakout: chốt hết ở TP
       await setLeverage(m, P.lev, false);
       const cid = cloidOf("r" + j.id + "e" + (j.rev || ""));          // rev: kèo đã được dời mức → cloid mới
       const ent = limit ? limitO(m, !sh, fmtPx(entry, m.szDecimals, sh ? "up" : "down"), sz, "Gtc", cid)
