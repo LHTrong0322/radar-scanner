@@ -1,4 +1,4 @@
-# Tối ưu tự động (chạy liên tục) — vòng 60
+# Tối ưu tự động (chạy liên tục) — vòng 61
 
 Bot thật KHÔNG bị thay đổi cho tới khi Trọng duyệt. Backtest mọi nến 4H/1D/1W trong từ 01/2023 tới nay, có phí + funding, không tính BTC (BTC dành cho chiến lược RSI).
 
@@ -7,7 +7,7 @@ Chỉ chọn thông số trên **01/2023 → 12/2025** (Trọng chốt). **năm 
 Nhận thay đổi khi: Lời ÷ rủi ro tăng ít nhất 3%, tổng R không giảm quá 3%, win rate không giảm quá 0.5 điểm, rủi ro tụt vốn (95%) không tăng quá 5%, không xấu đi ở cả 2 nửa 2023–2025 (01/2023–06/2024 và 07/2024–12/2025), số lệnh không giảm quá 30%.
 ⚠️ Các thay đổi Trọng duyệt trước 11/11/2026 21:30 đã được chọn khi nhìn toàn bộ dữ liệu, kể cả giai đoạn kiểm tra kín → với chúng, phần kiểm tra kín không còn kín hoàn toàn.
 
-Chế độ dò hiện tại: **từng thông số** · đã thử 448 phương án.
+Chế độ dò hiện tại: **từng thông số** · đã thử 461 phương án.
 
 ## Bot thật so với cấu hình tốt nhất
 
@@ -16,7 +16,7 @@ Trọng chốt (12/11): ưu tiên 2023–2025. Cấu hình mới được đề 
 | | Lệnh 2023–2025 | Tỷ lệ thắng | Tổng R | R/lệnh | Tụt vốn lớn nhất (thực tế) | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | Lệnh 2026 (kín) | Tỷ lệ thắng | Tổng R | R/lệnh | Tụt vốn |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | Bot thật | 157 | 48.4% | 109.18R | 0.695 | 5.52R | 8.69R | 12.56 | 33 | 12.1% | -15.02R | -0.455 | 15.02R |
-| **Tốt nhất** | 149 | 49.7% | 109.08R | 0.732 | 5.52R | 8.51R | 12.82 | 31 | 12.9% | -13.02R | -0.42 | 13.02R |
+| **Tốt nhất** | 149 | 49.7% | 109.08R | 0.732 | 5.52R | 8.48R | 12.86 | 31 | 12.9% | -13.02R | -0.42 | 13.02R |
 
 ## Theo khung (cấu hình tốt nhất)
 
@@ -51,6 +51,7 @@ Tìm thấy ở vòng 59 (Khoảng cách tối thiểu TP1 (ATR): 0.75 → 1).
 |---|---|---|
 | Ngưỡng điểm vào kèo | 70 | **75** |
 | Điểm ADX < 13 cạn lực giảm (Momentum) | 1.5 | **2.5** |
+| Lọc BTC: giá trên EMA bao nhiêu ngày | 200 | **150** |
 | Trọng số phần Trend (/100) | 30 | **15** |
 | Trọng số phần Momentum (/100) | 15 | **23** |
 | Trọng số phần SL (/100) | 5 | **8** |
@@ -60,6 +61,7 @@ Tìm thấy ở vòng 59 (Khoảng cách tối thiểu TP1 (ATR): 0.75 → 1).
 
 | Vòng | Thông số | Từ → Thành | Tổng R | Tỷ lệ thắng | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro |
 |---|---|---|---|---|---|---|
+| 61 | Lọc BTC: giá trên EMA bao nhiêu ngày | 200 → 150 | 109.83R | 50% | 8.24R | 13.33 |
 | 55 | Điểm vùng: HVN cố định | 0.25 → 0.5 | 109.08R | 49.7% | 8.65R | 12.61 |
 | 53 | Trọng số phần SL (/100) | 5 → 8 | 107.61R | 49.3% | 8.69R | 12.38 |
 | 51 (hoàn tác) | Điểm ADX > 25 và +DI trội (Momentum) | 3 → 4 | 115.55R | 49.3% | 8.82R | 13.1 |
@@ -85,6 +87,26 @@ Tìm thấy ở vòng 59 (Khoảng cách tối thiểu TP1 (ATR): 0.75 → 1).
 | 19 (hoàn tác) | Ngưỡng điểm 'vào ngay' (tín hiệu mạnh) | 6 → 5 | 104.08R | 43.9% | 13.85R | 7.51 |
 
 ## 10 vòng gần nhất
+
+### Vòng 61 — từng thông số · mốc: tổng 109.08R, win 49.7%, rủi ro tụt vốn 8.48R, lời÷rủi ro 12.86
+
+| Phương án | Tổng R | Tỷ lệ thắng | R/lệnh | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
+|---|---|---|---|---|---|---|---|---|---|
+| Lọc BTC: giá trên EMA bao nhiêu ngày: 200 → 150 | 109.83 | 50% | 0.742 | 8.24 | 13.33 | 0.659 | 0.835 | -14.33 | ✅ |
+| Coin phải mạnh hơn BTC trong N ngày: null → 14 | 87.7 | 49.2% | 0.707 | 8.59 | 10.21 | 0.695 | 0.722 | -19.48 |  |
+| Bỏ kèo khi biến động > N lần bình thường: null → 1.5 | 70.9 | 46.2% | 0.606 | 10.22 | 6.94 | 0.517 | 0.73 | -12.25 |  |
+| Thoát lệnh ì sau N nến chưa tới TP1: null → 3 | 30.05 | 56.8% | 0.185 | 7.07 | 4.25 | 0.27 | 0.101 | -8.74 |  |
+| Sau TP1: SL bám giá cao nhất − N×R: null → 0.5 | 120.8 | 50% | 0.765 | 8.27 | 14.61 | 0.806 | 0.714 | -13.6 |  |
+| Trọng số phần Trend (/100): 15 → 0 | 94.82 | 47% | 0.636 | 9.48 | 10 | 0.603 | 0.674 | -11.97 |  |
+| Trọng số phần Trend (/100): 15 → 30 | 108.94 | 49% | 0.712 | 8.82 | 12.35 | 0.613 | 0.826 | -14.33 |  |
+| Trọng số phần Momentum (/100): 23 → 15 | 104.6 | 48.7% | 0.697 | 9.05 | 11.56 | 0.605 | 0.797 | -13.02 |  |
+| Trọng số phần Momentum (/100): 23 → 30 | 107.69 | 50% | 0.728 | 8.3 | 12.97 | 0.659 | 0.804 | -13.02 |  |
+| Trọng số phần Elliott (/100): 8 → 0 | 109.5 | 49% | 0.716 | 8.69 | 12.6 | 0.633 | 0.808 | -13.45 |  |
+| Trọng số phần Elliott (/100): 8 → 15 | 98.79 | 48.7% | 0.659 | 9.13 | 10.82 | 0.596 | 0.729 | -11.97 |  |
+| Trọng số phần Entry (/100): 30 → 20 | 107.94 | 48.3% | 0.715 | 8.78 | 12.29 | 0.649 | 0.787 | -13.45 |  |
+| Trọng số phần Entry (/100): 30 → 40 | 104.56 | 48.7% | 0.697 | 9.01 | 11.6 | 0.593 | 0.812 | -13.02 |  |
+
+Nhận: Lọc BTC: giá trên EMA bao nhiêu ngày 200 → 150
 
 ### Vòng 60 — từng thông số · mốc: tổng 109.08R, win 49.7%, rủi ro tụt vốn 8.51R, lời÷rủi ro 12.82
 
@@ -228,22 +250,3 @@ Nhận: Trọng số phần SL (/100) 5 → 8
 
 ### Vòng 52 — từng thông số · mốc: tổng 108.18R, win 49%, rủi ro tụt vốn 9.01R, lời÷rủi ro 12.01
 Gộp các thay đổi vòng 51 làm chỉ số giảm (12.53 → 12.01) → hoàn tác
-
-### Vòng 51 — từng thông số · mốc: tổng 112.91R, win 49.7%, rủi ro tụt vốn 9.01R, lời÷rủi ro 12.53
-
-| Phương án | Tổng R | Tỷ lệ thắng | R/lệnh | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
-|---|---|---|---|---|---|---|---|---|---|
-| Số TP tối đa: 2 → 1 | 112.91 | 49.7% | 0.738 | 9.01 | 12.53 | 0.694 | 0.787 | -14.58 |  |
-| Số TP tối đa: 2 → 3 | 117.45 | 50% | 0.763 | 8.62 | 13.63 | 0.75 | 0.777 | -14.58 |  |
-| Điểm ADX > 25 và +DI trội (Momentum): 3 → 2 | 96.05 | 47.7% | 0.628 | 9.76 | 9.84 | 0.584 | 0.676 | -14.58 |  |
-| Điểm ADX > 25 và +DI trội (Momentum): 3 → 4 | 115.55 | 49.3% | 0.76 | 8.82 | 13.1 | 0.693 | 0.835 | -15.4 | ✅ |
-| Điểm ADX < 13 cạn lực giảm (Momentum): 2.5 → 1.5 | 111.9 | 49.4% | 0.727 | 8.78 | 12.74 | 0.673 | 0.787 | -14.58 |  |
-| Cộng điểm phân kỳ dương ẩn: 3 → 1.5 | 111.9 | 50% | 0.736 | 8.93 | 12.53 | 0.694 | 0.784 | -14.58 |  |
-| Cộng điểm phân kỳ dương ẩn: 3 → 5 | 112.56 | 49% | 0.726 | 8.82 | 12.76 | 0.673 | 0.787 | -15.61 |  |
-| Lọc BTC: giá trên EMA bao nhiêu ngày: 200 → 150 | 113.66 | 50% | 0.748 | 8.83 | 12.87 | 0.694 | 0.809 | -15.9 |  |
-| Coin phải mạnh hơn BTC trong N ngày: null → 14 | 87.14 | 48.4% | 0.703 | 9.06 | 9.62 | 0.712 | 0.692 | -21.05 |  |
-| Bỏ kèo khi biến động > N lần bình thường: null → 1.5 | 70.51 | 45.8% | 0.598 | 10.45 | 6.75 | 0.539 | 0.68 | -11.69 |  |
-| Thoát lệnh ì sau N nến chưa tới TP1: null → 3 | 27.09 | 56.2% | 0.167 | 7.47 | 3.63 | 0.234 | 0.097 | -8.12 |  |
-| Sau TP1: SL bám giá cao nhất − N×R: null → 0.5 | 116.52 | 49.1% | 0.724 | 9.02 | 12.92 | 0.751 | 0.69 | -15.17 |  |
-
-Nhận: Điểm ADX > 25 và +DI trội (Momentum) 3 → 4
