@@ -1,4 +1,4 @@
-# Tối ưu tự động (chạy liên tục) — vòng 51
+# Tối ưu tự động (chạy liên tục) — vòng 52
 
 Bot thật KHÔNG bị thay đổi cho tới khi Trọng duyệt. Backtest mọi nến 4H/1D/1W trong từ 01/2023 tới nay, có phí + funding, không tính BTC (BTC dành cho chiến lược RSI).
 
@@ -15,7 +15,7 @@ Trọng chốt (12/11): ưu tiên 2023–2025. Cấu hình mới được đề 
 
 | | Lệnh 2023–2025 | Tỷ lệ thắng | Tổng R | R/lệnh | Tụt vốn lớn nhất (thực tế) | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | Lệnh 2026 (kín) | Tỷ lệ thắng | Tổng R | R/lệnh | Tụt vốn |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Bot thật | 160 | 48.8% | 116.56R | 0.728 | 6.53R | 8.67R | 13.44 | 33 | 12.1% | -15.02R | -0.455 | 15.02R |
+| Bot thật | 157 | 48.4% | 109.18R | 0.695 | 5.52R | 8.75R | 12.48 | 33 | 12.1% | -15.02R | -0.455 | 15.02R |
 | **Tốt nhất** | 153 | 49.7% | 112.91R | 0.738 | 6.52R | 9.01R | 12.53 | 33 | 12.1% | -14.58R | -0.442 | 14.58R |
 
 ## Theo khung (cấu hình tốt nhất)
@@ -35,7 +35,6 @@ Chưa có cấu hình nào tốt hơn bot thật ở 2023–2025 mà năm 2026 k
 | Thông số | Bot thật | Đề xuất |
 |---|---|---|
 | Ngưỡng điểm vào kèo | 70 | **75** |
-| Điểm ADX > 25 và +DI trội (Momentum) | 3 | **4** |
 | Điểm ADX < 13 cạn lực giảm (Momentum) | 1.5 | **2.5** |
 | Trọng số phần Trend (/100) | 30 | **15** |
 | Trọng số phần Momentum (/100) | 15 | **23** |
@@ -44,7 +43,7 @@ Chưa có cấu hình nào tốt hơn bot thật ở 2023–2025 mà năm 2026 k
 
 | Vòng | Thông số | Từ → Thành | Tổng R | Tỷ lệ thắng | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro |
 |---|---|---|---|---|---|---|
-| 51 | Điểm ADX > 25 và +DI trội (Momentum) | 3 → 4 | 115.55R | 49.3% | 8.82R | 13.1 |
+| 51 (hoàn tác) | Điểm ADX > 25 và +DI trội (Momentum) | 3 → 4 | 115.55R | 49.3% | 8.82R | 13.1 |
 | 48 (hoàn tác) | SL tối đa (% Entry) | 0.35 → 0.2 | 112R | 51.4% | 8.66R | 12.93 |
 | 47 | Ngưỡng điểm vào kèo | 70 → 75 | 112.91R | 49.7% | 8.91R | 12.67 |
 | 42 | Điểm ADX < 13 cạn lực giảm (Momentum) | 1.5 → 2.5 | 110.33R | 47.8% | 8.98R | 12.29 |
@@ -67,6 +66,9 @@ Chưa có cấu hình nào tốt hơn bot thật ở 2023–2025 mà năm 2026 k
 | 19 (hoàn tác) | Ngưỡng điểm 'vào ngay' (tín hiệu mạnh) | 6 → 5 | 104.08R | 43.9% | 13.85R | 7.51 |
 
 ## 10 vòng gần nhất
+
+### Vòng 52 — từng thông số · mốc: tổng 108.18R, win 49%, rủi ro tụt vốn 9.01R, lời÷rủi ro 12.01
+Gộp các thay đổi vòng 51 làm chỉ số giảm (12.53 → 12.01) → hoàn tác
 
 ### Vòng 51 — từng thông số · mốc: tổng 112.91R, win 49.7%, rủi ro tụt vốn 9.01R, lời÷rủi ro 12.53
 
@@ -213,23 +215,3 @@ Nhận: Ngưỡng điểm vào kèo 70 → 75
 | Trọng số phần SL (/100): 5 → 8 | 112.33 | 49% | 0.725 | 8.92 | 12.59 | 0.663 | 0.792 | -15.49 |  |
 | Điểm vùng: Đỉnh/đáy pivot Dow: 2.5 → 1.25 | 93.44 | 46% | 0.58 | 10.47 | 8.92 | 0.49 | 0.676 | -9.25 |  |
 | Điểm vùng: Đỉnh/đáy pivot Dow: 2.5 → 3.75 | 87.34 | 47.5% | 0.628 | 8.84 | 9.88 | 0.685 | 0.558 | -11.92 |  |
-
-### Vòng 42 — từng thông số · mốc: tổng 109.32R, win 47.5%, rủi ro tụt vốn 9.17R, lời÷rủi ro 11.92
-
-| Phương án | Tổng R | Tỷ lệ thắng | R/lệnh | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
-|---|---|---|---|---|---|---|---|---|---|
-| Điểm ADX < 13 cạn lực giảm (Momentum): 1.5 → 0.75 | 109.32 | 47.5% | 0.683 | 9.17 | 11.92 | 0.608 | 0.769 | -15.02 |  |
-| Điểm ADX < 13 cạn lực giảm (Momentum): 1.5 → 2.5 | 110.33 | 47.8% | 0.694 | 8.98 | 12.29 | 0.627 | 0.769 | -15.02 | ✅ |
-| Cộng điểm phân kỳ dương ẩn: 3 → 1.5 | 109.05 | 48.1% | 0.69 | 9.1 | 11.98 | 0.617 | 0.773 | -15.02 |  |
-| Cộng điểm phân kỳ dương ẩn: 3 → 5 | 108.83 | 47.2% | 0.668 | 9.07 | 12 | 0.594 | 0.752 | -14.24 |  |
-| Lọc BTC: giá trên EMA bao nhiêu ngày: 200 → 150 | 110.07 | 47.8% | 0.692 | 9.12 | 12.07 | 0.608 | 0.789 | -16.34 |  |
-| Coin phải mạnh hơn BTC trong N ngày: null → 14 | 88.9 | 47% | 0.663 | 9.28 | 9.58 | 0.667 | 0.659 | -21.49 |  |
-| Bỏ kèo khi biến động > N lần bình thường: null → 1.5 | 70.79 | 44.4% | 0.571 | 11.14 | 6.35 | 0.52 | 0.642 | -12.19 |  |
-| Thoát lệnh ì sau N nến chưa tới TP1: null → 3 | 33.86 | 58.3% | 0.193 | 6.97 | 4.86 | 0.275 | 0.111 | -6.86 |  |
-| Sau TP1: SL bám giá cao nhất − N×R: null → 0.5 | 115.57 | 47.3% | 0.684 | 9.03 | 12.8 | 0.693 | 0.673 | -15.6 |  |
-| Trọng số phần Trend (/100): 30 → 15 | 111.26 | 49% | 0.718 | 9.01 | 12.35 | 0.667 | 0.773 | -15.02 | ✅ |
-| Trọng số phần Trend (/100): 30 → 45 | 108.83 | 47.2% | 0.668 | 9.07 | 12 | 0.594 | 0.752 | -14.24 |  |
-| Trọng số phần Momentum (/100): 15 → 8 | 109.34 | 47.5% | 0.675 | 9.44 | 11.58 | 0.594 | 0.769 | -15.02 |  |
-| Trọng số phần Momentum (/100): 15 → 23 | 110.09 | 48.4% | 0.701 | 8.93 | 12.33 | 0.637 | 0.773 | -15.02 | ✅ |
-
-Nhận: Trọng số phần Trend (/100) 30 → 15 · Trọng số phần Momentum (/100) 15 → 23 · Điểm ADX < 13 cạn lực giảm (Momentum) 1.5 → 2.5
