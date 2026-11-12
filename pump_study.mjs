@@ -434,7 +434,18 @@ async function breakoutReal() {
       ...row("B + D + lệnh Breakout 0.75R", [...M, ...q(B15x)], { ddR: 10 }),
       ...row("B + D + lệnh Breakout 0.5R", [...M, ...h2(B15x)], { ddR: 10 }),
       ...row("B + D + cầu dao tháng −8R", MBx, { ddR: 10, boMonthR: 8 }),
-      ...row("B + D + 15% vốn + cầu dao tháng", MBx, { ddR: 10, boPct: .15, boMonthR: 8 })); }
+      ...row("B + D + 15% vốn + cầu dao tháng", MBx, { ddR: 10, boPct: .15, boMonthR: 8 }));
+    // Trọng hỏi 16:29: BTC xấu (dưới EMA200 hoặc Dow 1D không tăng) thì ngưng mở MỌI lệnh Breakout mới, kể cả cổ phiếu / hàng hoá
+    const MBxs = MBx.filter(x => x.src !== "bo" || bullAt(x.at - D)), MBs = MB.filter(x => x.src !== "bo" || bullAt(x.at - D));
+    const Ms = M.filter(x => !stocks.has(x.base) || bullAt(x.at));
+    L.push("", "### 🛑 BTC xấu (dưới EMA200 hoặc Dow 1D không tăng) → ngưng mở MỌI lệnh mới, kể cả cổ phiếu / hàng hoá", "",
+      "Hiện tại: altcoin đã bị chặn khi BTC xấu; cổ phiếu / hàng hoá vẫn được mở. Bảng này thử chặn luôn cả cổ phiếu / hàng hoá.", "",
+      "| Phương án | Giai đoạn | Lệnh | Thắng | Tổng R | Rủi ro tụt vốn (95%) | Ví cuối | Tụt vốn lớn nhất | Thua liên tiếp dài nhất | Tháng tệ nhất | Kèo bị chặn |", "|---|---|---|---|---|---|---|---|---|---|---|",
+      ...row("B + D (mốc, cổ phiếu vẫn mở khi BTC xấu)", MBx, { ddR: 10 }),
+      ...row("B + D + chặn cả Breakout cổ phiếu khi BTC xấu", MBxs, { ddR: 10 }),
+      ...row("B + D + chặn cả Breakout lẫn bot chính (cổ phiếu) khi BTC xấu", [...Ms, ...MBxs.filter(x => x.src === "bo")], { ddR: 10 }),
+      ...row("B + D + chặn cổ phiếu + Breakout tối đa 15% vốn", MBxs, { ddR: 10, boPct: .15 }),
+      ...row("Bot hiện tại (mốc)", M), ...row("Bot hiện tại + chặn cổ phiếu khi BTC xấu", Ms)); }
   // theo năm cho Breakout SL 15%
   const w = wallet(B15.map(x => ({ ...x }))); L.push("", "### Breakout SL 15% theo năm (ví chạy liền từ 2023, chỉ lệnh ví vào được)", "", "| Năm | Lệnh | Thắng | Tổng R |", "|---|---|---|---|", ...Object.entries(w.yr).map(([y, v]) => `| ${y} | ${v.n} | ${(v.w / v.n * 100).toFixed(0)}% | ${v.R.toFixed(1)}R |`));
   const byB = {}; for (const x of w.acc.filter(x => x.closed)) byB[x.base] = (byB[x.base] || 0) + x.r; const top = Object.entries(byB).sort((a, b) => b[1] - a[1]), tot = top.reduce((s, x) => s + x[1], 0);
