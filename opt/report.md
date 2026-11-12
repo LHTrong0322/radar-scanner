@@ -1,4 +1,4 @@
-# Tối ưu tự động (chạy liên tục) — vòng 58
+# Tối ưu tự động (chạy liên tục) — vòng 59
 
 Bot thật KHÔNG bị thay đổi cho tới khi Trọng duyệt. Backtest mọi nến 4H/1D/1W trong từ 01/2023 tới nay, có phí + funding, không tính BTC (BTC dành cho chiến lược RSI).
 
@@ -7,7 +7,7 @@ Chỉ chọn thông số trên **01/2023 → 12/2025** (Trọng chốt). **năm 
 Nhận thay đổi khi: Lời ÷ rủi ro tăng ít nhất 3%, tổng R không giảm quá 3%, win rate không giảm quá 0.5 điểm, rủi ro tụt vốn (95%) không tăng quá 5%, không xấu đi ở cả 2 nửa 2023–2025 (01/2023–06/2024 và 07/2024–12/2025), số lệnh không giảm quá 30%.
 ⚠️ Các thay đổi Trọng duyệt trước 11/11/2026 21:30 đã được chọn khi nhìn toàn bộ dữ liệu, kể cả giai đoạn kiểm tra kín → với chúng, phần kiểm tra kín không còn kín hoàn toàn.
 
-Chế độ dò hiện tại: **từng thông số** · đã thử 424 phương án.
+Chế độ dò hiện tại: **từng thông số** · đã thử 436 phương án.
 
 ## Bot thật so với cấu hình tốt nhất
 
@@ -15,8 +15,8 @@ Trọng chốt (12/11): ưu tiên 2023–2025. Cấu hình mới được đề 
 
 | | Lệnh 2023–2025 | Tỷ lệ thắng | Tổng R | R/lệnh | Tụt vốn lớn nhất (thực tế) | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | Lệnh 2026 (kín) | Tỷ lệ thắng | Tổng R | R/lệnh | Tụt vốn |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Bot thật | 157 | 48.4% | 109.18R | 0.695 | 5.52R | 8.61R | 12.68 | 33 | 12.1% | -15.02R | -0.455 | 15.02R |
-| **Tốt nhất** | 149 | 49.7% | 109.08R | 0.732 | 5.52R | 8.55R | 12.76 | 31 | 12.9% | -13.02R | -0.42 | 13.02R |
+| Bot thật | 157 | 48.4% | 109.18R | 0.695 | 5.52R | 8.75R | 12.48 | 33 | 12.1% | -15.02R | -0.455 | 15.02R |
+| **Tốt nhất** | 149 | 49.7% | 109.08R | 0.732 | 5.52R | 8.56R | 12.74 | 31 | 12.9% | -13.02R | -0.42 | 13.02R |
 
 ## Theo khung (cấu hình tốt nhất)
 
@@ -28,20 +28,22 @@ Trọng chốt (12/11): ưu tiên 2023–2025. Cấu hình mới được đề 
 
 ## ✅ Cấu hình tốt nhất ĐÃ QUA kiểm tra 2026 (đề xuất để Trọng duyệt)
 
-Tìm thấy ở vòng 53 (Điểm vùng: EMA 200: 2 → 1).
+Tìm thấy ở vòng 59 (Khoảng cách tối thiểu TP1 (ATR): 0.75 → 1).
 
 | | Lệnh 2023–2025 | Tỷ lệ thắng | Tổng R | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | Lệnh 2026 | Tỷ lệ thắng | Tổng R 2026 |
 |---|---|---|---|---|---|---|---|---|
-| Bot thật | 157 | 48.4% | 109.18R | 8.61R | 12.68 | 33 | 12.1% | -15.02R |
-| **Đề xuất** | 161 | 49.7% | 119.09R | 9.08R | 13.12 | 32 | 12.5% | -13.56R |
+| Bot thật | 157 | 48.4% | 109.18R | 8.75R | 12.48 | 33 | 12.1% | -15.02R |
+| **Đề xuất** | 194 | 48.5% | 145.79R | 8.9R | 16.38 | 33 | 12.1% | -13.39R |
 
 | Thông số | Bot thật | Đề xuất |
 |---|---|---|
 | Ngưỡng điểm vào kèo | 70 | **75** |
+| Khoảng cách tối thiểu TP1 (ATR) | 0.75 | **1** |
 | Điểm ADX < 13 cạn lực giảm (Momentum) | 1.5 | **2.5** |
 | Trọng số phần Trend (/100) | 30 | **15** |
 | Trọng số phần Momentum (/100) | 15 | **23** |
-| Điểm vùng: EMA 200 | 2 | **1** |
+| Trọng số phần SL (/100) | 5 | **8** |
+| Điểm vùng: HVN cố định | 0.25 | **0.5** |
 
 ## Thông số khác với bot thật
 
@@ -83,6 +85,23 @@ Tìm thấy ở vòng 53 (Điểm vùng: EMA 200: 2 → 1).
 | 19 (hoàn tác) | Ngưỡng điểm 'vào ngay' (tín hiệu mạnh) | 6 → 5 | 104.08R | 43.9% | 13.85R | 7.51 |
 
 ## 10 vòng gần nhất
+
+### Vòng 59 — từng thông số · mốc: tổng 109.08R, win 49.7%, rủi ro tụt vốn 8.56R, lời÷rủi ro 12.74
+
+| Phương án | Tổng R | Tỷ lệ thắng | R/lệnh | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
+|---|---|---|---|---|---|---|---|---|---|
+| % chốt ở TP1: 0.3 → 0.25 | 108.94 | 49.7% | 0.731 | 8.63 | 12.62 | 0.65 | 0.82 | -12.94 |  |
+| % chốt ở TP1: 0.3 → 0.33 | 109.17 | 49.7% | 0.733 | 8.55 | 12.77 | 0.664 | 0.808 | -13.06 |  |
+| Khoảng cách tối thiểu TP1 (ATR): 0.75 → 0.5 | 64.26 | 43.2% | 0.545 | 10.09 | 6.37 | 0.466 | 0.637 | -3.83 |  |
+| Khoảng cách tối thiểu TP1 (ATR): 0.75 → 1 | 145.79 | 48.5% | 0.751 | 8.9 | 16.38 | 0.696 | 0.813 | -13.39 |  |
+| Lệnh chờ hết hạn sau (nến): 8 → 6 | 99.07 | 49.6% | 0.78 | 8.16 | 12.14 | 0.684 | 0.885 | -10.03 |  |
+| Lệnh chờ hết hạn sau (nến): 8 → 10 | 110.75 | 48.3% | 0.637 | 9.52 | 11.63 | 0.597 | 0.681 | -13.24 |  |
+| Điểm tối thiểu vùng đặt lệnh chờ: 3 → 2 | 103.51 | 48.3% | 0.685 | 9.32 | 11.11 | 0.602 | 0.775 | -11.24 |  |
+| Điểm tối thiểu vùng đặt lệnh chờ: 3 → 4 | 109.33 | 50% | 0.683 | 9.01 | 12.13 | 0.676 | 0.69 | -12 |  |
+| Số nến mỗi bên để xác định đỉnh/đáy Dow: 4 → 3 | 72.48 | 43.1% | 0.434 | 11.88 | 6.1 | 0.471 | 0.398 | -11.02 |  |
+| Số nến mỗi bên để xác định đỉnh/đáy Dow: 4 → 5 | 67.73 | 44.3% | 0.484 | 11.57 | 5.85 | 0.405 | 0.577 | -9.56 |  |
+| Trần điểm khi chart yếu (Trend < x): -0.3 → -0.6 | 109.08 | 49.7% | 0.732 | 8.56 | 12.74 | 0.659 | 0.812 | -13.02 |  |
+| Trần điểm khi chart yếu (Trend < x): -0.3 → 0 | 109.08 | 49.7% | 0.732 | 8.56 | 12.74 | 0.659 | 0.812 | -13.02 |  |
 
 ### Vòng 58 — từng thông số · mốc: tổng 109.08R, win 49.7%, rủi ro tụt vốn 8.55R, lời÷rủi ro 12.76
 
@@ -229,6 +248,3 @@ Nhận: Điểm ADX > 25 và +DI trội (Momentum) 3 → 4
 | Xác nhận khung nhỏ (A2): ON → W | 119.2 | 40.5% | 0.392 | 16.01 | 7.45 | 0.444 | 0.34 | -7.86 |  |
 | Cổng Dow: LỎNG → TẮT | 129.97 | 43% | 0.583 | 12.38 | 10.5 | 0.586 | 0.58 | -19.7 |  |
 | Cổng Dow: LỎNG → CHẶT | 76.34 | 49.6% | 0.642 | 8.47 | 9.01 | 0.417 | 0.822 | -15.65 |  |
-
-### Vòng 49 — từng thông số · mốc: tổng 109.14R, win 50.3%, rủi ro tụt vốn 9.09R, lời÷rủi ro 12.01
-Gộp các thay đổi vòng 48 làm chỉ số giảm (12.41 → 12.01) → hoàn tác
