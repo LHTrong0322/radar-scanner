@@ -188,6 +188,7 @@ Xếp theo hệ số THẤP HƠN trong 2 giai đoạn (tránh mẫu chỉ đẹp
 | 2026-10-19 | USELESS | 72% | 0.5 | 33 | -45% | -60% |  |
 
 ## Lưu ý trung thực
+- **Lưu ý:** Tỷ lệ pump khoảng 27% với cắt lỗ −10% và chốt +30% nghe hấp dẫn, nhưng vẫn **chưa phải kèo**. Bảng này chưa tính như trade thật (phí, khớp lệnh, ví, ngắt lỗ) — kết quả trade thật xem pump/rule-bt.md.
 - Danh sách coin là các coin đang còn sống và đang có trên Hyperliquid → kết quả quá khứ hơi đẹp hơn thực tế (coin chết không có trong mẫu).
 - Nhiều ngày của cùng một đợt pump được tính nhiều lần (các ngày liền nhau) → số mẫu trông lớn hơn số lần pump thật.
 - Đây là tương quan, chưa phải chiến lược: bước sau phải backtest như trade thật (phí, SL, quản lý rủi ro) mới biết có lời không.
