@@ -402,4 +402,64 @@ async function breakoutReal() {
   fs.mkdirSync("pump", { recursive: true }); fs.writeFileSync("pump/breakout-real.md", L.join("\n")); console.log(L.join("\n"));
 }
 
-if (MODE === "study") await study(); else if (MODE === "watch") await watch(); else if (MODE === "candle-study") await candleStudy(); else if (MODE === "candle-watch") await candleWatch(); else if (MODE === "rule-bt") await ruleBT(); else if (MODE === "breakout-real") await breakoutReal();
+/* ---------- VÍ ẢO Breakout: giao dịch giả lập theo thời gian thực, KHÔNG đặt lệnh thật ---------- */
+// Luật y hệt backtest: nến ngày ĐÃ ĐÓNG vượt đỉnh 60 ngày + volume ≥ 2× TB 30 ngày → mua ở giá hiện tại (sau khi nến ngày đóng)
+// SL 15%, TP 45% (3R), giữ tối đa 14 ngày. Altcoin chỉ khi BTC 1D trên EMA200 VÀ Dow 1D tăng. Không trade BTC.
+// Ví 100 USD ảo, 1R = 3 USD, trần rủi ro 30% vốn, cầu dao −3R/ngày, −6R/tuần (giờ VN). Phí + trượt giá + funding như backtest.
+const PSL = .15, PTP = .45, PHOLD = 14;
+async function paperBreakout() {
+  const F = "paper/breakout.json"; let S; try { S = JSON.parse(fs.readFileSync(F, "utf8")); } catch (e) { S = { start: Date.now(), eq0: 100, open: [], closed: [], lastDay: 0, log: [] }; }
+  const now = Date.now(), msgs = [], list = universe().filter(a => a.b !== "BTC"), A = Object.fromEntries(list.map(a => [a.b, a]));
+  const c4 = async a => (a.stock ? await stockCandles(a.sym, "4h") : await candles(a.b, "4h", now - 30 * D)).filter(x => x.t + MS["4h"] <= now);
+  const R = (o, px, t) => { const days = Math.max(1, (t - o.at) / D); return (px / o.entry - 1) / PSL - (.0009 + .0003 * days) / PSL; };
+  // 1) theo dõi lệnh đang mở bằng nến 4H đã đóng: chạm SL trước (an toàn), rồi TP, rồi hết 14 ngày
+  for (const o of [...S.open]) { try {
+    const bars = (await c4(A[o.b] || { b: o.b })).filter(x => x.t >= o.chk); let done = null;
+    for (const x of bars) { if (x.l <= o.stop) { done = { px: o.stop * .9995, why: "SL", t: x.t + MS["4h"] }; break; }
+      if (x.h >= o.tp) { done = { px: o.tp * .9995, why: "TP", t: x.t + MS["4h"] }; break; }
+      if (x.t + MS["4h"] >= o.at + PHOLD * D) { done = { px: x.c * .9995, why: "hết 14 ngày", t: x.t + MS["4h"] }; break; }
+      o.chk = x.t + MS["4h"]; o.last = x.c; }
+    if (done) { const r = R(o, done.px, done.t); S.open = S.open.filter(z => z !== o); S.closed.push({ ...o, exit: done.px, exitAt: done.t, why: done.why, r: +r.toFixed(3) });
+      msgs.push(`${r > 0 ? "✅" : "❌"} Đóng <b>${o.b}</b> (${done.why}) ${r >= 0 ? "+" : ""}${r.toFixed(2)}R = ${(r * 3).toFixed(2)}$`); }
+  } catch (e) { console.log("lỗi theo dõi", o.b, e.message); } }
+  const eq = S.eq0 + S.closed.reduce((s, c) => s + c.r * 3, 0);
+  // 2) vào lệnh mới: chỉ 1 lần sau mỗi nến ngày đóng
+  const btc = (await candles("BTC", "1d", Date.UTC(2024, 0, 1))).filter(x => x.t + D <= now), day = btc.at(-1).t;
+  let note = "";
+  if (day > S.lastDay) {
+    const be = ema(btc.map(x => x.c), 200), dow = loadDow(), bd = (dow(btc.slice(-300)) || {}).state || 0, cryptoOK = btc.at(-1).c > be.at(-1) && bd === 1;
+    note = `BTC ${btc.at(-1).c > be.at(-1) ? "trên" : "dưới"} EMA200 · Dow 1D ${bd === 1 ? "tăng" : bd === -1 ? "giảm" : "chưa rõ"} → ${cryptoOK ? "được vào altcoin" : "chỉ xét cổ phiếu/hàng hoá"}`;
+    const vn = now + 7 * 36e5, dayStart = Math.floor(vn / D) * D - 7 * 36e5, weekStart = dayStart - ((new Date(vn).getUTCDay() + 6) % 7) * D;
+    const dR = S.closed.filter(c => c.exitAt >= dayStart).reduce((s, c) => s + c.r, 0), wR = S.closed.filter(c => c.exitAt >= weekStart).reduce((s, c) => s + c.r, 0);
+    const cap = Math.max(1, Math.floor(eq * .3 / 3 + 1e-9)), cands = [];
+    const data = await loadTF(list.filter(a => (a.stock || cryptoOK) && !S.open.some(o => o.b === a.b)), "1d", now - 420 * D);
+    for (const [b, c] of Object.entries(data)) { const i = c.length - 1; if (c[i].t + D < now - 3 * D) continue; const x = features(c, i, btc, prep(c, btc)); if (x && x.breakout) cands.push({ b, vx: x.volx, c }); }
+    cands.sort((a, b) => b.vx - a.vx);
+    for (const k of cands) {
+      if (dR <= -3 || wR <= -6) { msgs.push(`⛔ Cầu dao (${dR <= -3 ? "−3R/ngày" : "−6R/tuần"}) → bỏ ${k.b}`); continue; }
+      if (S.open.length >= cap) { msgs.push(`⛔ Hết hạn mức rủi ro (${cap} lệnh) → bỏ ${k.b}`); continue; }
+      let px; try { px = (await c4(A[k.b])).at(-1).c; } catch (e) { continue; }
+      if (px > k.c.at(-1).c * 1.08) { msgs.push(`↗️ Bỏ ${k.b}: giá đã chạy quá 8% so với lúc đóng nến`); continue; }
+      const entry = px * 1.0005, o = { b: k.b, at: now, chk: now, entry, stop: entry * (1 - PSL), tp: entry * (1 + PTP), vx: +k.vx.toFixed(2) };
+      S.open.push(o); msgs.push(`🟢 Mở <b>${k.b}</b> giá ${entry.toPrecision(5)} · SL ${o.stop.toPrecision(5)} (−15%) · TP ${o.tp.toPrecision(5)} (+45%) · volume ×${k.vx.toFixed(1)}`);
+    }
+    S.lastDay = day; S.log = [...(S.log || []), { t: now, note, cands: cands.map(x => x.b) }].slice(-200);
+  }
+  // 3) báo cáo
+  const eq2 = S.eq0 + S.closed.reduce((s, c) => s + c.r * 3, 0), cl = S.closed, w = cl.filter(c => c.r > 0).length, tot = cl.reduce((s, c) => s + c.r, 0);
+  let pk = S.eq0, e = S.eq0, dd = 0; for (const c of [...cl].sort((a, b) => a.exitAt - b.exitAt)) { e += c.r * 3; pk = Math.max(pk, e); dd = Math.max(dd, (pk - e) / pk * 100); }
+  const fmt = t => new Date(t + 7 * 36e5).toISOString().slice(0, 16).replace("T", " ");
+  const L = ["# 🧪 VÍ ẢO — chiến lược Breakout (giả lập, KHÔNG đặt lệnh thật)", "", `Bắt đầu ${fmt(S.start)} (giờ VN) · cập nhật ${fmt(now)}`, "",
+    `**Ví ảo: ${eq2.toFixed(2)}$** (bắt đầu 100$) · ${cl.length} lệnh đã đóng · thắng ${cl.length ? (w / cl.length * 100).toFixed(0) : 0}% · tổng **${tot >= 0 ? "+" : ""}${tot.toFixed(2)}R** · tụt vốn lớn nhất ${dd.toFixed(1)}%`, "",
+    note ? `Thị trường lần quét gần nhất: ${note}` : "", "", "## Lệnh đang mở", "", "| Mã | Vào lúc | Giá vào | SL | TP | Giá gần nhất |", "|---|---|---|---|---|---|",
+    ...S.open.map(o => `| ${o.b} | ${fmt(o.at)} | ${o.entry.toPrecision(5)} | ${o.stop.toPrecision(5)} | ${o.tp.toPrecision(5)} | ${o.last ? o.last.toPrecision(5) + " (" + ((o.last / o.entry - 1) * 100).toFixed(1) + "%)" : "–"} |`),
+    "", "## Lệnh đã đóng", "", "| Mã | Vào | Ra | Lý do | R | USD |", "|---|---|---|---|---|---|",
+    ...[...cl].reverse().map(c => `| ${c.b} | ${fmt(c.at)} | ${fmt(c.exitAt)} | ${c.why} | ${c.r >= 0 ? "+" : ""}${c.r.toFixed(2)} | ${(c.r * 3).toFixed(2)} |`)];
+  fs.mkdirSync("paper", { recursive: true }); fs.writeFileSync(F, JSON.stringify(S, null, 1)); fs.writeFileSync("paper/breakout.md", L.join("\n"));
+  const TG = process.env.TELEGRAM_BOT_TOKEN, CHAT = process.env.TELEGRAM_CHAT_ID;
+  if (TG && CHAT && msgs.length) { try { await fetch(`https://api.telegram.org/bot${TG}/sendMessage`, { method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ chat_id: CHAT, parse_mode: "HTML", disable_web_page_preview: true, text: `🧪 <b>VÍ ẢO Breakout</b> (giả lập, không phải lệnh thật)\n` + msgs.join("\n") + `\nVí ảo: ${eq2.toFixed(2)}$ · ${S.open.length} lệnh đang mở` }) }); } catch (e) { } }
+  console.log(L.slice(0, 6).join("\n")); console.log(msgs.join("\n"));
+}
+
+if (MODE === "study") await study(); else if (MODE === "watch") await watch(); else if (MODE === "candle-study") await candleStudy(); else if (MODE === "candle-watch") await candleWatch(); else if (MODE === "rule-bt") await ruleBT(); else if (MODE === "breakout-real") await breakoutReal(); else if (MODE === "paper") await paperBreakout();
