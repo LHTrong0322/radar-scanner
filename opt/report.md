@@ -1,4 +1,4 @@
-# Tối ưu tự động (chạy liên tục) — vòng 72
+# Tối ưu tự động (chạy liên tục) — vòng 73
 
 Bot thật KHÔNG bị thay đổi cho tới khi Trọng duyệt. Backtest mọi nến 4H/1D/1W trong từ 01/2023 tới nay, có phí + funding, không tính BTC (BTC dành cho chiến lược RSI).
 
@@ -7,7 +7,7 @@ Chỉ chọn thông số trên **01/2023 → 12/2025** (Trọng chốt). **năm 
 Nhận thay đổi khi: Lời ÷ rủi ro tăng ít nhất 3%, tổng R không giảm quá 3%, win rate không giảm quá 0.5 điểm, rủi ro tụt vốn (95%) không tăng quá 5%, không xấu đi ở cả 2 nửa 2023–2025 (01/2023–06/2024 và 07/2024–12/2025), số lệnh không giảm quá 30%.
 ⚠️ Các thay đổi Trọng duyệt trước 11/11/2026 21:30 đã được chọn khi nhìn toàn bộ dữ liệu, kể cả giai đoạn kiểm tra kín → với chúng, phần kiểm tra kín không còn kín hoàn toàn.
 
-Chế độ dò hiện tại: **tinh chỉnh giá trị giữa** · đã thử 587 phương án.
+Chế độ dò hiện tại: **tinh chỉnh giá trị giữa** · đã thử 599 phương án.
 
 ## Bot thật so với cấu hình tốt nhất
 
@@ -15,8 +15,8 @@ Trọng chốt (12/11): ưu tiên 2023–2025. Cấu hình mới được đề 
 
 | | Lệnh 2023–2025 | Tỷ lệ thắng | Tổng R | R/lệnh | Tụt vốn lớn nhất (thực tế) | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | Lệnh 2026 (kín) | Tỷ lệ thắng | Tổng R | R/lệnh | Tụt vốn |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Bot thật | 157 | 48.4% | 109.18R | 0.695 | 5.52R | 8.58R | 12.72 | 33 | 12.1% | -15.02R | -0.455 | 15.02R |
-| **Tốt nhất** | 148 | 50% | 109.83R | 0.742 | 5.52R | 8.32R | 13.20 | 33 | 12.1% | -14.33R | -0.434 | 14.33R |
+| Bot thật | 157 | 48.4% | 109.18R | 0.695 | 5.52R | 8.63R | 12.65 | 33 | 12.1% | -15.02R | -0.455 | 15.02R |
+| **Tốt nhất** | 148 | 50% | 109.83R | 0.742 | 5.52R | 8.26R | 13.30 | 33 | 12.1% | -14.33R | -0.434 | 14.33R |
 
 ## Theo khung (cấu hình tốt nhất)
 
@@ -32,7 +32,7 @@ Tìm thấy ở vòng 68 (Khoảng cách tối thiểu TP1 (ATR): 0.75 → 1).
 
 | | Lệnh 2023–2025 | Tỷ lệ thắng | Tổng R | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | Lệnh 2026 | Tỷ lệ thắng | Tổng R 2026 |
 |---|---|---|---|---|---|---|---|---|
-| Bot thật | 157 | 48.4% | 109.18R | 8.58R | 12.72 | 33 | 12.1% | -15.02R |
+| Bot thật | 157 | 48.4% | 109.18R | 8.63R | 12.65 | 33 | 12.1% | -15.02R |
 | **Đề xuất** | 193 | 48.7% | 146.54R | 8.81R | 16.63 | 35 | 11.4% | -14.71R |
 
 | Thông số | Bot thật | Đề xuất |
@@ -88,6 +88,23 @@ Tìm thấy ở vòng 68 (Khoảng cách tối thiểu TP1 (ATR): 0.75 → 1).
 | 19 (hoàn tác) | Ngưỡng điểm 'vào ngay' (tín hiệu mạnh) | 6 → 5 | 104.08R | 43.9% | 13.85R | 7.51 |
 
 ## 10 vòng gần nhất
+
+### Vòng 73 — tinh chỉnh giá trị giữa · mốc: tổng 109.83R, win 50%, rủi ro tụt vốn 8.26R, lời÷rủi ro 13.30
+
+| Phương án | Tổng R | Tỷ lệ thắng | R/lệnh | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
+|---|---|---|---|---|---|---|---|---|---|
+| Ngưỡng điểm vào kèo: 75 → 74 (tinh chỉnh) | 109.4 | 49.3% | 0.729 | 8.39 | 13.04 | 0.649 | 0.819 | -14.79 |  |
+| Ngưỡng điểm vào kèo: 75 → 77 (tinh chỉnh) | 99.36 | 49% | 0.667 | 9.11 | 10.91 | 0.593 | 0.75 | -13.28 |  |
+| R:R tối thiểu tới TP1: 2.5 → 2.38 (tinh chỉnh) | 109.15 | 44.4% | 0.606 | 10.36 | 10.54 | 0.582 | 0.631 | -15.75 |  |
+| R:R tối thiểu tới TP1: 2.5 → 2.63 (tinh chỉnh) | 94.35 | 48% | 0.767 | 9 | 10.48 | 0.676 | 0.876 | -14.89 |  |
+| SL tối đa (% Entry): 0.35 → 0.313 (tinh chỉnh) | 109.94 | 49.7% | 0.748 | 8.88 | 12.38 | 0.661 | 0.846 | -14.33 |  |
+| SL tối đa (% Entry): 0.35 → 0.387 (tinh chỉnh) | 105.48 | 49.7% | 0.718 | 8.68 | 12.15 | 0.675 | 0.764 | -14.33 |  |
+| Đệm SL dưới vùng hỗ trợ (ATR): 1 → 0.95 (tinh chỉnh) | 111.36 | 48.1% | 0.687 | 9.53 | 11.69 | 0.573 | 0.827 | -14.63 |  |
+| Đệm SL dưới vùng hỗ trợ (ATR): 1 → 1.05 (tinh chỉnh) | 90.41 | 47.8% | 0.665 | 8.95 | 10.1 | 0.525 | 0.817 | -16.12 |  |
+| Cộng thêm ngưỡng điểm khung 4H: 0 → -1 (tinh chỉnh) | 109.56 | 49.7% | 0.735 | 8.84 | 12.39 | 0.659 | 0.819 | -14.33 |  |
+| Cộng thêm ngưỡng điểm khung 4H: 0 → 2 (tinh chỉnh) | 108.44 | 50.3% | 0.738 | 8.4 | 12.91 | 0.659 | 0.827 | -14.33 |  |
+| Cộng thêm ngưỡng điểm khung 1D: 5 → 4 (tinh chỉnh) | 109.83 | 50% | 0.742 | 8.26 | 13.3 | 0.659 | 0.835 | -15.21 |  |
+| Cộng thêm ngưỡng điểm khung 1D: 5 → 7 (tinh chỉnh) | 100.68 | 48.6% | 0.68 | 9.01 | 11.17 | 0.605 | 0.764 | -13.28 |  |
 
 ### Vòng 72 — tinh chỉnh giá trị giữa · mốc: tổng 109.83R, win 50%, rủi ro tụt vốn 8.32R, lời÷rủi ro 13.20
 
@@ -235,20 +252,3 @@ Tìm thấy ở vòng 68 (Khoảng cách tối thiểu TP1 (ATR): 0.75 → 1).
 | Điểm vùng: POC volume profile cố định: 0.75 → 1 | 105.93 | 49.3% | 0.706 | 8.64 | 12.26 | 0.606 | 0.818 | -14.33 |  |
 | Điểm vùng: HVN anchored: 0.25 → 0 | 110.2 | 50.3% | 0.74 | 8.62 | 12.78 | 0.655 | 0.835 | -14.24 |  |
 | Điểm vùng: HVN anchored: 0.25 → 0.5 | 98.84 | 48.3% | 0.682 | 9.18 | 10.77 | 0.602 | 0.769 | -14.33 |  |
-
-### Vòng 63 — từng thông số · mốc: tổng 109.83R, win 50%, rủi ro tụt vốn 8.3R, lời÷rủi ro 13.23
-
-| Phương án | Tổng R | Tỷ lệ thắng | R/lệnh | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
-|---|---|---|---|---|---|---|---|---|---|
-| Điểm vùng: POC anchored: 3 → 2 | 97.19 | 47.3% | 0.648 | 9.41 | 10.33 | 0.585 | 0.714 | -13.21 |  |
-| Điểm vùng: POC anchored: 3 → 4 | 100.52 | 49% | 0.666 | 8.91 | 11.28 | 0.593 | 0.738 | -8.61 |  |
-| Điểm vùng: EMA 200: 2 → 1 | 116.34 | 50% | 0.736 | 8.8 | 13.22 | 0.675 | 0.811 | -9.51 |  |
-| Điểm vùng: EMA 200: 2 → 3 | 98.44 | 47.9% | 0.693 | 8.68 | 11.34 | 0.581 | 0.802 | -14.28 |  |
-| Điểm vùng: EMA 50: 0.75 → 0 | 91.22 | 47.8% | 0.661 | 8.82 | 10.34 | 0.502 | 0.82 | -13.77 |  |
-| Điểm vùng: EMA 50: 0.75 → 1.5 | 110.97 | 49.4% | 0.711 | 9 | 12.33 | 0.618 | 0.82 | -14.73 |  |
-| Điểm vùng: EMA 21: 1 → 0.5 | 111.7 | 50.7% | 0.755 | 8.24 | 13.56 | 0.7 | 0.816 | -15.75 |  |
-| Điểm vùng: EMA 21: 1 → 1.5 | 94.17 | 46.7% | 0.62 | 9.53 | 9.88 | 0.601 | 0.638 | -14 |  |
-| Điểm vùng: Break mây Ichimoku: 2 → 1 | 89.83 | 45.9% | 0.615 | 9.85 | 9.12 | 0.521 | 0.715 | -14.12 |  |
-| Điểm vùng: Break mây Ichimoku: 2 → 3 | 92.23 | 46.1% | 0.599 | 10.21 | 9.03 | 0.477 | 0.728 | -13.49 |  |
-| Điểm vùng: Kháng cự cũ bị phá: 1.5 → 0.75 | 105.72 | 48.1% | 0.678 | 9.33 | 11.33 | 0.612 | 0.748 | -14.1 |  |
-| Điểm vùng: Kháng cự cũ bị phá: 1.5 → 2.25 | 88.97 | 47.7% | 0.597 | 9.33 | 9.54 | 0.589 | 0.606 | -13.77 |  |
