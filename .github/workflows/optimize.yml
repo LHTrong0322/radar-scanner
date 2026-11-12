@@ -117,7 +117,7 @@ jobs:
   # Chạy vòng tiếp theo LUÔN LUÔN (kể cả khi một mảnh lỗi vì GitHub trục trặc lưu kết quả) — vòng lỗi sẽ được làm lại
   next:
     needs: [plan, shard, merge]
-    if: always() && github.event.inputs.auto_next == '1'
+    if: always() && github.event.inputs.auto_next == '1' && needs.plan.result == 'success'   # lỗi code ở bước lập kế hoạch → dừng, không lặp lỗi vô hạn
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
