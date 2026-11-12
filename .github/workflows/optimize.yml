@@ -56,11 +56,22 @@ jobs:
           name: opt-plan
           path: .
       - run: node bt.mjs --days 2023 --lowtf 0 --skip BTC --exp experiments-opt --shard ${{ matrix.k }}/16 --out shards
-      - uses: actions/upload-artifact@v4
+      - id: up1
+        uses: actions/upload-artifact@v4
+        continue-on-error: true
         with:
           name: opt-shard-${{ matrix.k }}
           path: shards/
           retention-days: 3
+      - if: steps.up1.outcome == 'failure'
+        run: sleep 120
+      - if: steps.up1.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: opt-shard-${{ matrix.k }}
+          path: shards/
+          retention-days: 3
+          overwrite: true
 
   merge:
     needs: shard
@@ -102,13 +113,21 @@ jobs:
             git pull --rebase -X theirs origin main && git push origin HEAD:main && break
             sleep $((i * 5))
           done
+
+  # Chạy vòng tiếp theo LUÔN LUÔN (kể cả khi một mảnh lỗi vì GitHub trục trặc lưu kết quả) — vòng lỗi sẽ được làm lại
+  next:
+    needs: [plan, shard, merge]
+    if: always() && github.event.inputs.auto_next == '1'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
       - name: Chạy vòng tiếp theo
-        if: github.event.inputs.auto_next == '1'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if [ "$(cat opt/continue 2>/dev/null)" = "1" ]; then
-            gh workflow run optimize.yml --ref main -f configs="${{ github.event.inputs.configs || 12 }}" -f auto_next=1
-          else
-            echo "Dừng: đã hội tụ hoặc đủ số vòng"
-          fi
+          echo "plan=${{ needs.plan.result }} shard=${{ needs.shard.result }} merge=${{ needs.merge.result }}"
+          if [ "$(cat opt/continue 2>/dev/null)" = "0" ]; then echo "Dừng: đã hội tụ"; exit 0; fi
+          sleep 30
+          gh workflow run optimize.yml --ref main -f configs="${{ github.event.inputs.configs || 12 }}" -f auto_next=1
