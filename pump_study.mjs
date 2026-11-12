@@ -381,7 +381,8 @@ async function breakoutReal() {
       if (c[i].t < START) continue; const x = features(c, i, btc, pre); if (!x || !x.breakout) continue;
       if (!stocks.has(b) && !bullAt(c[i].t)) continue;
       let s = simTrade(c, i, sl, sl * 3, HOLD); if (!s) continue;
-      if (exitBear && !stocks.has(b)) for (let k = i + 1; k < s.exit; k++) if (!bullAt(c[k].t)) { s = { exit: k, px: c[k].c * .9995 }; break; }   // BTC gãy (dưới EMA200 hoặc Dow 1D hết tăng) → đóng altcoin ở giá đóng cửa ngày đó const days = s.exit - i, e0 = c[i + 1].o * 1.0005;
+      if (exitBear && !stocks.has(b)) for (let k = i + 1; k < s.exit; k++) if (!bullAt(c[k].t)) { s = { exit: k, px: c[k].c * .9995 }; break; }   // BTC gãy (dưới EMA200 hoặc Dow 1D hết tăng) → đóng altcoin ở giá đóng cửa ngày đó
+      const days = s.exit - i, e0 = c[i + 1].o * 1.0005;
       const r = (s.px / e0 - 1) / sl - (.0009 + .0003 * days) / sl, at = c[i + 1].t, exitAt = c[s.exit].t + D;
       T.push({ src: "bo", base: b, at, exitAt, end: s.open ? Infinity : exitAt, r, closed: !s.open, k: 1 }); } } return T; };
   // lệnh của bot hiện tại (từ backtest mới nhất cùng cấu hình hiện tại)
