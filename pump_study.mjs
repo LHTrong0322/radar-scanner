@@ -361,7 +361,7 @@ function wallet(T, opt = {}) {                    // giống hệt bt.mjs: 1R = 
     const y = new Date(c.exitAt + 7 * 36e5).toISOString().slice(0, 4), m = new Date(c.exitAt + 7 * 36e5).toISOString().slice(0, 7);
     yr[y] = yr[y] || { n: 0, R: 0, w: 0 }; yr[y].n++; yr[y].R += c.r * c.k; if (c.r > 0) yr[y].w++; mon[m] = (mon[m] || 0) + c.r * c.usd; }
   const worstM = Object.entries(mon).sort((a, b) => a[1] - b[1])[0] || ["–", 0];
-  return { n: ex.length, skip, final: e, dd, ddp, ms, yr, worstM };
+  return { n: ex.length, skip, final: e, dd, ddp, ms, yr, worstM, acc };
 }
 function mc95(R) { if (R.length < 10) return 0; const out = []; for (let s = 0; s < 1000; s++) { const a = R.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } let c = 0, p = 0, d = 0; for (const r of a) { c += r; p = Math.max(p, c); d = Math.max(d, p - c); } out.push(d); } out.sort((a, b) => a - b); return out[950]; }
 async function breakoutReal() {
@@ -385,7 +385,7 @@ async function breakoutReal() {
   L.push(`Lệnh bot hiện tại lấy từ: ${f || "KHÔNG TÌM THẤY"} (${M.length} lệnh từ 2023).`, "");
   const seg = (T, a, b) => T.filter(x => x.at >= a && x.at < b).map(x => ({ ...x }));
   const row = (name, T) => { const out = [];
-    for (const [lab, a, b] of [["2023–2025", START, TEST], ["2026 (kín)", TEST, Infinity]]) { const S = seg(T, a, b), w = wallet(S), R = S.filter(x => x.closed).map(x => x.r * x.k);
+    for (const [lab, a, b] of [["2023–2025", START, TEST], ["2026 (kín)", TEST, Infinity]]) { const S = seg(T, a, b), w = wallet(S), R = w.acc.filter(x => x.closed).map(x => x.r * x.k);   // chỉ lệnh ví THỰC SỰ vào được (sau cầu dao / trần rủi ro)
       const tot = R.reduce((s, r) => s + r, 0), win = R.length ? R.filter(r => r > 0).length / R.length * 100 : 0;
       out.push(`| ${name} | ${lab} | ${R.length} | ${win.toFixed(0)}% | **${tot.toFixed(1)}R** | ${mc95(R).toFixed(1)}R | ${w.final.toFixed(0)}$ | ${w.dd.toFixed(0)}$ (${w.ddp.toFixed(0)}%) | ${w.ms} | ${w.worstM[0]} (${w.worstM[1].toFixed(0)}$) | ${w.skip} |`); }
     return out; };
@@ -395,8 +395,8 @@ async function breakoutReal() {
   if (M.length) { const half = T => T.map(x => ({ ...x, k: .5 }));
     L.push(...row("Bot hiện tại (chạy riêng)", M), ...row("Bot + Breakout SL 15% (1R)", [...M, ...B15]), ...row("Bot + Breakout SL 15% (0.5R)", [...M, ...half(B15)])); }
   // theo năm cho Breakout SL 15%
-  const w = wallet(B15.map(x => ({ ...x }))); L.push("", "### Breakout SL 15% theo năm (ví chạy liền từ 2023)", "", "| Năm | Lệnh | Thắng | Tổng R |", "|---|---|---|---|", ...Object.entries(w.yr).map(([y, v]) => `| ${y} | ${v.n} | ${(v.w / v.n * 100).toFixed(0)}% | ${v.R.toFixed(1)}R |`));
-  const byB = {}; for (const x of B15.filter(x => x.closed)) byB[x.base] = (byB[x.base] || 0) + x.r; const top = Object.entries(byB).sort((a, b) => b[1] - a[1]), tot = top.reduce((s, x) => s + x[1], 0);
+  const w = wallet(B15.map(x => ({ ...x }))); L.push("", "### Breakout SL 15% theo năm (ví chạy liền từ 2023, chỉ lệnh ví vào được)", "", "| Năm | Lệnh | Thắng | Tổng R |", "|---|---|---|---|", ...Object.entries(w.yr).map(([y, v]) => `| ${y} | ${v.n} | ${(v.w / v.n * 100).toFixed(0)}% | ${v.R.toFixed(1)}R |`));
+  const byB = {}; for (const x of w.acc.filter(x => x.closed)) byB[x.base] = (byB[x.base] || 0) + x.r; const top = Object.entries(byB).sort((a, b) => b[1] - a[1]), tot = top.reduce((s, x) => s + x[1], 0);
   L.push("", `### Phụ thuộc vào vài mã? 5 mã lời nhất góp ${top.slice(0, 5).reduce((s, x) => s + x[1], 0).toFixed(1)}R / tổng ${tot.toFixed(1)}R`, "", top.slice(0, 5).map(x => `${x[0]} ${x[1].toFixed(1)}R`).join(" · ") + " … lỗ nhất: " + top.slice(-5).map(x => `${x[0]} ${x[1].toFixed(1)}R`).join(" · "));
   L.push("", "## Lưu ý trung thực", "- Danh sách mã là mã còn sống / đang có trên Hyperliquid → quá khứ của chiến lược mua breakout đẹp hơn thực tế (coin breakout rồi chết không có trong mẫu).", "- Luật được rút ra từ dữ liệu 2023–2025 → 2026 mới là thước đo thật.");
   fs.mkdirSync("pump", { recursive: true }); fs.writeFileSync("pump/breakout-real.md", L.join("\n")); console.log(L.join("\n"));
