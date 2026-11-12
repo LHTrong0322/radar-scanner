@@ -1013,7 +1013,30 @@ const REGIME_SRC="ema+dow1d";   // nguồn bộ lọc thị trường cho crypto
 const REGIME_DOW_LOOSE=false;   // true: tính cả "vừa đóng cửa vượt đỉnh thấp hơn" là tăng (Dow nới lỏng)
 const btcDowUp=d=>!!d&&(d.state===1||(REGIME_DOW_LOOSE&&/^Gãy cấu trúc giảm/.test(d.why||"")));
 const btcDowDown=d=>!!d&&(d.state===-1||(REGIME_DOW_LOOSE&&/^Gãy cấu trúc tăng/.test(d.why||"")));
-const RS_DAYS=null;     // sức mạnh tương đối: lợi nhuận N ngày của coin phải ≥ của BTC (coin mạnh hơn BTC mới mua)
+const RS_DAYS=null;
+// ---- Tín hiệu tiền vào (p1, Trọng duyệt 12/11/2026 15:38): tiền vào 5 ngày (giá trị giao dịch USD) ≥ 2 lần trung bình 30 ngày trước đó → +5 điểm.
+// Backtest như trade thật 2023–2025: +113.7R → +120.8R, win 47.8% → 48.8%, rủi ro tụt vốn (95%) 9.1R → 8.7R; 2026 không đổi (−15R). Chỉ dùng nến ngày ĐÃ ĐÓNG.
+const PUMP_ADJ={"vol":5};
+function pumpSig(dc,bc,t){
+  if(!dc) return null; let i=-1; for(let k=dc.length-1;k>=0;k--) if(dc[k].t+864e5<=t){i=k;break}
+  if(i<210) return null;
+  const c=dc, px=c[i].c, val=x=>(x.v||0)*x.c, avg=a=>a.reduce((s,x)=>s+x,0)/Math.max(1,a.length);
+  const v5=avg(c.slice(i-4,i+1).map(val)), v30=avg(c.slice(i-34,i-4).map(val));
+  let e=c[0].c; const k2=2/201; for(let k=1;k<=i;k++) e=c[k].c*k2+e*(1-k2);
+  let g=0,l=0; for(let k=1;k<=14;k++){const d=c[i-14+k].c-c[i-15+k].c; if(d>0) g+=d; else l-=d}
+  const rsi=l===0?100:100-100/(1+g/l);
+  const hi60=Math.max(...c.slice(i-60,i).map(x=>x.h)), hi365=Math.max(...c.slice(Math.max(0,i-365),i+1).map(x=>x.h));
+  let rs30=null; if(bc){ let j=-1; for(let k=bc.length-1;k>=0;k--) if(bc[k].t+864e5<=t){j=k;break} if(j>=30) rs30=(px/c[i-30].c-1)-(bc[j].c/bc[j-30].c-1) }
+  return { volx:v30>0?v5/v30:0, e200:px/e-1, rsi, rs30, dd365:px/hi365-1, breakout:px>hi60&&v30>0&&val(c[i])>2*v30 };
+}
+function pumpAdj(dc,bc,t,stock){
+  const P=PUMP_ADJ; if(!P) return 0; const x=pumpSig(dc,bc,t); if(!x) return P.need?false:0;
+  const vol=x.volx>=2&&x.volx<4, volAny=x.volx>=2, strong=x.e200>.5||(x.rs30!=null&&x.rs30>.4);
+  const c1=vol&&x.e200>=.2&&x.e200<.5&&x.dd365<=-.15&&x.dd365>-.4, c2=vol&&x.rsi>=60&&x.rsi<70&&x.e200>=.2&&x.e200<.5;
+  if(P.need&&!(volAny||strong||x.breakout)) return false;
+  let a=0; if(P.vol&&volAny) a+=P.vol; if(P.strong&&strong) a+=P.strong; if(P.bo&&x.breakout) a+=P.bo; if(P.combo&&(c1||c2)) a+=P.combo; if(P.rsi70&&x.rsi>=70) a+=P.rsi70;
+  return a;
+}     // sức mạnh tương đối: lợi nhuận N ngày của coin phải ≥ của BTC (coin mạnh hơn BTC mới mua)
 const VOL_X=null;       // bỏ kèo khi biến động (ATR) hiện tại > VOL_X lần mức bình thường (trung vị ~100 nến) — tránh thị trường loạn
 const TIME_STOP=null;   // thoát lệnh nếu sau N nến kể từ khi khớp mà vẫn chưa chạm TP1 (lệnh "ì") — Trọng TẮT lại 11/11/2026 23:42
 const TRAIL_R=null;     // sau khi chạm TP1: SL bám theo giá cao nhất trừ TRAIL_R × R (khoá lãi khi giá chạy xa)
@@ -1547,6 +1570,7 @@ function computePicks(){
       if(HTF_MIN!=null&&htf&&(hT==null||hT<HTF_MIN)) return;
       if(LTF_CONFIRM[tf]&&R[LTF_CONFIRM[tf]]!==undefined&&!ltfOK(tf,R[LTF_CONFIRM[tf]])) return;
       let sc=t.buy.score; if(hT!=null){ if(hT>.3) sc+=3; else if(hT<-.3) sc-=5 }   // khung lớn chỉ cộng/trừ nhẹ
+      { const pa=pumpAdj(R["1d"]&&R["1d"].c,null,Date.now(),r.src==="st"); if(pa===false) return; sc+=pa||0 }   // tiền vào ×2 → +5 điểm (giống bot thật)
       sc=clamp(sc,0,100);
       const rs=pickReasons(t.ind), why=curSide()==='short'?{g:rs.g.map(swapTxt),w:rs.w.map(swapTxt)}:rs;
       const it={r,tf,ind:t.ind,buy:t.buy,P:t.buy.plan,score:sc,htf,hT,why,side:curSide()};
