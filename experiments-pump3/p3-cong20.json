@@ -1,0 +1,10 @@
+{
+ "name": "p3-breakout-cong20",
+ "desc": "Breakout (vượt đỉnh 60 ngày + volume gấp đôi) → +20 điểm",
+ "patch": [
+  {
+   "find": "const RS_DAYS=null;",
+   "replace": "const RS_DAYS=null; const PUMP_ADJ={\"bo\": 20};\nfunction pumpSig(dc,bc,t){\n  if(!dc) return null; let i=-1; for(let k=dc.length-1;k>=0;k--) if(dc[k].t+864e5<=t){i=k;break}\n  if(i<210) return null;\n  const c=dc, px=c[i].c, val=x=>(x.v||0)*x.c, avg=a=>a.reduce((s,x)=>s+x,0)/Math.max(1,a.length);\n  const v5=avg(c.slice(i-4,i+1).map(val)), v30=avg(c.slice(i-34,i-4).map(val));\n  let e=c[0].c; const k2=2/201; for(let k=1;k<=i;k++) e=c[k].c*k2+e*(1-k2);\n  let g=0,l=0; for(let k=1;k<=14;k++){const d=c[i-14+k].c-c[i-15+k].c; if(d>0) g+=d; else l-=d}\n  const rsi=l===0?100:100-100/(1+g/l);\n  const hi60=Math.max(...c.slice(i-60,i).map(x=>x.h)), hi365=Math.max(...c.slice(Math.max(0,i-365),i+1).map(x=>x.h));\n  let rs30=null; if(bc){ let j=-1; for(let k=bc.length-1;k>=0;k--) if(bc[k].t+864e5<=t){j=k;break} if(j>=30) rs30=(px/c[i-30].c-1)-(bc[j].c/bc[j-30].c-1) }\n  return { volx:v30>0?v5/v30:0, e200:px/e-1, rsi, rs30, dd365:px/hi365-1, breakout:px>hi60&&v30>0&&val(c[i])>2*v30 };\n}\nfunction pumpAdj(dc,bc,t,stock){\n  const P=PUMP_ADJ; if(!P) return 0; const x=pumpSig(dc,bc,t); if(!x) return P.need?false:0;\n  const vol=x.volx>=2&&x.volx<4, volAny=x.volx>=2, strong=x.e200>.5||(x.rs30!=null&&x.rs30>.4);\n  const c1=vol&&x.e200>=.2&&x.e200<.5&&x.dd365<=-.15&&x.dd365>-.4, c2=vol&&x.rsi>=60&&x.rsi<70&&x.e200>=.2&&x.e200<.5;\n  if(P.need&&!(volAny||strong||x.breakout)) return false;\n  let a=0; if(P.vol&&volAny) a+=P.vol; if(P.strong&&strong) a+=P.strong; if(P.bo&&x.breakout) a+=P.bo; if(P.combo&&(c1||c2)) a+=P.combo; if(P.rsi70&&x.rsi>=70) a+=P.rsi70;\n  return a;\n}"
+  }
+ ]
+}
