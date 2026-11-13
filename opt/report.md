@@ -1,4 +1,4 @@
-# Tối ưu tự động (chạy liên tục) — vòng 133
+# Tối ưu tự động (chạy liên tục) — vòng 134
 
 Bot thật KHÔNG bị thay đổi cho tới khi Trọng duyệt. Backtest mọi nến 4H/1D/1W trong từ 01/2023 tới nay, có phí + funding, không tính BTC (BTC dành cho chiến lược RSI).
 
@@ -7,7 +7,7 @@ Chỉ chọn thông số trên **01/2023 → 12/2025** (Trọng chốt). **năm 
 Nhận thay đổi khi: Lời ÷ rủi ro tăng ít nhất 3%, tổng R không giảm quá 3%, win rate không giảm quá 0.5 điểm, rủi ro tụt vốn (95%) không tăng quá 5%, không xấu đi ở cả 2 nửa 2023–2025 (01/2023–06/2024 và 07/2024–12/2025), số lệnh không giảm quá 30%.
 ⚠️ Các thay đổi Trọng duyệt trước 11/11/2026 21:30 đã được chọn khi nhìn toàn bộ dữ liệu, kể cả giai đoạn kiểm tra kín → với chúng, phần kiểm tra kín không còn kín hoàn toàn.
 
-Chế độ dò hiện tại: **tinh chỉnh giá trị giữa** · đã thử 1298 phương án.
+Chế độ dò hiện tại: **tinh chỉnh giá trị giữa** · đã thử 1310 phương án.
 
 ## Bot thật so với cấu hình tốt nhất
 
@@ -15,8 +15,8 @@ Trọng chốt (12/11): ưu tiên 2023–2025. Cấu hình mới được đề 
 
 | | Lệnh 2023–2025 | Tỷ lệ thắng | Tổng R | R/lệnh | Tụt vốn lớn nhất (thực tế) | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | Lệnh 2026 (kín) | Tỷ lệ thắng | Tổng R | R/lệnh | Tụt vốn |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Bot thật | 163 | 47.2% | 106.13R | 0.651 | 5.74R | 9.5R | 11.17 | 34 | 11.8% | -16.07R | -0.473 | 16.07R |
-| **Tốt nhất** | 146 | 52.7% | 131.31R | 0.899 | 5.15R | 7.23R | 18.16 | 31 | 12.9% | -14.96R | -0.483 | 14.96R |
+| Bot thật | 163 | 47.2% | 106.13R | 0.651 | 5.74R | 9.57R | 11.09 | 34 | 11.8% | -16.07R | -0.473 | 16.07R |
+| **Tốt nhất** | 146 | 52.7% | 131.31R | 0.899 | 5.15R | 7.35R | 17.87 | 31 | 12.9% | -14.96R | -0.483 | 14.96R |
 
 ## Theo khung (cấu hình tốt nhất)
 
@@ -32,7 +32,7 @@ Tìm thấy ở vòng 103 (Ghép: Khoảng cách tối thiểu TP1 (ATR) → 1 +
 
 | | Lệnh 2023–2025 | Tỷ lệ thắng | Tổng R | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | Lệnh 2026 | Tỷ lệ thắng | Tổng R 2026 |
 |---|---|---|---|---|---|---|---|---|
-| Bot thật | 163 | 47.2% | 106.13R | 9.5R | 11.17 | 34 | 11.8% | -16.07R |
+| Bot thật | 163 | 47.2% | 106.13R | 9.57R | 11.09 | 34 | 11.8% | -16.07R |
 | **Đề xuất** | 184 | 50% | 153.67R | 7.84R | 19.60 | 34 | 11.8% | -16.2R |
 
 | Thông số | Bot thật | Đề xuất |
@@ -108,6 +108,23 @@ Tìm thấy ở vòng 103 (Ghép: Khoảng cách tối thiểu TP1 (ATR) → 1 +
 | 19 (hoàn tác) | Ngưỡng điểm 'vào ngay' (tín hiệu mạnh) | 6 → 5 | 104.08R | 43.9% | 13.85R | 7.51 |
 
 ## 10 vòng gần nhất
+
+### Vòng 134 — tinh chỉnh giá trị giữa · mốc: tổng 131.31R, win 52.7%, rủi ro tụt vốn 7.35R, lời÷rủi ro 17.87
+
+| Phương án | Tổng R | Tỷ lệ thắng | R/lệnh | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
+|---|---|---|---|---|---|---|---|---|---|
+| Điểm vùng: HVN anchored: 0.25 → 0.188 (tinh chỉnh) | 131.31 | 52.7% | 0.899 | 7.35 | 17.87 | 0.777 | 1.043 | -14.96 |  |
+| Điểm vùng: HVN anchored: 0.25 → 0.313 (tinh chỉnh) | 129.55 | 52.1% | 0.887 | 7.45 | 17.39 | 0.755 | 1.043 | -14.96 |  |
+| Điểm vùng: HVN cố định: 0.5 → 0.438 (tinh chỉnh) | 129.86 | 52.1% | 0.889 | 7.45 | 17.43 | 0.759 | 1.043 | -14.96 |  |
+| Điểm vùng: HVN cố định: 0.5 → 0.563 (tinh chỉnh) | 131.31 | 52.7% | 0.899 | 7.35 | 17.87 | 0.777 | 1.043 | -14.96 |  |
+| Điểm vùng: Vùng RSI 45–55: 1 → 0.75 (tinh chỉnh) | 115.01 | 49.3% | 0.757 | 8 | 14.38 | 0.726 | 0.79 | -14.77 |  |
+| Điểm vùng: Vùng RSI 45–55: 1 → 1.25 (tinh chỉnh) | 124.43 | 50% | 0.808 | 8.17 | 15.23 | 0.727 | 0.908 | -17.24 |  |
+| Điểm vùng: Biên mây Ichimoku: 1.2 → 0.9 (tinh chỉnh) | 117.71 | 50.7% | 0.817 | 7.71 | 15.27 | 0.7 | 0.949 | -16.71 |  |
+| Điểm vùng: Biên mây Ichimoku: 1.2 → 1.5 (tinh chỉnh) | 127.98 | 51.7% | 0.859 | 7.88 | 16.24 | 0.714 | 1.036 | -12.97 |  |
+| Điểm vùng: Hỗ trợ cũ bị phá (thành kháng cự): 1 → 0.75 (tinh chỉnh) | 131.32 | 52.7% | 0.899 | 7.26 | 18.09 | 0.777 | 1.043 | -14.96 |  |
+| Điểm vùng: Hỗ trợ cũ bị phá (thành kháng cự): 1 → 1.25 (tinh chỉnh) | 131.31 | 52.7% | 0.899 | 7.35 | 17.87 | 0.777 | 1.043 | -14.96 |  |
+| Điểm vùng: MACD cắt lên Signal: 0.5 → 0.375 (tinh chỉnh) | 115.68 | 48.4% | 0.746 | 9.17 | 12.62 | 0.555 | 0.973 | -12.38 |  |
+| Điểm vùng: MACD cắt lên Signal: 0.5 → 0.625 (tinh chỉnh) | 131.31 | 52.7% | 0.899 | 7.35 | 17.87 | 0.777 | 1.043 | -14.96 |  |
 
 ### Vòng 133 — tinh chỉnh giá trị giữa · mốc: tổng 131.31R, win 52.7%, rủi ro tụt vốn 7.23R, lời÷rủi ro 18.16
 
@@ -253,20 +270,3 @@ Tìm thấy ở vòng 103 (Ghép: Khoảng cách tối thiểu TP1 (ATR) → 1 +
 | Ngưỡng điểm vào kèo: 75 → 77 | 123.09 | 51.4% | 0.855 | 7.41 | 16.61 | 0.778 | 0.943 | -13.48 |  |
 | R:R tối thiểu tới TP1: 2.5 → 2.38 | 100.85 | 47.3% | 0.604 | 8.74 | 11.54 | 0.518 | 0.693 | -16.27 |  |
 | R:R tối thiểu tới TP1: 2.5 → 2.63 | 104.33 | 49.6% | 0.848 | 8.09 | 12.9 | 0.674 | 1.057 | -15.93 |  |
-
-### Vòng 124 — từng thông số · mốc: tổng 126.54R, win 52.4%, rủi ro tụt vốn 7.5R, lời÷rủi ro 16.87
-
-| Phương án | Tổng R | Tỷ lệ thắng | R/lệnh | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
-|---|---|---|---|---|---|---|---|---|---|
-| Điểm vùng: POC volume profile cố định: 0.75 → 0.625 | 126.54 | 52.4% | 0.873 | 7.5 | 16.87 | 0.777 | 0.987 | -14.96 |  |
-| Điểm vùng: POC volume profile cố định: 0.75 → 0.875 | 122.57 | 51.7% | 0.857 | 7.59 | 16.15 | 0.746 | 0.987 | -13.94 |  |
-| Điểm vùng: HVN anchored: 0.25 → 0 | 126.21 | 52.4% | 0.87 | 7.5 | 16.83 | 0.773 | 0.987 | -15.96 |  |
-| Điểm vùng: HVN anchored: 0.25 → 0.5 | 113.31 | 49.7% | 0.781 | 8.21 | 13.8 | 0.668 | 0.917 | -15.46 |  |
-| Điểm vùng: HVN cố định: 0.5 → 0.25 | 124.76 | 51.7% | 0.86 | 7.63 | 16.35 | 0.755 | 0.987 | -16.25 |  |
-| Điểm vùng: HVN cố định: 0.5 → 0.75 | 120.74 | 50.7% | 0.816 | 8.14 | 14.83 | 0.719 | 0.939 | -14.96 |  |
-| Điểm vùng: Vùng RSI 45–55: 1 → 0.5 | 107.72 | 48% | 0.709 | 8.41 | 12.81 | 0.75 | 0.668 | -14.94 |  |
-| Điểm vùng: Vùng RSI 45–55: 1 → 1.5 | 112.78 | 47.8% | 0.718 | 9.53 | 11.83 | 0.682 | 0.768 | -15.88 |  |
-| Điểm vùng: Biên mây Ichimoku: 1.2 → 0.6 | 107.63 | 48.3% | 0.732 | 8.69 | 12.39 | 0.688 | 0.778 | -15.87 |  |
-| Điểm vùng: Biên mây Ichimoku: 1.2 → 1.8 | 114.88 | 49% | 0.781 | 8.34 | 13.77 | 0.645 | 0.945 | -12.97 |  |
-| Điểm vùng: Mức sai Elliott (cho SL): 2 → 1 | 122.39 | 51.4% | 0.827 | 7.95 | 15.39 | 0.739 | 0.933 | -15.93 |  |
-| Điểm vùng: Mức sai Elliott (cho SL): 2 → 3 | 121.6 | 51% | 0.827 | 7.76 | 15.67 | 0.716 | 0.96 | -14.96 |  |
