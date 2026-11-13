@@ -1,4 +1,4 @@
-# Tối ưu tự động (chạy liên tục) — vòng 97
+# Tối ưu tự động (chạy liên tục) — vòng 98
 
 Bot thật KHÔNG bị thay đổi cho tới khi Trọng duyệt. Backtest mọi nến 4H/1D/1W trong từ 01/2023 tới nay, có phí + funding, không tính BTC (BTC dành cho chiến lược RSI).
 
@@ -7,7 +7,7 @@ Chỉ chọn thông số trên **01/2023 → 12/2025** (Trọng chốt). **năm 
 Nhận thay đổi khi: Lời ÷ rủi ro tăng ít nhất 3%, tổng R không giảm quá 3%, win rate không giảm quá 0.5 điểm, rủi ro tụt vốn (95%) không tăng quá 5%, không xấu đi ở cả 2 nửa 2023–2025 (01/2023–06/2024 và 07/2024–12/2025), số lệnh không giảm quá 30%.
 ⚠️ Các thay đổi Trọng duyệt trước 11/11/2026 21:30 đã được chọn khi nhìn toàn bộ dữ liệu, kể cả giai đoạn kiểm tra kín → với chúng, phần kiểm tra kín không còn kín hoàn toàn.
 
-Chế độ dò hiện tại: **từng thông số** · đã thử 889 phương án.
+Chế độ dò hiện tại: **từng thông số** · đã thử 901 phương án.
 
 ## Bot thật so với cấu hình tốt nhất
 
@@ -103,6 +103,23 @@ Tìm thấy ở vòng 91 (Khoảng cách tối thiểu TP1 (ATR): 0.75 → 0.875
 | 19 (hoàn tác) | Ngưỡng điểm 'vào ngay' (tín hiệu mạnh) | 6 → 5 | 104.08R | 43.9% | 13.85R | 7.51 |
 
 ## 10 vòng gần nhất
+
+### Vòng 98 — từng thông số · mốc: tổng 119.52R, win 51%, rủi ro tụt vốn 7.69R, lời÷rủi ro 15.54
+
+| Phương án | Tổng R | Tỷ lệ thắng | R/lệnh | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
+|---|---|---|---|---|---|---|---|---|---|
+| Điểm vùng: Fib 0.5 / 0.382 sóng 2: 3 → 2 | 119.51 | 51% | 0.836 | 7.59 | 15.75 | 0.724 | 0.963 | -15.72 |  |
+| Điểm vùng: Fib 0.5 / 0.382 sóng 2: 3 → 4 | 118.5 | 50.7% | 0.823 | 7.89 | 15.02 | 0.701 | 0.963 | -15.46 |  |
+| Điểm vùng: Fib sóng 4: 1.25 → 0 | 117.34 | 50.3% | 0.821 | 8.14 | 14.42 | 0.687 | 0.968 | -15.46 |  |
+| Điểm vùng: Fib sóng 4: 1.25 → 2.5 | 114.85 | 50% | 0.787 | 8.33 | 13.79 | 0.654 | 0.938 | -15.46 |  |
+| Ngưỡng điểm vào kèo: 75 → 74 | 117.33 | 49.7% | 0.798 | 8.26 | 14.2 | 0.69 | 0.921 | -15.46 |  |
+| Ngưỡng điểm vào kèo: 75 → 77 | 113.08 | 49% | 0.791 | 8.11 | 13.94 | 0.674 | 0.92 | -13.98 |  |
+| R:R tối thiểu tới TP1: 2.5 → 2.38 | 112.46 | 47.6% | 0.677 | 8.79 | 12.79 | 0.678 | 0.677 | -16.77 |  |
+| R:R tối thiểu tới TP1: 2.5 → 2.63 | 100.57 | 48% | 0.818 | 8.81 | 11.42 | 0.637 | 1.027 | -16.43 |  |
+| Ngưỡng điểm 'vào ngay' (tín hiệu mạnh): 6 → 5 | 97.56 | 44.5% | 0.668 | 10.02 | 9.74 | 0.586 | 0.767 | -12.72 |  |
+| Ngưỡng điểm 'vào ngay' (tín hiệu mạnh): 6 → 7 | 105.8 | 50% | 0.735 | 8.51 | 12.43 | 0.724 | 0.747 | -14.64 |  |
+| SL tối đa (% Entry): 0.387 → 0.35 | 117.92 | 50.7% | 0.83 | 7.71 | 15.29 | 0.712 | 0.963 | -15.46 |  |
+| SL tối đa (% Entry): 0.387 → 0.425 | 119.24 | 50.7% | 0.84 | 7.79 | 15.31 | 0.73 | 0.963 | -15.46 |  |
 
 ### Vòng 97 — từng thông số · mốc: tổng 119.52R, win 51%, rủi ro tụt vốn 7.69R, lời÷rủi ro 15.54
 
@@ -258,20 +275,3 @@ Tìm thấy ở vòng 91 (Khoảng cách tối thiểu TP1 (ATR): 0.75 → 0.875
 | Đệm SL riêng khung 4H (ATR): null → 0.3 | 182.23 | 38.7% | 0.588 | 17.86 | 10.2 | 0.48 | 0.703 | -14.03 |  |
 
 Nhận: SL tối đa (% Entry) 0.35 → 0.387
-
-### Vòng 88 — từng thông số · mốc: tổng 122.73R, win 51.4%, rủi ro tụt vốn 7.73R, lời÷rủi ro 15.88
-
-| Phương án | Tổng R | Tỷ lệ thắng | R/lệnh | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
-|---|---|---|---|---|---|---|---|---|---|
-| Điểm vùng: Biên mây Ichimoku: 1.2 → 0.6 | 106.13 | 50.3% | 0.742 | 8.07 | 13.15 | 0.701 | 0.783 | -15.87 |  |
-| Điểm vùng: Biên mây Ichimoku: 1.2 → 1.8 | 120.91 | 50% | 0.828 | 8.4 | 14.39 | 0.678 | 1 | -12.97 |  |
-| Điểm vùng: Mức sai Elliott (cho SL): 2 → 1 | 121.74 | 50.7% | 0.834 | 8.18 | 14.88 | 0.706 | 0.981 | -15.46 |  |
-| Điểm vùng: Mức sai Elliott (cho SL): 2 → 3 | 123.69 | 50.7% | 0.847 | 7.59 | 16.3 | 0.708 | 1.007 | -14.96 |  |
-| Điểm vùng: Hỗ trợ cũ bị phá (thành kháng cự): 1 → 0.5 | 123.74 | 51.8% | 0.878 | 7.77 | 15.93 | 0.736 | 1.034 | -15.46 |  |
-| Điểm vùng: Hỗ trợ cũ bị phá (thành kháng cự): 1 → 1.5 | 119.7 | 50.7% | 0.831 | 8.05 | 14.87 | 0.696 | 0.983 | -14.43 |  |
-| Điểm vùng: MACD cắt lên Signal: 0.5 → 0.25 | 117.11 | 49% | 0.776 | 9.04 | 12.95 | 0.608 | 0.965 | -12.88 |  |
-| Điểm vùng: MACD cắt lên Signal: 0.5 → 0.75 | 122.73 | 51.4% | 0.864 | 7.73 | 15.88 | 0.712 | 1.034 | -15.46 |  |
-| Điểm vùng: Fib 0.5 / 0.382 sóng 2: 3 → 2 | 122.72 | 51.4% | 0.864 | 7.7 | 15.94 | 0.712 | 1.034 | -15.72 |  |
-| Điểm vùng: Fib 0.5 / 0.382 sóng 2: 3 → 4 | 120.7 | 50.7% | 0.838 | 8.31 | 14.52 | 0.667 | 1.034 | -15.46 |  |
-| Điểm vùng: Fib sóng 4: 1.25 → 0 | 120.55 | 50.7% | 0.849 | 8.01 | 15.05 | 0.675 | 1.038 | -15.46 |  |
-| Điểm vùng: Fib sóng 4: 1.25 → 2.5 | 118.06 | 50.3% | 0.814 | 8.35 | 14.14 | 0.642 | 1.009 | -15.46 |  |
