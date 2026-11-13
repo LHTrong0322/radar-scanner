@@ -1,4 +1,4 @@
-# Tối ưu tự động (chạy liên tục) — vòng 125
+# Tối ưu tự động (chạy liên tục) — vòng 126
 
 Bot thật KHÔNG bị thay đổi cho tới khi Trọng duyệt. Backtest mọi nến 4H/1D/1W trong từ 01/2023 tới nay, có phí + funding, không tính BTC (BTC dành cho chiến lược RSI).
 
@@ -7,7 +7,7 @@ Chỉ chọn thông số trên **01/2023 → 12/2025** (Trọng chốt). **năm 
 Nhận thay đổi khi: Lời ÷ rủi ro tăng ít nhất 3%, tổng R không giảm quá 3%, win rate không giảm quá 0.5 điểm, rủi ro tụt vốn (95%) không tăng quá 5%, không xấu đi ở cả 2 nửa 2023–2025 (01/2023–06/2024 và 07/2024–12/2025), số lệnh không giảm quá 30%.
 ⚠️ Các thay đổi Trọng duyệt trước 11/11/2026 21:30 đã được chọn khi nhìn toàn bộ dữ liệu, kể cả giai đoạn kiểm tra kín → với chúng, phần kiểm tra kín không còn kín hoàn toàn.
 
-Chế độ dò hiện tại: **từng thông số** · đã thử 1210 phương án.
+Chế độ dò hiện tại: **từng thông số** · đã thử 1222 phương án.
 
 ## Bot thật so với cấu hình tốt nhất
 
@@ -15,8 +15,8 @@ Trọng chốt (12/11): ưu tiên 2023–2025. Cấu hình mới được đề 
 
 | | Lệnh 2023–2025 | Tỷ lệ thắng | Tổng R | R/lệnh | Tụt vốn lớn nhất (thực tế) | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | Lệnh 2026 (kín) | Tỷ lệ thắng | Tổng R | R/lệnh | Tụt vốn |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Bot thật | 162 | 46.9% | 101.67R | 0.628 | 5.74R | 9.62R | 10.57 | 34 | 11.8% | -16.07R | -0.473 | 16.07R |
-| **Tốt nhất** | 145 | 52.4% | 126.54R | 0.873 | 5.15R | 7.47R | 16.94 | 31 | 12.9% | -14.96R | -0.483 | 14.96R |
+| Bot thật | 162 | 46.9% | 101.67R | 0.628 | 5.74R | 9.55R | 10.65 | 34 | 11.8% | -16.07R | -0.473 | 16.07R |
+| **Tốt nhất** | 145 | 52.4% | 126.54R | 0.873 | 5.15R | 7.5R | 16.87 | 31 | 12.9% | -14.96R | -0.483 | 14.96R |
 
 ## Theo khung (cấu hình tốt nhất)
 
@@ -32,7 +32,7 @@ Tìm thấy ở vòng 103 (Ghép: Khoảng cách tối thiểu TP1 (ATR) → 1 +
 
 | | Lệnh 2023–2025 | Tỷ lệ thắng | Tổng R | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | Lệnh 2026 | Tỷ lệ thắng | Tổng R 2026 |
 |---|---|---|---|---|---|---|---|---|
-| Bot thật | 162 | 46.9% | 101.67R | 9.62R | 10.57 | 34 | 11.8% | -16.07R |
+| Bot thật | 162 | 46.9% | 101.67R | 9.55R | 10.65 | 34 | 11.8% | -16.07R |
 | **Đề xuất** | 184 | 50% | 153.67R | 7.84R | 19.60 | 34 | 11.8% | -16.2R |
 
 | Thông số | Bot thật | Đề xuất |
@@ -108,6 +108,23 @@ Tìm thấy ở vòng 103 (Ghép: Khoảng cách tối thiểu TP1 (ATR) → 1 +
 | 19 (hoàn tác) | Ngưỡng điểm 'vào ngay' (tín hiệu mạnh) | 6 → 5 | 104.08R | 43.9% | 13.85R | 7.51 |
 
 ## 10 vòng gần nhất
+
+### Vòng 126 — từng thông số · mốc: tổng 126.54R, win 52.4%, rủi ro tụt vốn 7.5R, lời÷rủi ro 16.87
+
+| Phương án | Tổng R | Tỷ lệ thắng | R/lệnh | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
+|---|---|---|---|---|---|---|---|---|---|
+| Ngưỡng điểm 'vào ngay' (tín hiệu mạnh): 6 → 5 | 89.83 | 45.9% | 0.607 | 9.7 | 9.26 | 0.488 | 0.759 | -12.22 |  |
+| Ngưỡng điểm 'vào ngay' (tín hiệu mạnh): 6 → 7 | 101.2 | 51% | 0.698 | 8.41 | 12.03 | 0.639 | 0.767 | -14.14 |  |
+| SL tối đa (% Entry): 0.387 → 0.35 | 124.94 | 52.1% | 0.868 | 7.62 | 16.4 | 0.767 | 0.987 | -14.96 |  |
+| SL tối đa (% Entry): 0.387 → 0.425 | 126.26 | 52.1% | 0.877 | 7.4 | 17.06 | 0.784 | 0.987 | -14.96 |  |
+| Đệm SL dưới vùng hỗ trợ (ATR): 1 → 0.95 | 125.9 | 50.3% | 0.834 | 7.9 | 15.94 | 0.671 | 1.027 | -14.85 |  |
+| Đệm SL dưới vùng hỗ trợ (ATR): 1 → 1.05 | 107.23 | 49.6% | 0.783 | 7.91 | 13.56 | 0.628 | 0.964 | -16.78 |  |
+| R:R tối thiểu riêng khung 4H: null → 2 | 133.69 | 42.3% | 0.419 | 12.19 | 10.97 | 0.461 | 0.384 | -9.66 |  |
+| Đệm SL riêng khung 4H (ATR): null → 0.3 | 178.8 | 39.5% | 0.588 | 17.14 | 10.43 | 0.475 | 0.708 | -14.03 |  |
+| Cộng thêm ngưỡng điểm khung 4H: 0 → -1 | 126.54 | 52.4% | 0.873 | 7.5 | 16.87 | 0.777 | 0.987 | -14.96 |  |
+| Cộng thêm ngưỡng điểm khung 4H: 0 → 2 | 115.48 | 52.1% | 0.802 | 7.55 | 15.3 | 0.664 | 0.965 | -14.96 |  |
+| R:R tối thiểu riêng khung 1D: null → 2 | 105.53 | 46.5% | 0.621 | 9.17 | 11.51 | 0.573 | 0.668 | -11.73 |  |
+| Đệm SL riêng khung 1D (ATR): null → 0.3 | 101.61 | 46% | 0.631 | 10.68 | 9.51 | 0.571 | 0.689 | -14.58 |  |
 
 ### Vòng 125 — từng thông số · mốc: tổng 126.54R, win 52.4%, rủi ro tụt vốn 7.47R, lời÷rủi ro 16.94
 
@@ -263,22 +280,3 @@ Nhận: Điểm vùng: EMA 50 0.75 → 0.94
 | Cộng thêm ngưỡng điểm khung 1D: 5 → 7 | 119.21 | 51.4% | 0.828 | 7.86 | 15.17 | 0.693 | 0.987 | -13.06 |  |
 | R:R tối thiểu riêng khung 1W: null → 2 | 112.99 | 49.7% | 0.769 | 7.9 | 14.3 | 0.705 | 0.837 | -16 |  |
 | Đệm SL riêng khung 1W (ATR): null → 0.3 | 111.25 | 47.1% | 0.795 | 8.93 | 12.46 | 0.643 | 0.95 | -16 |  |
-
-### Vòng 116 — tinh chỉnh giá trị giữa · mốc: tổng 119.62R, win 51.4%, rủi ro tụt vốn 7.75R, lời÷rủi ro 15.43
-
-| Phương án | Tổng R | Tỷ lệ thắng | R/lệnh | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
-|---|---|---|---|---|---|---|---|---|---|
-| Điểm vùng: Kháng cự cũ bị phá: 1.5 → 1.31 (tinh chỉnh) | 120.44 | 51.7% | 0.831 | 7.72 | 15.6 | 0.707 | 0.979 | -15.46 |  |
-| Điểm vùng: Kháng cự cũ bị phá: 1.5 → 1.69 (tinh chỉnh) | 119.4 | 51% | 0.835 | 7.96 | 15 | 0.712 | 0.978 | -16.75 |  |
-| Điểm vùng: Fib 0.618 sóng 2: 2.5 → 2.19 (tinh chỉnh) | 119.62 | 51.4% | 0.842 | 7.75 | 15.43 | 0.724 | 0.979 | -15.46 |  |
-| Điểm vùng: Fib 0.618 sóng 2: 2.5 → 2.81 (tinh chỉnh) | 119.62 | 51.4% | 0.842 | 7.75 | 15.43 | 0.724 | 0.979 | -15.46 |  |
-| Điểm vùng: Đỉnh sóng 1 (sàn sóng 4): 2.5 → 1.88 (tinh chỉnh) | 109.58 | 51.5% | 0.83 | 7 | 15.65 | 0.703 | 0.957 | -15.46 |  |
-| Điểm vùng: Đỉnh sóng 1 (sàn sóng 4): 2.5 → 3.13 (tinh chỉnh) | 123.43 | 52.1% | 0.857 | 7.41 | 16.66 | 0.747 | 0.987 | -14.96 | ✅ |
-| Điểm vùng: Mức RSI 30/70: 1 → 0.75 (tinh chỉnh) | 120.86 | 50.3% | 0.79 | 8.29 | 14.58 | 0.695 | 0.906 | -15.46 |  |
-| Điểm vùng: Mức RSI 30/70: 1 → 1.25 (tinh chỉnh) | 119.37 | 51.4% | 0.841 | 7.75 | 15.4 | 0.721 | 0.979 | -15.46 |  |
-| Điểm vùng: Mức MACD: 1 → 0.75 (tinh chỉnh) | 116.67 | 51.4% | 0.81 | 7.82 | 14.92 | 0.739 | 0.889 | -15.48 |  |
-| Điểm vùng: Mức MACD: 1 → 1.25 (tinh chỉnh) | 119.5 | 51% | 0.836 | 7.98 | 14.97 | 0.713 | 0.979 | -17.33 |  |
-| Điểm vùng: POC volume profile cố định: 0.75 → 0.625 (tinh chỉnh) | 122.3 | 51.4% | 0.849 | 7.85 | 15.58 | 0.74 | 0.979 | -15.46 |  |
-| Điểm vùng: POC volume profile cố định: 0.75 → 0.875 (tinh chỉnh) | 119.63 | 51.4% | 0.842 | 7.75 | 15.44 | 0.724 | 0.979 | -15.46 |  |
-
-Nhận: Điểm vùng: Đỉnh sóng 1 (sàn sóng 4) 2.5 → 3.13
