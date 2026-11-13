@@ -1,4 +1,4 @@
-# Tối ưu tự động (chạy liên tục) — vòng 135
+# Tối ưu tự động (chạy liên tục) — vòng 136
 
 Bot thật KHÔNG bị thay đổi cho tới khi Trọng duyệt. Backtest mọi nến 4H/1D/1W trong từ 01/2023 tới nay, có phí + funding, không tính BTC (BTC dành cho chiến lược RSI).
 
@@ -7,7 +7,7 @@ Chỉ chọn thông số trên **01/2023 → 12/2025** (Trọng chốt). **năm 
 Nhận thay đổi khi: Lời ÷ rủi ro tăng ít nhất 3%, tổng R không giảm quá 3%, win rate không giảm quá 0.5 điểm, rủi ro tụt vốn (95%) không tăng quá 5%, không xấu đi ở cả 2 nửa 2023–2025 (01/2023–06/2024 và 07/2024–12/2025), số lệnh không giảm quá 30%.
 ⚠️ Các thay đổi Trọng duyệt trước 11/11/2026 21:30 đã được chọn khi nhìn toàn bộ dữ liệu, kể cả giai đoạn kiểm tra kín → với chúng, phần kiểm tra kín không còn kín hoàn toàn.
 
-Chế độ dò hiện tại: **ghép cặp thay đổi suýt đạt** · đã thử 1320 phương án.
+Chế độ dò hiện tại: **ghép cặp thay đổi suýt đạt** · đã thử 1332 phương án.
 
 ## Bot thật so với cấu hình tốt nhất
 
@@ -15,8 +15,8 @@ Trọng chốt (12/11): ưu tiên 2023–2025. Cấu hình mới được đề 
 
 | | Lệnh 2023–2025 | Tỷ lệ thắng | Tổng R | R/lệnh | Tụt vốn lớn nhất (thực tế) | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | Lệnh 2026 (kín) | Tỷ lệ thắng | Tổng R | R/lệnh | Tụt vốn |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Bot thật | 163 | 47.2% | 106.13R | 0.651 | 5.74R | 9.51R | 11.16 | 34 | 11.8% | -16.07R | -0.473 | 16.07R |
-| **Tốt nhất** | 146 | 52.7% | 131.31R | 0.899 | 5.15R | 7.23R | 18.16 | 31 | 12.9% | -14.96R | -0.483 | 14.96R |
+| Bot thật | 163 | 47.2% | 106.13R | 0.651 | 5.74R | 9.56R | 11.10 | 34 | 11.8% | -16.07R | -0.473 | 16.07R |
+| **Tốt nhất** | 146 | 52.7% | 131.31R | 0.899 | 5.15R | 7.31R | 17.96 | 31 | 12.9% | -14.96R | -0.483 | 14.96R |
 
 ## Theo khung (cấu hình tốt nhất)
 
@@ -32,7 +32,7 @@ Tìm thấy ở vòng 103 (Ghép: Khoảng cách tối thiểu TP1 (ATR) → 1 +
 
 | | Lệnh 2023–2025 | Tỷ lệ thắng | Tổng R | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | Lệnh 2026 | Tỷ lệ thắng | Tổng R 2026 |
 |---|---|---|---|---|---|---|---|---|
-| Bot thật | 163 | 47.2% | 106.13R | 9.51R | 11.16 | 34 | 11.8% | -16.07R |
+| Bot thật | 163 | 47.2% | 106.13R | 9.56R | 11.10 | 34 | 11.8% | -16.07R |
 | **Đề xuất** | 184 | 50% | 153.67R | 7.84R | 19.60 | 34 | 11.8% | -16.2R |
 
 | Thông số | Bot thật | Đề xuất |
@@ -108,6 +108,23 @@ Tìm thấy ở vòng 103 (Ghép: Khoảng cách tối thiểu TP1 (ATR) → 1 +
 | 19 (hoàn tác) | Ngưỡng điểm 'vào ngay' (tín hiệu mạnh) | 6 → 5 | 104.08R | 43.9% | 13.85R | 7.51 |
 
 ## 10 vòng gần nhất
+
+### Vòng 136 — ghép cặp thay đổi suýt đạt · mốc: tổng 131.31R, win 52.7%, rủi ro tụt vốn 7.31R, lời÷rủi ro 17.96
+
+| Phương án | Tổng R | Tỷ lệ thắng | R/lệnh | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
+|---|---|---|---|---|---|---|---|---|---|
+| Ghép: Điểm vùng: Mức RSI 30/70 → 1.13 + Điểm vùng: POC volume profile cố định → 0.688 | 131.31 | 52.7% | 0.899 | 7.31 | 17.96 | 0.777 | 1.043 | -14.96 |  |
+| Ghép: Điểm vùng: Mức RSI 30/70 → 1.13 + Điểm vùng: POC volume profile cố định → 0.813 | 131.31 | 52.7% | 0.899 | 7.31 | 17.96 | 0.777 | 1.043 | -13.94 |  |
+| Ghép: Điểm vùng: Mức RSI 30/70 → 1.13 + Điểm vùng: HVN anchored → 0.125 | 131.31 | 52.7% | 0.899 | 7.31 | 17.96 | 0.777 | 1.043 | -15.54 |  |
+| Ghép: Điểm vùng: Mức RSI 30/70 → 1.13 + Điểm vùng: Hỗ trợ cũ bị phá (thành kháng cự) → 1.13 | 131.31 | 52.7% | 0.899 | 7.31 | 17.96 | 0.777 | 1.043 | -14.96 |  |
+| Ghép: Điểm vùng: Mức RSI 30/70 → 1.13 + Điểm vùng: MACD cắt lên Signal → 0.563 | 131.31 | 52.7% | 0.899 | 7.31 | 17.96 | 0.777 | 1.043 | -14.96 |  |
+| Ghép: Điểm vùng: Mức RSI 30/70 → 1.13 + Khoảng cách tối thiểu TP1 (ATR) → 0.875 | 141.33 | 52% | 0.817 | 7.98 | 17.71 | 0.639 | 1.015 | -15.18 |  |
+| Ghép: Điểm vùng: Mức RSI 30/70 → 1.13 + Điểm vùng: Hỗ trợ cũ bị phá (thành kháng cự) → 0.75 | 131.32 | 52.7% | 0.899 | 7.26 | 18.09 | 0.777 | 1.043 | -14.96 |  |
+| Ghép: Điểm vùng: Mức RSI 30/70 → 1.13 + Trần điểm khi chart yếu (Trend < x) → -0.375 | 131.31 | 52.7% | 0.899 | 7.31 | 17.96 | 0.777 | 1.043 | -14.96 |  |
+| Ghép: Điểm vùng: Mức RSI 30/70 → 1.13 + Trần điểm khi chart yếu (Trend < x) → -0.225 | 131.31 | 52.7% | 0.899 | 7.31 | 17.96 | 0.777 | 1.043 | -14.96 |  |
+| Ghép: Điểm vùng: POC volume profile cố định → 0.688 + Điểm vùng: HVN anchored → 0.125 | 131.31 | 52.7% | 0.899 | 7.31 | 17.96 | 0.777 | 1.043 | -15.54 |  |
+| Ghép: Điểm vùng: POC volume profile cố định → 0.688 + Điểm vùng: Hỗ trợ cũ bị phá (thành kháng cự) → 1.13 | 131.31 | 52.7% | 0.899 | 7.31 | 17.96 | 0.777 | 1.043 | -14.96 |  |
+| Ghép: Điểm vùng: POC volume profile cố định → 0.688 + Điểm vùng: MACD cắt lên Signal → 0.563 | 131.31 | 52.7% | 0.899 | 7.31 | 17.96 | 0.777 | 1.043 | -14.96 |  |
 
 ### Vòng 135 — tinh chỉnh giá trị giữa · mốc: tổng 131.31R, win 52.7%, rủi ro tụt vốn 7.23R, lời÷rủi ro 18.16
 
@@ -251,20 +268,3 @@ Tìm thấy ở vòng 103 (Ghép: Khoảng cách tối thiểu TP1 (ATR) → 1 +
 | % chốt ở TP1: 0.3 → 0.307 | 126.51 | 52.4% | 0.872 | 7.52 | 16.82 | 0.777 | 0.986 | -14.97 |  |
 | Khoảng cách tối thiểu TP1 (ATR): 0.75 → 0.688 | 123.91 | 49.6% | 0.891 | 8.06 | 15.37 | 0.731 | 1.085 | -13.2 |  |
 | Khoảng cách tối thiểu TP1 (ATR): 0.75 → 0.813 | 126.81 | 50.3% | 0.818 | 8.26 | 15.35 | 0.754 | 0.894 | -15.35 |  |
-
-### Vòng 126 — từng thông số · mốc: tổng 126.54R, win 52.4%, rủi ro tụt vốn 7.5R, lời÷rủi ro 16.87
-
-| Phương án | Tổng R | Tỷ lệ thắng | R/lệnh | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
-|---|---|---|---|---|---|---|---|---|---|
-| Ngưỡng điểm 'vào ngay' (tín hiệu mạnh): 6 → 5 | 89.83 | 45.9% | 0.607 | 9.7 | 9.26 | 0.488 | 0.759 | -12.22 |  |
-| Ngưỡng điểm 'vào ngay' (tín hiệu mạnh): 6 → 7 | 101.2 | 51% | 0.698 | 8.41 | 12.03 | 0.639 | 0.767 | -14.14 |  |
-| SL tối đa (% Entry): 0.387 → 0.35 | 124.94 | 52.1% | 0.868 | 7.62 | 16.4 | 0.767 | 0.987 | -14.96 |  |
-| SL tối đa (% Entry): 0.387 → 0.425 | 126.26 | 52.1% | 0.877 | 7.4 | 17.06 | 0.784 | 0.987 | -14.96 |  |
-| Đệm SL dưới vùng hỗ trợ (ATR): 1 → 0.95 | 125.9 | 50.3% | 0.834 | 7.9 | 15.94 | 0.671 | 1.027 | -14.85 |  |
-| Đệm SL dưới vùng hỗ trợ (ATR): 1 → 1.05 | 107.23 | 49.6% | 0.783 | 7.91 | 13.56 | 0.628 | 0.964 | -16.78 |  |
-| R:R tối thiểu riêng khung 4H: null → 2 | 133.69 | 42.3% | 0.419 | 12.19 | 10.97 | 0.461 | 0.384 | -9.66 |  |
-| Đệm SL riêng khung 4H (ATR): null → 0.3 | 178.8 | 39.5% | 0.588 | 17.14 | 10.43 | 0.475 | 0.708 | -14.03 |  |
-| Cộng thêm ngưỡng điểm khung 4H: 0 → -1 | 126.54 | 52.4% | 0.873 | 7.5 | 16.87 | 0.777 | 0.987 | -14.96 |  |
-| Cộng thêm ngưỡng điểm khung 4H: 0 → 2 | 115.48 | 52.1% | 0.802 | 7.55 | 15.3 | 0.664 | 0.965 | -14.96 |  |
-| R:R tối thiểu riêng khung 1D: null → 2 | 105.53 | 46.5% | 0.621 | 9.17 | 11.51 | 0.573 | 0.668 | -11.73 |  |
-| Đệm SL riêng khung 1D (ATR): null → 0.3 | 101.61 | 46% | 0.631 | 10.68 | 9.51 | 0.571 | 0.689 | -14.58 |  |
