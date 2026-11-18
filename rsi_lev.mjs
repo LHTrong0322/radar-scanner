@@ -8,8 +8,8 @@ import fs from "node:fs";
 let START = Date.UTC(2020, 0, 1);
 const ASSET = (process.env.ASSET || "btc").toLowerCase();   // btc | gold
 const FEE = 0.045 / 100, MM = 1 / 80, RSI_IN = 30, RSI_OUT = 70, N = 14;
-const LEGS = [{ w: .1, d: 0 }, { w: .2, d: .08 }, { w: .3, d: .16 }, { w: .4, d: .25 }];
-const SELLS = [{ w: .1, up: 0 }, { w: .2, up: .08 }, { w: .3, up: .16 }, { w: .4, up: .25 }];
+let LEGS = [{ w: .1, d: 0 }, { w: .2, d: .08 }, { w: .3, d: .16 }, { w: .4, d: .25 }];
+let SELLS = [{ w: .1, up: 0 }, { w: .2, up: .08 }, { w: .3, up: .16 }, { w: .4, up: .25 }];
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 async function getJ(url) {
   for (let k = 0; k < 4; k++) {
@@ -91,7 +91,7 @@ function run(D, lev, fund, mode) {
       C.sell.legs[0].done = true; close(C, .1, d.c);
     }
   }
-  function open(C, L, px, lev) { const notional = L.w * C.E * lev, fee = notional * FEE; C.pos.push({ u: notional / px, e: px }); C.cash -= fee; C.fees += fee; }
+  function open(C, L, px, lev) { const notional = L.w * C.E * lev, fee = notional * FEE; C.pos.push({ u: notional / px, e: px }); C.cash -= fee; C.fees += fee; C.used = (C.used || 0) + L.w; }
   function close(C, w, px) {          // bán w × số BTC lúc bắt đầu bán, chia đều theo tỷ lệ các phần còn sống
     const uAll = C.pos.reduce((a, p) => a + p.u, 0); if (uAll <= 0) return;
     let q = Math.min(uAll, w * C.sell.u0); const k = q / uAll;
@@ -100,7 +100,7 @@ function run(D, lev, fund, mode) {
   function finish(C, d, i) {
     for (const p of C.pos) if (p.u > 0) { C.cash += p.u * (d.c - p.e) - p.u * d.c * FEE; p.u = 0; }
     const ret = C.cash / C.E - 1; eq = Math.max(0, C.cash);
-    cycles.push({ start: C.start, end: d.t, days: Math.round((d.t - C.start) / 864e5), p0: C.p0, ret, minEq: C.minEq / C.E - 1, liq: C.liq, cut45: !!C.cut45, funding: C.funding / C.E, legs: C.legs.filter(L => L.px != null).length });
+    cycles.push({ start: C.start, end: d.t, days: Math.round((d.t - C.start) / 864e5), p0: C.p0, ret, minEq: C.minEq / C.E - 1, liq: C.liq, cut45: !!C.cut45, funding: C.funding / C.E, used: C.used || 0, legs: C.legs.filter(L => L.px != null).length });
     peak = Math.max(peak, eq); cyc = null;
   }
   let openC = null;
@@ -135,6 +135,18 @@ async function main() {
       const m = new Map(b.cycles.map(c => [c.start, c]));
       a.cycles.forEach(c => { const e = m.get(c.start); L.push(`| ${fmtD(c.start)} | ${fmtD(c.end)} | ${c.days} | ${pct(c.ret)} | ${pct(c.minEq)} | ${e ? pct(e.ret) : "–"} | ${e ? pct(e.minEq) : "–"} | ${e ? pct(-e.funding) : "–"} | ${e ? (e.liq ? "⚠️ " + e.liq + " phần" : "không") : "– (lệch chu kỳ)"} |`); });
       if (b.open) L.push(`| ${fmtD(b.open.start)} | đang mở | | | | ${pct(b.open.ret)} (tạm) | ${pct(b.open.minEq)} | | ${b.open.liq ? "⚠️" : "không"} |`);
+    }
+    if (ASSET === "gold") {   // thu hẹp nấc mua / bán theo độ biến động của vàng (vàng biến động ~1/3–1/4 BTC)
+      const L0 = LEGS, S0 = SELLS;
+      L.push("", "### 🔧 Thu hẹp nấc mua / bán cho vàng (long perp isolated từng phần)", "", "Hệ số k: nấc mua = k × (0/−8/−16/−25%), nấc chốt = k × (+8/+16/+25%). RSI vào/ra giữ nguyên (<30 vào, ≥70 bán dần, <45 cắt).", "",
+        "| k | Nấc mua | Nấc chốt | Đòn bẩy | Funding/năm | Chu kỳ | Thắng | Vốn dùng TB | Lời TB/chu kỳ | Chu kỳ tệ nhất | Vốn âm sâu nhất | Thanh lý | Tăng trưởng | %/năm | Sụt vốn lớn nhất |", "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|");
+      for (const k of [1, .5, 1 / 3, .25]) for (const lev of [2, 3]) for (const fund of [.11, .25]) {
+        LEGS = L0.map(x => ({ w: x.w, d: x.d * k })); SELLS = S0.map(x => ({ w: x.w, up: x.up * k }));
+        const r = run(D, lev, fund, "iso"), C = r.cycles, n = C.length; if (!n) continue;
+        const win = C.filter(c => c.ret > 0).length, avg = C.reduce((a, c) => a + c.ret, 0) / n, used = C.reduce((a, c) => a + c.used, 0) / n;
+        L.push(`| ${k === 1 ? "1 (như BTC)" : k === .5 ? "½" : k < .3 ? "¼" : "⅓"} | ${LEGS.map(x => "−" + (x.d * 100).toFixed(1)).join("/")}% | ${SELLS.slice(1).map(x => "+" + (x.up * 100).toFixed(1)).join("/")}% | x${lev} | ${fund * 100}% | ${n} | ${win}/${n} | ${(used * 100).toFixed(0)}% | ${pct(avg)} | ${pct(Math.min(...C.map(c => c.ret)))} | ${pct(Math.min(...C.map(c => c.minEq)))} | ${C.reduce((a, c) => a + c.liq, 0)} | ${pct(r.eq - 1)} | ${((Math.pow(Math.max(r.eq, 1e-9), 1 / years) - 1) * 100).toFixed(1)}% | ${(r.dd * 100).toFixed(1)}% |`);
+      }
+      LEGS = L0; SELLS = S0;
     }
     L.push("");
   }
