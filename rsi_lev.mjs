@@ -5,7 +5,8 @@
 //               "chung 1 ví" (toàn bộ vốn chiến lược làm ký quỹ chung — giống cross, cháy là mất hết vốn chiến lược).
 import fs from "node:fs";
 
-const START = Date.UTC(2020, 0, 1);
+let START = Date.UTC(2020, 0, 1);
+const ASSET = (process.env.ASSET || "btc").toLowerCase();   // btc | gold
 const FEE = 0.045 / 100, MM = 1 / 80, RSI_IN = 30, RSI_OUT = 70, N = 14;
 const LEGS = [{ w: .1, d: 0 }, { w: .2, d: .08 }, { w: .3, d: .16 }, { w: .4, d: .25 }];
 const SELLS = [{ w: .1, up: 0 }, { w: .2, up: .08 }, { w: .3, up: .16 }, { w: .4, up: .25 }];
@@ -110,9 +111,14 @@ function run(D, lev, fund, mode) {
 const fmtD = t => new Date(t).toISOString().slice(0, 10), pct = x => (x >= 0 ? "+" : "") + (x * 100).toFixed(1) + "%";
 async function main() {
   const sets = [], warn = [];
-  try { sets.push(["Binance BTC/USDT (từ 01/2020)", await binanceDaily()]); } catch (e) { warn.push("Binance: " + e.message); }
-  const L = ["# RSI BTC khung D — long perp có đòn bẩy", "", `Luật giữ nguyên (mua kim tự tháp 10/20/30/40% ở 0/−8/−16/−25%, bán dần + retest 70 + cắt RSI<45). Phí taker ${FEE * 100}%/chiều, ký quỹ bảo trì ${MM * 100}%, funding trả mỗi ngày. Ngày tạo ${fmtD(Date.now())}.`, ""];
-  for (const [name, D] of sets) {
+  if (ASSET === "gold") {
+    const { stockCandles, candles } = await import("./data.mjs");
+    try { sets.push(["Vàng hợp đồng tương lai GC=F (Yahoo, từ 01/2016)", (await stockCandles("GC=F", "1d")).filter(x => x.t + 864e5 <= Date.now()), Date.UTC(2016, 0, 1)]); } catch (e) { warn.push("Yahoo GC=F: " + e.message); }
+    try { sets.push(["Vàng token PAXG/USDT (giao dịch 24/7, từ 01/2020)", (await candles("PAXG", "1d", Date.UTC(2019, 8, 1))).filter(x => x.t + 864e5 <= Date.now()), Date.UTC(2020, 0, 1)]); } catch (e) { warn.push("PAXG: " + e.message); }
+  } else try { sets.push(["Binance BTC/USDT (từ 01/2020)", await binanceDaily()]); } catch (e) { warn.push("Binance: " + e.message); }
+  const L = [ASSET === "gold" ? "# Chiến lược RSI BTC khung D áp cho VÀNG — long perp có đòn bẩy" : "# RSI BTC khung D — long perp có đòn bẩy", "", `Luật giữ nguyên (mua kim tự tháp 10/20/30/40% ở 0/−8/−16/−25%, bán dần + retest 70 + cắt RSI<45). Phí taker ${FEE * 100}%/chiều, ký quỹ bảo trì ${MM * 100}%, funding trả mỗi ngày. Ngày tạo ${fmtD(Date.now())}.`, ""];
+  for (const [name, D, st] of sets) {
+    if (st) START = st;
     if (D.length < 1000) { warn.push(name + ": quá ít nến"); continue; }
     const years = (D.at(-1).t - START) / (365 * 864e5);
     L.push(`## ${name}`, "", "| Đòn bẩy | Ký quỹ | Funding/năm | Chu kỳ | Thắng | Lời TB/chu kỳ | Chu kỳ tệ nhất | Vốn âm sâu nhất trong chu kỳ | Số lần bị thanh lý | Tăng trưởng | %/năm | Sụt vốn lớn nhất |", "|---|---|---|---|---|---|---|---|---|---|---|---|");
@@ -137,6 +143,6 @@ async function main() {
     "- Funding thật thay đổi theo thị trường; 11%/năm ≈ mức nền Hyperliquid (0.01%/giờ×… quy đổi), 25%/năm là kịch bản thị trường hưng phấn.",
     "- Thanh lý kiểm tra bằng đáy nến D, chưa tính râu nến phút trượt sâu hơn trên sàn perp → kết quả thật có thể tệ hơn một chút.");
   fs.mkdirSync("backtests", { recursive: true });
-  const f = `backtests/${fmtD(Date.now())}-rsi-btc-x2.md`; fs.writeFileSync(f, L.join("\n")); console.log(L.join("\n")); console.log("→", f);
+  const f = `backtests/${fmtD(Date.now())}-rsi-${ASSET === "gold" ? "vang" : "btc"}-x2.md`; fs.writeFileSync(f, L.join("\n")); console.log(L.join("\n")); console.log("→", f);
 }
 main();

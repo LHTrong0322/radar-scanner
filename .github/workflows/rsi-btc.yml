@@ -7,6 +7,9 @@ on:
       script:
         description: "rsi_btc.mjs hoặc rsi_lev.mjs"
         default: rsi_btc.mjs
+      asset:
+        description: "btc hoặc gold"
+        default: btc
 
 permissions:
   contents: write
@@ -20,6 +23,8 @@ jobs:
         with:
           node-version: 20
       - run: node ${{ inputs.script || 'rsi_btc.mjs' }}
+        env:
+          ASSET: ${{ inputs.asset || 'btc' }}
       - name: Lưu kết quả
         run: |
           git config user.name "radar-backtest"
