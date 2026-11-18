@@ -1,4 +1,4 @@
-# Tối ưu tự động (chạy liên tục) — vòng 688
+# Tối ưu tự động (chạy liên tục) — vòng 689
 
 Bot thật KHÔNG bị thay đổi cho tới khi Trọng duyệt. Backtest mọi nến 4H/1D/1W trong từ 01/2023 tới nay, có phí + funding, không tính BTC (BTC dành cho chiến lược RSI).
 
@@ -7,7 +7,7 @@ Chỉ chọn thông số trên **01/2023 → 12/2025** (Trọng chốt). **năm 
 Nhận thay đổi khi: Lời ÷ rủi ro tăng ít nhất 3%, tổng R không giảm quá 3%, win rate không giảm quá 0.5 điểm, rủi ro tụt vốn (95%) không tăng quá 5%, không xấu đi ở cả 2 nửa 2023–2025 (01/2023–06/2024 và 07/2024–12/2025), số lệnh không giảm quá 30%.
 ⚠️ Các thay đổi Trọng duyệt trước 11/11/2026 21:30 đã được chọn khi nhìn toàn bộ dữ liệu, kể cả giai đoạn kiểm tra kín → với chúng, phần kiểm tra kín không còn kín hoàn toàn.
 
-Chế độ dò hiện tại: **ngẫu nhiên nhiều thông số** · đã thử 7911 phương án.
+Chế độ dò hiện tại: **ngẫu nhiên nhiều thông số** · đã thử 7923 phương án.
 
 ## Bot thật so với cấu hình tốt nhất
 
@@ -15,8 +15,8 @@ Trọng chốt (12/11): ưu tiên 2023–2025. Cấu hình mới được đề 
 
 | | Lệnh 2023–2025 | Tỷ lệ thắng | Tổng R | R/lệnh | Tụt vốn lớn nhất (thực tế) | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | Lệnh 2026 (kín) | Tỷ lệ thắng | Tổng R | R/lệnh | Tụt vốn |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Bot thật | 162 | 46.3% | 93.53R | 0.577 | 5.74R | 10.03R | 9.33 | 32 | 12.5% | -14.03R | -0.438 | 14.03R |
-| **Tốt nhất** | 144 | 53.5% | 118.38R | 0.822 | 5.09R | 7.26R | 16.31 | 28 | 17.9% | -9.66R | -0.345 | 10.28R |
+| Bot thật | 162 | 46.3% | 93.53R | 0.577 | 5.74R | 10.17R | 9.20 | 32 | 12.5% | -14.03R | -0.438 | 14.03R |
+| **Tốt nhất** | 144 | 53.5% | 118.38R | 0.822 | 5.09R | 7.3R | 16.22 | 28 | 17.9% | -9.66R | -0.345 | 10.28R |
 
 ## Theo khung (cấu hình tốt nhất)
 
@@ -32,7 +32,7 @@ Tìm thấy ở vòng 234 (Ngẫu nhiên: Điểm vùng: Đỉnh sóng 1 (sàn s
 
 | | Lệnh 2023–2025 | Tỷ lệ thắng | Tổng R | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | Lệnh 2026 | Tỷ lệ thắng | Tổng R 2026 |
 |---|---|---|---|---|---|---|---|---|
-| Bot thật | 162 | 46.3% | 93.53R | 10.03R | 9.33 | 32 | 12.5% | -14.03R |
+| Bot thật | 162 | 46.3% | 93.53R | 10.17R | 9.20 | 32 | 12.5% | -14.03R |
 | **Đề xuất** | 148 | 56.1% | 149.32R | 6.47R | 23.08 | 25 | 20% | -7.28R |
 
 | Thông số | Bot thật | Đề xuất |
@@ -119,6 +119,23 @@ Tìm thấy ở vòng 234 (Ngẫu nhiên: Điểm vùng: Đỉnh sóng 1 (sàn s
 | 19 (hoàn tác) | Ngưỡng điểm 'vào ngay' (tín hiệu mạnh) | 6 → 5 | 104.08R | 43.9% | 13.85R | 7.51 |
 
 ## 10 vòng gần nhất
+
+### Vòng 689 — ngẫu nhiên nhiều thông số · mốc: tổng 118.38R, win 53.5%, rủi ro tụt vốn 7.3R, lời÷rủi ro 16.22
+
+| Phương án | Tổng R | Tỷ lệ thắng | R/lệnh | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
+|---|---|---|---|---|---|---|---|---|---|
+| Ngẫu nhiên: % chốt ở TP1 → 0.307 + SL tối đa (% Entry) → 0.425 + Số TP tối đa → 2 + R:R tối thiểu riêng khung 1D → 2 | 107.3 | 46.2% | 0.627 | 9.1 | 11.79 | 0.608 | 0.646 | -7.94 |  |
+| Ngẫu nhiên: Sau TP1: SL bám giá cao nhất − N×R → 0.5 + Điểm vùng: Fib sóng 4 → 1.56 + Coin phải mạnh hơn BTC trong N ngày → 14 | 94.2 | 49.6% | 0.742 | 8.33 | 11.31 | 0.691 | 0.804 | -16.13 |  |
+| Ngẫu nhiên: Điểm vùng: EMA 200 → 3 + Bỏ kèo khi biến động > N lần bình thường → 1.5 + Trọng số phần R:R (/100) → 28 + Điểm vùng: Fib 0.618 sóng 2 → 2.19 | 68.74 | 45% | 0.631 | 9.22 | 7.46 | 0.395 | 0.879 | -6.45 |  |
+| Ngẫu nhiên: Lệnh chờ hết hạn sau (nến) → 8 + Trọng số phần Divergence (/100) → 9 + Ngưỡng điểm 'vào ngay' (tín hiệu mạnh) → 7 + Trọng số phần Elliott (/100) → 6 | 104.18 | 50.6% | 0.659 | 8.58 | 12.14 | 0.634 | 0.688 | -10.47 |  |
+| Ngẫu nhiên: Ngưỡng điểm vào kèo → 77 + Ngưỡng điểm 'vào ngay' (tín hiệu mạnh) → 5 + Điểm vùng: Đỉnh/đáy pivot Dow → 2.19 | 85.88 | 44.2% | 0.551 | 11.15 | 7.7 | 0.437 | 0.693 | -6.58 |  |
+| Ngẫu nhiên: Số TP tối đa → 2 + Trọng số phần Entry (/100) → 28 | 118.49 | 52.7% | 0.812 | 7.43 | 15.95 | 0.629 | 1.021 | -9.66 |  |
+| Ngẫu nhiên: Điểm vùng: Fib sóng 4 → 0.938 + Thoát lệnh ì sau N nến chưa tới TP1 → 3 + Điểm vùng: Mức sai Elliott (cho SL) → 3 | 28.01 | 58.8% | 0.183 | 5.75 | 4.87 | 0.211 | 0.158 | -10.55 |  |
+| Ngẫu nhiên: SL tối đa (% Entry) → 0.425 + % chốt ở TP1 → 0.287 + Đệm SL riêng khung 4H (ATR) → 0.3 + Đệm SL riêng khung 1W (ATR) → 0.3 | 130.22 | 38.1% | 0.486 | 19.23 | 6.77 | 0.28 | 0.674 | -12.09 |  |
+| Ngẫu nhiên: R:R tối thiểu riêng khung 1W → 2 + Trọng số phần Trend (/100) → 19 | 109.67 | 51.7% | 0.746 | 7.83 | 14.01 | 0.648 | 0.843 | -10.7 |  |
+| Ngẫu nhiên: Đệm SL riêng khung 1W (ATR) → 0.3 + Điểm ADX < 13 cạn lực giảm (Momentum) → 2.44 | 96.6 | 47.8% | 0.721 | 9.13 | 10.58 | 0.436 | 0.974 | -10.7 |  |
+| Ngẫu nhiên: Cộng thêm ngưỡng điểm khung 1D → 5 + Điểm vùng: BOS → 1 + R:R tối thiểu riêng khung 4H → 2 | 116.7 | 41.9% | 0.373 | 12.24 | 9.53 | 0.322 | 0.414 | -10.29 |  |
+| Ngẫu nhiên: R:R tối thiểu riêng khung 4H → 2 + Trọng số phần Divergence (/100) → 9 | 110.98 | 41.2% | 0.355 | 12.62 | 8.79 | 0.322 | 0.381 | -10.29 |  |
 
 ### Vòng 688 — ngẫu nhiên nhiều thông số · mốc: tổng 118.38R, win 53.5%, rủi ro tụt vốn 7.26R, lời÷rủi ro 16.31
 
@@ -272,20 +289,3 @@ Tìm thấy ở vòng 234 (Ngẫu nhiên: Điểm vùng: Đỉnh sóng 1 (sàn s
 | Ngẫu nhiên: Điểm vùng: EMA 50 → 0.75 + Trọng số phần Elliott (/100) → 6 + R:R tối thiểu riêng khung 1W → 2 + Điểm vùng: HVN cố định → 0.563 | 106.48 | 51.7% | 0.724 | 7.93 | 13.43 | 0.606 | 0.838 | -10.7 |  |
 | Ngẫu nhiên: Cộng điểm phân kỳ dương ẩn → 2.25 + Trọng số phần Trend (/100) → 19 + Điểm vùng: Fib 0.5 / 0.382 sóng 2 → 2 | 116.91 | 52.7% | 0.801 | 7.82 | 14.95 | 0.635 | 0.986 | -11.06 |  |
 | Ngẫu nhiên: Trọng số phần SL (/100) → 9 + Điểm vùng: EMA 200 → 1 + Điểm vùng: Fib 0.618 sóng 2 → 2.19 | 117.2 | 51.6% | 0.756 | 8.28 | 14.15 | 0.625 | 0.919 | -4.67 |  |
-
-### Vòng 679 — ngẫu nhiên nhiều thông số · mốc: tổng 121.59R, win 53.8%, rủi ro tụt vốn 7.31R, lời÷rủi ro 16.63
-
-| Phương án | Tổng R | Tỷ lệ thắng | R/lệnh | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
-|---|---|---|---|---|---|---|---|---|---|
-| Ngẫu nhiên: Điểm vùng: Fib 0.5 / 0.382 sóng 2 → 4 + Sau TP1: SL bám giá cao nhất − N×R → 0.5 | 126.71 | 50.6% | 0.812 | 8.15 | 15.55 | 0.757 | 0.877 | -10.24 |  |
-| Ngẫu nhiên: Điểm vùng: Mức sai Elliott (cho SL) → 1 + Thoát lệnh ì sau N nến chưa tới TP1 → 3 + Điểm vùng: MACD cắt lên Signal → 0.563 + R:R tối thiểu riêng khung 1D → 2 | 29.75 | 55.9% | 0.158 | 6.55 | 4.54 | 0.157 | 0.16 | -11.3 |  |
-| Ngẫu nhiên: Điểm vùng: BOS → 1 + Cộng thêm ngưỡng điểm khung 1D → 3 + Cộng thêm ngưỡng điểm khung 1W → -1 | 120.47 | 53.1% | 0.82 | 7.37 | 16.35 | 0.618 | 1.047 | -9.66 |  |
-| Ngẫu nhiên: Trọng số phần Divergence (/100) → 12 + Điểm vùng: Biên mây Ichimoku → 1.05 + Trọng số phần Trend (/100) → 12 | 109.35 | 51.7% | 0.754 | 7.74 | 14.13 | 0.594 | 0.926 | -11.78 |  |
-| Ngẫu nhiên: Điểm vùng: Kháng cự cũ bị phá → 1.31 + SL tối đa (% Entry) → 0.425 + Điểm vùng: Đỉnh/đáy swing lớn → 3 + Điểm vùng: Break mây Ichimoku → 1 | 30.52 | 40.5% | 0.363 | 10.37 | 2.94 | 0.347 | 0.386 | -8.22 |  |
-| Ngẫu nhiên: Cộng thêm ngưỡng điểm khung 1D → 5 + Điểm vùng: EMA 200 → 1 | 114.12 | 51.3% | 0.732 | 8.39 | 13.6 | 0.573 | 0.937 | -4.67 |  |
-| Ngẫu nhiên: Điểm vùng: Đỉnh/đáy pivot Dow → 2.81 + Điểm vùng: Break mây Ichimoku → 3 | 108.82 | 49.1% | 0.66 | 9.51 | 11.44 | 0.534 | 0.8 | -9.4 |  |
-| Ngẫu nhiên: Điểm vùng: POC volume profile cố định → 0.813 + Đệm SL dưới vùng hỗ trợ (ATR) → 0.95 + Điểm vùng: Mức sai Elliott (cho SL) → 1 + Cộng thêm ngưỡng điểm khung 1D → 3 | 111.91 | 50% | 0.756 | 8.41 | 13.31 | 0.485 | 1.042 | -9.49 |  |
-| Ngẫu nhiên: Điểm vùng: POC volume profile cố định → 0.688 + Điểm vùng: POC anchored → 4 | 122.09 | 53% | 0.819 | 7.54 | 16.19 | 0.617 | 1.024 | -4.76 |  |
-| Ngẫu nhiên: Trần điểm khi chart yếu (Trend < x) → -0.225 + Cộng thêm ngưỡng điểm khung 1W → -1 | 121.59 | 53.8% | 0.839 | 7.31 | 16.63 | 0.635 | 1.069 | -9.66 |  |
-| Ngẫu nhiên: Lọc BTC: giá trên EMA bao nhiêu ngày → 138 + Điểm vùng: EMA 200 → 1 | 113.87 | 51% | 0.725 | 8.65 | 13.16 | 0.582 | 0.904 | -3.35 |  |
-| Ngẫu nhiên: Ngưỡng điểm 'vào ngay' (tín hiệu mạnh) → 5 + Điểm vùng: EMA 200 → 3 + Điểm vùng: EMA 50 → 1.13 | 89.92 | 45.2% | 0.616 | 9.5 | 9.47 | 0.421 | 0.852 | -9.12 |  |
