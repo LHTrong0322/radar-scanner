@@ -1,4 +1,4 @@
-# Tối ưu tự động (chạy liên tục) — vòng 1097
+# Tối ưu tự động (chạy liên tục) — vòng 1098
 
 Bot thật KHÔNG bị thay đổi cho tới khi Trọng duyệt. Backtest mọi nến 4H/1D/1W trong từ 01/2023 tới nay, có phí + funding, không tính BTC (BTC dành cho chiến lược RSI).
 
@@ -7,7 +7,7 @@ Chỉ chọn thông số trên **01/2023 → 12/2025** (Trọng chốt). **năm 
 Nhận thay đổi khi: Lời ÷ rủi ro tăng ít nhất 3%, tổng R không giảm quá 3%, win rate không giảm quá 0.5 điểm, rủi ro tụt vốn (95%) không tăng quá 5%, không xấu đi ở cả 2 nửa 2023–2025 (01/2023–06/2024 và 07/2024–12/2025), số lệnh không giảm quá 30%.
 ⚠️ Các thay đổi Trọng duyệt trước 11/11/2026 21:30 đã được chọn khi nhìn toàn bộ dữ liệu, kể cả giai đoạn kiểm tra kín → với chúng, phần kiểm tra kín không còn kín hoàn toàn.
 
-Chế độ dò hiện tại: **từng thông số** · đã thử 12799 phương án.
+Chế độ dò hiện tại: **từng thông số** · đã thử 12811 phương án.
 
 ## Bot thật so với cấu hình tốt nhất
 
@@ -15,8 +15,8 @@ Trọng chốt (12/11): ưu tiên 2023–2025. Cấu hình mới được đề 
 
 | | Lệnh 2023–2025 | Tỷ lệ thắng | Tổng R | R/lệnh | Tụt vốn lớn nhất (thực tế) | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | Lệnh 2026 (kín) | Tỷ lệ thắng | Tổng R | R/lệnh | Tụt vốn |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Bot thật | 167 | 46.7% | 96.66R | 0.579 | 6.44R | 10.15R | 9.52 | 30 | 13.3% | -11.98R | -0.399 | 11.98R |
-| **Tốt nhất** | 144 | 52.8% | 119.77R | 0.832 | 5.15R | 7.33R | 16.34 | 28 | 14.3% | -12.16R | -0.434 | 12.44R |
+| Bot thật | 167 | 46.7% | 96.66R | 0.579 | 6.44R | 10.07R | 9.60 | 30 | 13.3% | -11.98R | -0.399 | 11.98R |
+| **Tốt nhất** | 144 | 52.8% | 119.77R | 0.832 | 5.15R | 7.36R | 16.27 | 28 | 14.3% | -12.16R | -0.434 | 12.44R |
 
 ## Theo khung (cấu hình tốt nhất)
 
@@ -32,7 +32,7 @@ Tìm thấy ở vòng 234 (Ngẫu nhiên: Điểm vùng: Đỉnh sóng 1 (sàn s
 
 | | Lệnh 2023–2025 | Tỷ lệ thắng | Tổng R | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | Lệnh 2026 | Tỷ lệ thắng | Tổng R 2026 |
 |---|---|---|---|---|---|---|---|---|
-| Bot thật | 167 | 46.7% | 96.66R | 10.15R | 9.52 | 30 | 13.3% | -11.98R |
+| Bot thật | 167 | 46.7% | 96.66R | 10.07R | 9.60 | 30 | 13.3% | -11.98R |
 | **Đề xuất** | 148 | 56.1% | 149.32R | 6.47R | 23.08 | 25 | 20% | -7.28R |
 
 | Thông số | Bot thật | Đề xuất |
@@ -123,6 +123,23 @@ Tìm thấy ở vòng 234 (Ngẫu nhiên: Điểm vùng: Đỉnh sóng 1 (sàn s
 | 22 | Điểm ADX > 25 và +DI trội (Momentum) | 2 → 3 | 82.86R | 40.3% | 14.81R | 5.59 |
 
 ## 10 vòng gần nhất
+
+### Vòng 1098 — từng thông số · mốc: tổng 119.77R, win 52.8%, rủi ro tụt vốn 7.36R, lời÷rủi ro 16.27
+
+| Phương án | Tổng R | Tỷ lệ thắng | R/lệnh | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
+|---|---|---|---|---|---|---|---|---|---|
+| Điểm vùng: EMA 50: 0.94 → 0.75 | 116.3 | 52.4% | 0.813 | 7.77 | 14.97 | 0.636 | 1.003 | -12.16 |  |
+| Điểm vùng: EMA 50: 0.94 → 1.13 | 115.41 | 50.3% | 0.796 | 7.7 | 14.99 | 0.633 | 0.98 | -11.14 |  |
+| Điểm vùng: EMA 21: 1 → 0.875 | 118.38 | 51.4% | 0.811 | 7.58 | 15.62 | 0.676 | 0.958 | -10.87 |  |
+| Điểm vùng: EMA 21: 1 → 1.13 | 112.17 | 51% | 0.774 | 7.62 | 14.72 | 0.636 | 0.925 | -11.14 |  |
+| Điểm vùng: Break mây Ichimoku: 2 → 1 | 108.03 | 49.7% | 0.735 | 8.21 | 13.16 | 0.59 | 0.89 | -12.99 |  |
+| Điểm vùng: Break mây Ichimoku: 2 → 3 | 112.41 | 49.7% | 0.707 | 8.68 | 12.95 | 0.595 | 0.829 | -11.03 |  |
+| Điểm vùng: Kháng cự cũ bị phá: 1.5 → 1.31 | 119.06 | 52.4% | 0.821 | 7.65 | 15.56 | 0.654 | 1.011 | -12.16 |  |
+| Điểm vùng: Kháng cự cũ bị phá: 1.5 → 1.69 | 116.54 | 52.1% | 0.832 | 7.48 | 15.58 | 0.659 | 1.022 | -12.16 |  |
+| Điểm vùng: Fib 0.618 sóng 2: 2.5 → 2.19 | 119.77 | 52.8% | 0.832 | 7.36 | 16.27 | 0.672 | 1.011 | -12.16 |  |
+| Điểm vùng: Fib 0.618 sóng 2: 2.5 → 2.81 | 119.77 | 52.8% | 0.832 | 7.36 | 16.27 | 0.672 | 1.011 | -12.16 |  |
+| Điểm vùng: Đỉnh sóng 1 (sàn sóng 4): 3.44 → 3.13 | 117.42 | 52.4% | 0.81 | 7.48 | 15.7 | 0.649 | 0.992 | -12.16 |  |
+| Điểm vùng: Đỉnh sóng 1 (sàn sóng 4): 3.44 → 3.75 | 114.79 | 52.4% | 0.781 | 7.69 | 14.93 | 0.628 | 0.954 | -12.16 |  |
 
 ### Vòng 1097 — từng thông số · mốc: tổng 119.77R, win 52.8%, rủi ro tụt vốn 7.33R, lời÷rủi ro 16.34
 
@@ -280,20 +297,3 @@ Nhận: Điểm vùng: BOS 2 → 1 · Điểm vùng: Fib 0.5 / 0.382 sóng 2 3 �
 | Ghép: Điểm vùng: POC volume profile cố định → 0.813 + Điểm vùng: BOS → 1 | 122.85 | 53.1% | 0.847 | 7.36 | 16.69 | 0.67 | 1.042 | -11.14 |  |
 | Ghép: Điểm vùng: POC volume profile cố định → 0.813 + Điểm vùng: BOS → 3 | 122.85 | 53.1% | 0.847 | 7.36 | 16.69 | 0.67 | 1.042 | -11.14 |  |
 | Ghép: Điểm vùng: HVN anchored → 0.125 + Điểm vùng: Hỗ trợ cũ bị phá (thành kháng cự) → 1.13 | 121.57 | 52.4% | 0.838 | 7.5 | 16.21 | 0.654 | 1.042 | -12.74 |  |
-
-### Vòng 1088 — ghép cặp thay đổi suýt đạt · mốc: tổng 119.68R, win 52.8%, rủi ro tụt vốn 7.41R, lời÷rủi ro 16.15
-
-| Phương án | Tổng R | Tỷ lệ thắng | R/lệnh | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
-|---|---|---|---|---|---|---|---|---|---|
-| Ghép: Điểm vùng: Mức RSI 30/70 → 1.13 + Điểm vùng: POC volume profile cố định → 0.688 | 119.68 | 52.8% | 0.831 | 7.41 | 16.15 | 0.67 | 1.011 | -12.16 |  |
-| Ghép: Điểm vùng: Mức RSI 30/70 → 1.13 + Điểm vùng: POC volume profile cố định → 0.813 | 119.68 | 52.8% | 0.831 | 7.41 | 16.15 | 0.67 | 1.011 | -11.14 |  |
-| Ghép: Điểm vùng: Mức RSI 30/70 → 1.13 + Điểm vùng: HVN anchored → 0.125 | 119.68 | 52.8% | 0.831 | 7.41 | 16.15 | 0.67 | 1.011 | -12.74 |  |
-| Ghép: Điểm vùng: Mức RSI 30/70 → 1.13 + Điểm vùng: Hỗ trợ cũ bị phá (thành kháng cự) → 1.13 | 118.4 | 52.1% | 0.822 | 7.67 | 15.44 | 0.654 | 1.011 | -12.16 |  |
-| Ghép: Điểm vùng: Mức RSI 30/70 → 1.13 + Điểm vùng: MACD cắt lên Signal → 0.563 | 119.68 | 52.8% | 0.831 | 7.41 | 16.15 | 0.67 | 1.011 | -12.16 |  |
-| Ghép: Điểm vùng: Mức RSI 30/70 → 1.13 + Khoảng cách tối thiểu TP1 (ATR) → 0.875 | 139.87 | 51.1% | 0.795 | 8.07 | 17.33 | 0.632 | 0.977 | -12.37 |  |
-| Ghép: Điểm vùng: Mức RSI 30/70 → 1.13 + Trần điểm khi chart yếu (Trend < x) → -0.225 | 119.68 | 52.8% | 0.831 | 7.41 | 16.15 | 0.67 | 1.011 | -12.16 |  |
-| Ghép: Điểm vùng: Mức RSI 30/70 → 1.13 + Điểm vùng: BOS → 1 | 119.68 | 52.8% | 0.831 | 7.41 | 16.15 | 0.67 | 1.011 | -12.16 |  |
-| Ghép: Điểm vùng: Mức RSI 30/70 → 1.13 + Điểm vùng: BOS → 3 | 119.68 | 52.8% | 0.831 | 7.41 | 16.15 | 0.67 | 1.011 | -12.16 |  |
-| Ghép: Điểm vùng: POC volume profile cố định → 0.688 + Điểm vùng: HVN anchored → 0.125 | 119.68 | 52.8% | 0.831 | 7.41 | 16.15 | 0.67 | 1.011 | -12.74 |  |
-| Ghép: Điểm vùng: POC volume profile cố định → 0.688 + Điểm vùng: Hỗ trợ cũ bị phá (thành kháng cự) → 1.13 | 118.4 | 52.1% | 0.822 | 7.67 | 15.44 | 0.654 | 1.011 | -12.16 |  |
-| Ghép: Điểm vùng: POC volume profile cố định → 0.688 + Điểm vùng: MACD cắt lên Signal → 0.563 | 119.68 | 52.8% | 0.831 | 7.41 | 16.15 | 0.67 | 1.011 | -12.16 |  |
