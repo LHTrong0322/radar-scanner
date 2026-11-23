@@ -1,4 +1,4 @@
-# Tối ưu tự động (chạy liên tục) — vòng 1287
+# Tối ưu tự động (chạy liên tục) — vòng 1288
 
 Bot thật KHÔNG bị thay đổi cho tới khi Trọng duyệt. Backtest mọi nến 4H/1D/1W trong từ 01/2023 tới nay, có phí + funding, không tính BTC (BTC dành cho chiến lược RSI).
 
@@ -7,7 +7,7 @@ Chỉ chọn thông số trên **01/2023 → 12/2025** (Trọng chốt). **năm 
 Nhận thay đổi khi: Lời ÷ rủi ro tăng ít nhất 3%, tổng R không giảm quá 3%, win rate không giảm quá 0.5 điểm, rủi ro tụt vốn (95%) không tăng quá 5%, không xấu đi ở cả 2 nửa 2023–2025 (01/2023–06/2024 và 07/2024–12/2025), số lệnh không giảm quá 30%.
 ⚠️ Các thay đổi Trọng duyệt trước 11/11/2026 21:30 đã được chọn khi nhìn toàn bộ dữ liệu, kể cả giai đoạn kiểm tra kín → với chúng, phần kiểm tra kín không còn kín hoàn toàn.
 
-Chế độ dò hiện tại: **ngẫu nhiên nhiều thông số** · đã thử 15068 phương án.
+Chế độ dò hiện tại: **ngẫu nhiên nhiều thông số** · đã thử 15080 phương án.
 
 ## Bot thật so với cấu hình tốt nhất
 
@@ -121,6 +121,23 @@ Tìm thấy ở vòng 234 (Ngẫu nhiên: Điểm vùng: Đỉnh sóng 1 (sàn s
 | 25 (hoàn tác) | Điểm vùng: POC anchored | 3 → 4 | 103.58R | 42.5% | 13.04R | 7.94 |
 
 ## 10 vòng gần nhất
+
+### Vòng 1288 — ngẫu nhiên nhiều thông số · mốc: tổng 117.44R, win 51.7%, rủi ro tụt vốn 7.62R, lời÷rủi ro 15.41
+
+| Phương án | Tổng R | Tỷ lệ thắng | R/lệnh | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
+|---|---|---|---|---|---|---|---|---|---|
+| Ngẫu nhiên: Điểm vùng: Đỉnh/đáy swing lớn → 1 + Điểm vùng: Đỉnh sóng 1 (sàn sóng 4) → 3.75 + Cộng thêm ngưỡng điểm khung 1W → 2 + Điểm vùng: Đỉnh/đáy pivot Dow → 2.81 | 132.64 | 44% | 0.567 | 10.83 | 12.25 | 0.639 | 0.494 | -16.25 |  |
+| Ngẫu nhiên: SL tối đa (% Entry) → 0.425 + Trọng số phần Momentum (/100) → 21 | 116.43 | 51.4% | 0.809 | 7.8 | 14.93 | 0.654 | 0.982 | -13.18 |  |
+| Ngẫu nhiên: SL tối đa (% Entry) → 0.425 + Ngưỡng điểm vào kèo → 77 + Điểm vùng: Break mây Ichimoku → 3 | 99.48 | 46.9% | 0.622 | 9.69 | 10.27 | 0.528 | 0.723 | -10.4 |  |
+| Ngẫu nhiên: Cộng thêm ngưỡng điểm khung 1D → 7 + Điểm vùng: Fib sóng 4 → 1.56 | 112.47 | 51% | 0.776 | 8.02 | 14.02 | 0.573 | 1.011 | -10.24 |  |
+| Ngẫu nhiên: Điểm vùng: Đỉnh sóng 1 (sàn sóng 4) → 3.75 + Điểm vùng: HVN cố định → 0.563 | 112.47 | 51.4% | 0.77 | 7.76 | 14.49 | 0.611 | 0.954 | -13.18 |  |
+| Ngẫu nhiên: Điểm vùng: EMA 50 → 1.13 + Ngưỡng điểm 'vào ngay' (tín hiệu mạnh) → 7 + Trọng số phần SL (/100) → 7 + Đệm SL riêng khung 1W (ATR) → 0.3 | 90.22 | 44.4% | 0.635 | 10.27 | 8.78 | 0.502 | 0.768 | -13.65 |  |
+| Ngẫu nhiên: Điểm vùng: Vùng RSI 45–55 → 0.875 + Đệm SL riêng khung 1D (ATR) → 0.3 + Điểm vùng: Đỉnh sóng 1 (sàn sóng 4) → 3.75 + Điểm tối thiểu vùng đặt lệnh chờ → 4 | 83.95 | 41.6% | 0.485 | 12.95 | 6.48 | 0.554 | 0.429 | -10.79 |  |
+| Ngẫu nhiên: Điểm vùng: Fib sóng 4 → 1.56 + R:R tối thiểu riêng khung 4H → 2 | 123.66 | 41.1% | 0.394 | 12.39 | 9.98 | 0.362 | 0.421 | -9.71 |  |
+| Ngẫu nhiên: R:R tối thiểu riêng khung 1W → 2 + Ngưỡng điểm 'vào ngay' (tín hiệu mạnh) → 5 + % chốt ở TP1 → 0.287 | 83.11 | 43.2% | 0.562 | 10.79 | 7.7 | 0.457 | 0.675 | -5.77 |  |
+| Ngẫu nhiên: Điểm vùng: Đỉnh/đáy swing lớn → 1 + Điểm ADX < 13 cạn lực giảm (Momentum) → 2.44 + Khung lớn phải tăng (trend ≥) → 0.375 + SL tối đa (% Entry) → 0.425 | 121.02 | 43.2% | 0.528 | 11.24 | 10.77 | 0.544 | 0.514 | -17.79 |  |
+| Ngẫu nhiên: Đệm SL riêng khung 1D (ATR) → 0.3 + SL tối đa (% Entry) → 0.425 + Điểm ADX > 25 và +DI trội (Momentum) → 3 + Khoảng cách tối thiểu TP1 (ATR) → 0.813 | 97.76 | 44% | 0.559 | 11.94 | 8.19 | 0.607 | 0.514 | -11.95 |  |
+| Ngẫu nhiên: Ngưỡng điểm vào kèo → 77 + Điểm vùng: Fib 0.618 sóng 2 → 2.19 + SL tối đa (% Entry) → 0.425 + Điểm vùng: Mức MACD → 0.875 | 99.82 | 49.3% | 0.703 | 8.56 | 11.66 | 0.602 | 0.81 | -10.65 |  |
 
 ### Vòng 1287 — ngẫu nhiên nhiều thông số · mốc: tổng 117.44R, win 51.7%, rủi ro tụt vốn 7.62R, lời÷rủi ro 15.41
 
@@ -264,20 +281,3 @@ Tìm thấy ở vòng 234 (Ngẫu nhiên: Điểm vùng: Đỉnh sóng 1 (sàn s
 | Điểm vùng: Fib 0.5 / 0.382 sóng 2: 3 → 4 | 114.27 | 50.7% | 0.794 | 7.96 | 14.36 | 0.604 | 1.011 | -13.18 |  |
 | Điểm vùng: Fib sóng 4: 1.25 → 0.938 | 113.54 | 50.7% | 0.8 | 7.97 | 14.25 | 0.61 | 1.011 | -13.18 |  |
 | Điểm vùng: Fib sóng 4: 1.25 → 1.56 | 115.39 | 51% | 0.796 | 7.86 | 14.68 | 0.611 | 1.011 | -13.18 |  |
-
-### Vòng 1278 — từng thông số · mốc: tổng 120.65R, win 52.1%, rủi ro tụt vốn 7.51R, lời÷rủi ro 16.07
-
-| Phương án | Tổng R | Tỷ lệ thắng | R/lệnh | Rủi ro tụt vốn (95%) | Lời ÷ rủi ro | R/lệnh 01/23–06/24 | R/lệnh 07/24–12/25 | Kiểm tra kín (R) | Nhận? |
-|---|---|---|---|---|---|---|---|---|---|
-| Điểm vùng: Mức RSI 30/70: 1 → 0.875 | 117.78 | 50% | 0.765 | 8.38 | 14.05 | 0.539 | 1.029 | -13.18 |  |
-| Điểm vùng: Mức RSI 30/70: 1 → 1.13 | 120.65 | 52.1% | 0.838 | 7.51 | 16.07 | 0.654 | 1.044 | -13.18 |  |
-| Điểm vùng: Mức MACD: 1 → 0.875 | 114.52 | 51.7% | 0.801 | 7.58 | 15.11 | 0.632 | 0.988 | -13.18 |  |
-| Điểm vùng: Mức MACD: 1 → 1.13 | 113.75 | 50% | 0.79 | 7.89 | 14.42 | 0.571 | 1.035 | -13.18 |  |
-| Điểm vùng: POC volume profile cố định: 0.75 → 0.688 | 120.65 | 52.1% | 0.838 | 7.51 | 16.07 | 0.654 | 1.044 | -13.18 |  |
-| Điểm vùng: POC volume profile cố định: 0.75 → 0.813 | 120.65 | 52.1% | 0.838 | 7.51 | 16.07 | 0.654 | 1.044 | -12.16 |  |
-| Điểm vùng: HVN anchored: 0.25 → 0.188 | 120.65 | 52.1% | 0.838 | 7.51 | 16.07 | 0.654 | 1.044 | -13.18 |  |
-| Điểm vùng: HVN anchored: 0.25 → 0.313 | 117.89 | 51% | 0.813 | 7.84 | 15.04 | 0.609 | 1.044 | -13.18 |  |
-| Điểm vùng: HVN cố định: 0.5 → 0.438 | 118.19 | 51% | 0.815 | 7.84 | 15.08 | 0.613 | 1.044 | -13.18 |  |
-| Điểm vùng: HVN cố định: 0.5 → 0.563 | 120.65 | 52.1% | 0.838 | 7.51 | 16.07 | 0.654 | 1.044 | -13.18 |  |
-| Điểm vùng: Vùng RSI 45–55: 1 → 0.875 | 104.32 | 46.7% | 0.686 | 8.92 | 11.7 | 0.602 | 0.771 | -12.16 |  |
-| Điểm vùng: Vùng RSI 45–55: 1 → 1.13 | 109.83 | 49.7% | 0.757 | 8.1 | 13.56 | 0.588 | 0.954 | -13.18 |  |
