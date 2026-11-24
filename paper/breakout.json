@@ -3,7 +3,7 @@
  "eq0": 100,
  "open": [],
  "closed": [],
- "lastDay": 1795305600000,
+ "lastDay": 1795392000000,
  "log": [
   {
    "t": 1794471398455,
@@ -62,6 +62,11 @@
   },
   {
    "t": 1795395462689,
+   "note": "BTC dưới EMA200 · Dow 1D giảm → chỉ xét cổ phiếu/hàng hoá",
+   "cands": []
+  },
+  {
+   "t": 1795489015940,
    "note": "BTC dưới EMA200 · Dow 1D giảm → chỉ xét cổ phiếu/hàng hoá",
    "cands": []
   }
